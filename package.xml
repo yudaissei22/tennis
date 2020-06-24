@@ -1,8 +1,8 @@
 <?xml version="1.0"?>
 <package>
-  <name>baseball</name>
+  <name>tennis</name>
   <version>0.0.0</version>
-  <description>The baseball package</description>
+  <description>The tennis package</description>
 
   <!-- One maintainer tag required, multiple allowed, one person per tag --> 
   <!-- Example:  -->
@@ -19,7 +19,7 @@
   <!-- Url tags are optional, but mutiple are allowed, one per tag -->
   <!-- Optional attribute type can be: website, bugtracker, or repository -->
   <!-- Example: -->
-  <!-- <url type="website">http://wiki.ros.org/baseball</url> -->
+  <!-- <url type="website">http://wiki.ros.org/tennis </url> -->
 
 
   <!-- Author tags are optional, mutiple are allowed, one per tag -->
@@ -42,32 +42,17 @@
   <buildtool_depend>catkin</buildtool_depend>
   <build_depend>roscpp</build_depend>
   <build_depend>rospy</build_depend>
-  <build_depend>sensor_msgs</build_depend>
-  <build_depend>std_msgs</build_depend>
-  <build_depend>geometry_msgs</build_depend>
   <build_depend>ball_state_msgs</build_depend>
-  <build_depend>cv_bridge</build_depend>
-  <build_depend>image_transport</build_depend>
-  <build_depend>dynamic_reconfigure</build_depend>
   <build_depend>cmake_modules</build_depend>
-  <build_depend>gsll</build_depend>
-  <build_depend>message_filters</build_depend>
   <build_depend>eus_nlopt</build_depend>
   <build_depend>eus_qpoases</build_depend>
   <build_depend>hrpsys_ros_bridge</build_depend>
 
   <run_depend>roscpp</run_depend>
   <run_depend>rospy</run_depend>
-  <run_depend>sensor_msgs</run_depend>
-  <run_depend>std_msgs</run_depend>
-  <run_depend>geometry_msgs</run_depend>
   <run_depend>ball_state_msgs</run_depend>
-  <run_depend>cv_bridge</run_depend>
-  <run_depend>image_transport</run_depend>
-  <run_depend>dynamic_reconfigure</run_depend>
   <run_depend>cmake_modules</run_depend>
   <run_depend>gsll</run_depend>
-  <run_depend>message_filters</run_depend>
   <run_depend>eus_nlopt</run_depend>
   <run_depend>eus_qpoases</run_depend>
   <run_depend>hrpsys_ros_bridge</run_depend>
