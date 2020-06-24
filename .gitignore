@@ -1,0 +1,3 @@
+euslisp/*.c
+euslisp/*.h
+euslisp/*.o

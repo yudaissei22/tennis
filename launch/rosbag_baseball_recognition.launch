@@ -1,0 +1,23 @@
+<launch>
+  <arg name="LAUNCH_RVIZ" default="false" />
+  <arg name="FPS" default="60.0" />
+
+  <!-- Stereo reconstruction with labeling -->
+  <include file="$(find baseball)/launch/stereo_ball_reconstruction.launch" >
+    <arg name="LAUNCH_BASEBALL_RVIZ" value="$(arg LAUNCH_RVIZ)" />
+    <arg name="LAUNCH_TENNIS_RVIZ" value="false" />
+    <arg name="CAMERA_NAMESPACE" value="/wide_stereo" />
+    <arg name="BASELINE_LENGTH" value="0.3198031834" />
+    <arg name="FOCAL_LENGTH" value="4102.126142" />
+    <arg name="PRINCIPAL_POINT_X" value="548.92025" />
+    <arg name="PRINCIPAL_POINT_Y" value="239.834766" />
+    <arg name="FPS" value="$(arg FPS)" />
+  </include>
+
+  <!-- UKF ball prediction -->
+  <include file="$(find baseball)/launch/ukf_ball_prediction.launch" >
+    <arg name="BASEBALL" value="true" />
+    <arg name="TENNIS" value="false" />
+  </include>
+
+</launch>

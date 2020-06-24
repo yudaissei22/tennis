@@ -1,0 +1,83 @@
+(defun fk
+  (&key
+   (dim (length (send *robot* :joint-list)))
+   (jvv (instantiate float-vector dim))
+   (jav (instantiate float-vector dim))
+   (spacial-velocity (instantiate float-vector 3))
+   (angular-velocity (instantiate float-vector 3))
+   (spacial-acceleration (instantiate float-vector 3))
+   (angular-acceleration (instantiate float-vector 3)))
+  (all-child-links
+   (car (send *robot* :links))
+   #'(lambda (l)
+       (send l :put :spacial-velocity-jacobian (float-vector 0 0 0))
+       (send l :put :angular-velocity-jacobian (float-vector 0 0 0))))
+  (let* ((id -1))
+    (dolist (j (send *robot* :joint-list))
+      (incf id)
+      (send j :set-val 'joint-velocity (aref jvv id))
+      (send j :set-val 'joint-acceleration (aref jav id)))
+    (send (car (send *robot* :links)) :set-val 'spacial-acceleration spacial-acceleration)
+    (send (car (send *robot* :links)) :set-val 'angular-acceleration angular-acceleration)
+    (send (car (send *robot* :links)) :set-val 'spacial-velocity spacial-velocity)
+    (send (car (send *robot* :links)) :set-val 'angular-velocity angular-velocity)
+    )
+  (send-all (send *robot* :links) :worldcoords)
+  (send (car (send *robot* :links)) :forward-all-kinematics)
+  (send (car (send *robot* :links)) :inverse-dynamics :debug-view t)
+  )
+
+(defun fk-test
+  (&key
+   (init (progn (send *robot* :reset-pose) (send *robot* :fix-leg-to-coords (make-coords))
+                (send-all (send *robot* :links) :worldcoords)))
+   (j (nth 0 (send *robot* :joint-list))) (pos0 0) (pos1 1e-3) (pos2 3e-3) (dt 1e-3))
+  (fk :jvv (map float-vector
+                #'(lambda (_j)
+                    (if (eq j _j) (/ (- pos2 pos1) dt) 0))
+                (send *robot* :joint-list))
+      :jav (map float-vector
+                #'(lambda (_j)
+                    (if (eq j _j) (/ (- (/ (- pos2 pos1) dt) (/ (- pos1 pos0) dt)) dt) 0))
+                (send *robot* :joint-list)))
+  (list
+   (send (send j :child-link) :get-val 'spacial-velocity)
+   (send (send j :child-link) :get-val 'angular-velocity)
+   (send (send j :child-link) :get-val 'spacial-acceleration)
+   (send (send j :child-link) :get-val 'angular-acceleration))
+  )
+
+(defun fk-test2
+  (&key
+   (init (progn (send *robot* :reset-pose) (send *robot* :fix-leg-to-coords (make-coords))
+                (send-all (send *robot* :links) :worldcoords)))
+   (j (nth 0 (send *robot* :joint-list))) (pos0 0) (pos1 1e-3) (pos2 3e-3) (dt 1e-3))
+  (let* ((c0 (progn
+               (send j :joint-angle (rad2deg pos0))
+               (send-all (send *robot* :links) :worldcoords)
+               ;; (send (send (send (car (send *robot* :joint-list)) :child-link) :worldcoords) :draw-on :flush t :color (float-vector 1 0 0) :size 100 :width 10) (read-line)
+       (send (send (send j :child-link) :worldcoords)
+                     :copy-worldcoords)))
+         (c1 (progn
+               (send j :joint-angle (rad2deg pos1))
+               (send-all (send *robot* :links) :worldcoords)
+               ;; (send (send (send (car (send *robot* :joint-list)) :child-link) :worldcoords) :draw-on :flush t :color (float-vector 1 0 0) :size 100 :width 10) (read-line)
+               (send (send (send j :child-link) :worldcoords)
+                     :copy-worldcoords)))
+         (c2 (progn
+               (send j :joint-angle (rad2deg pos2))
+               (send-all (send *robot* :links) :worldcoords)
+               ;; (send (send (send (car (send *robot* :joint-list)) :child-link) :worldcoords) :draw-on :flush t :color (float-vector 1 0 0) :size 100 :width 10) (read-line)
+               (send (send (send j :child-link) :worldcoords)
+                     :copy-worldcoords)))
+         (r2-1 (scale (/ 1.0 dt) (send c1 :difference-rotation c2)))
+         (r1-0 (scale (/ 1.0 dt) (send c0 :difference-rotation c1)))
+         (ar (scale (/ 1.0 dt) (v- r2-1 r1-0)))
+         (v2-1 (scale (/ 1.0 dt) (v- (send c2 :worldpos) (send c1 :worldpos))))
+         (v1-0 (scale (/ 1.0 dt) (v- (send c1 :worldpos) (send c0 :worldpos))))
+         (a (scale (/ 1.0 dt) (v- v2-1 v1-0))))
+    (print (scale 1e+3 (matrix-log (m* (transpose (send c1 :worldrot)) (send c2 :worldrot)))
+                  ))
+    (print r2-1)
+    (list v2-1 r2-1 a ar))
+  )

@@ -1,0 +1,29 @@
+format: ChoreonoidBody
+formatVersion: 1.0
+name: TennisBall
+links:
+  -
+    name: TennisBall
+    translation: [ 0, 0, 0.0 ]
+    rotation: [ 1, 0, 0, 0 ]
+    jointType: free
+    material: { viscosity: 0.5 }
+    elements:
+      -
+        type: RigidBody
+        centerOfMass: [ 0, 0, 0 ]
+        mass: 0.067
+        inertia: [
+          0.283075, 0, 0,
+          0, 0.283075, 0,
+          0, 0, 0.283075 ]
+        elements:
+          Shape:
+            geometry:
+              type: Sphere
+              radius: 0.0325
+            appearance: &BodyAppearance
+              material:
+                diffuseColor: [ 0.73, 0.37, 0.28 ]
+                specularColor: [ 0.2, 0.8, 0.2 ]
+                shininess: 0.6
