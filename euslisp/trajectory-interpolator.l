@@ -3,7 +3,7 @@
 
 ;; Hoff and Arbib's interpolation with boundary condition
 
-(require "package://baseball/euslisp/my-range.l")
+(require "package://tennis/euslisp/my-range.l")
 
 (defun hoffarbib-workspace-interpolation
   (pos vel acc dt

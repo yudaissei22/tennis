@@ -1,5 +1,5 @@
-(require "package://baseball/../../../../../rbrain/virtual_interpolator.l")
-(require "package://baseball/../../../../../jsk/gnuplotlib.l")
+(require "package://tennis/../../../../../rbrain/virtual_interpolator.l")
+(require "package://tennis/../../../../../jsk/gnuplotlib.l")
 
 (defun pos-list-interpolation-linear
   (pos-list ;; (list pos_1 pos_2 ... pos_N), pos_i is float-vector

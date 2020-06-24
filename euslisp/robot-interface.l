@@ -38,7 +38,7 @@
 (setq *racket-coords* (make-cascoords :pos #f(0 0 50) :rpy (list 0 0 0)))
 
 ;;;; new model
-(require "package://baseball/model/racket-model.l")
+(require "package://tennis/model/racket-model.l")
 (setq *racket-model* (instance racket :init :rim 15))
 (send *racket-model* :orient (deg2rad 90) :x :world)
 (send *racket-model* :locate #f(0 15 520) :world)
@@ -77,7 +77,7 @@
 
 ;; make bat-model and batting target coodinates
 ;;;; new model
-(require "package://baseball/model/bat-model.l")
+(require "package://tennis/model/bat-model.l")
 (setq *bat-model* (instance bat :init))
 (send *bat-model* :orient (deg2rad 90) :x)
 (send *bat-model* :locate #f(0 15 520) :world)

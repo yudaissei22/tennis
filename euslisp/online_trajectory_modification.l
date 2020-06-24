@@ -1,5 +1,5 @@
-(comp::compile-file-if-src-newer (ros::resolve-ros-path "package://baseball/euslisp/nlopt_bspline_optimization.l") nil)
-(load "package://baseball/euslisp/nlopt_bspline_optimization")
+(comp::compile-file-if-src-newer (ros::resolve-ros-path "package://tennis/euslisp/nlopt_bspline_optimization.l") nil)
+(load "package://tennis/euslisp/nlopt_bspline_optimization")
 
 ;; calc dp from dr [m(), rad(RPY)] using qp (minimize dp^T dp)
 (defun calc-dp-from-dr

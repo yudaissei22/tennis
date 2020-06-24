@@ -69,7 +69,7 @@ items:
           plugin: Body
           class: BodyItem
           data: 
-            modelFile: "${HOME}/prog/euslib/demo/m-hattori/catkin_ws/tennis/src/baseball/model/floor.wrl"
+            modelFile: "${HOME}/prog/euslib/demo/m-hattori/catkin_ws/tennis/src/tennis/model/floor.wrl"
             currentBaseLink: ""
             rootPosition: [ 0, 0, -0.1 ]
             rootAttitude: [ 
@@ -92,7 +92,7 @@ items:
           plugin: Body
           class: BodyItem
           data: 
-            modelFile: "${HOME}/prog/euslib/demo/m-hattori/catkin_ws/tennis/src/baseball/model/tennis_ball.wrl"
+            modelFile: "${HOME}/prog/euslib/demo/m-hattori/catkin_ws/tennis/src/tennis/model/tennis_ball.wrl"
             currentBaseLink: ""
             rootPosition: [ 0.874920538, 0.334567576, 0.0316143315 ]
             rootAttitude: [ 

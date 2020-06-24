@@ -1,5 +1,5 @@
 (require "package://euslisp/jskeus/irteus/demo/walk-motion.l")
-(require "package://baseball/../../../../../jsk/gnuplotlib.l")
+(require "package://tennis/../../../../../jsk/gnuplotlib.l")
 
 ;; tennis ball: about 60g (0.06kg)
 ;; ball speed: about 100km/h (27.8m/s)

@@ -1,8 +1,8 @@
-(require "package://baseball/euslisp/virtual_interpolator.l")
-(require "package://baseball/../../../../ik/qp-inverse-kinematics.l")
-(require "package://baseball/euslisp/trajectory-interpolator.l")
-(require "package://baseball/euslisp/preview-control-for-impulsive-force.l")
-(require "package://baseball/euslisp/jaxon-key-pose/jaxon-forehand-motion.l")
+(require "package://tennis/euslisp/virtual_interpolator.l")
+(require "package://tennis/../../../../ik/qp-inverse-kinematics.l")
+(require "package://tennis/euslisp/trajectory-interpolator.l")
+(require "package://tennis/euslisp/preview-control-for-impulsive-force.l")
+(require "package://tennis/euslisp/jaxon-key-pose/jaxon-forehand-motion.l")
 
 (format t "You should call (jsk)!!!~%")
 (format t "(load-tennis-pose)~%(setq *input-tm-list* (list 5 3.5 4.5))~%(make-loadpattern (list *lp1* *lp2* *lp3* *lp4*)~%    :tm-list *input-tm-list* ;;(list 0.5 0.4 0.4)~%    :dt 0.002~%    :thre (list 3 3) ;; lleg rleg~%    :rthre (list (deg2rad 3) (deg2rad 3)) ;; lleg rleg~%    :lp-file \"../config/tennis\"~%    :zmp-midpoint-list (list 0.65 0.575 0.45 0.4) ;; (list 0.6 0.62 0.55 0.4 0.3 0.2 0.4)~%    :av-interpolate-func 'pos-list-interpolation-spline-minjerk~%    :rc-interpolate-func 'pos-list-interpolation-spline-minjerk~%    :zmp-interpolate-func 'pos-list-interpolation-linear~%    :impact-tm (+ (nth 0 *input-tm-list*) (nth 1 *input-tm-list*))~%    :zmp-tm-list *input-tm-list* ;; (list 0.1 0.2 0.3 0.3 0.1 0.1)~%    :hit-point *sweet-spot*~%    :equipment-body *racket-coords*~%    :equipment-grip *racket-grip*~%    :limb :rarm~%    :w-space nil ;; (list 620 720)~%    :select-rpy 0 ;; either 0 or 1~%    :correction-term (list #f(0 0 0) 0)~%    :delay-time-offset 1~%    :use-preview-control nil~%    :use-qp t)~%")

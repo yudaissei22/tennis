@@ -1,5 +1,5 @@
 ;; make capsule for collision
-(require "package://baseball/euslisp/robot-interface.l")
+(require "package://tennis/euslisp/robot-interface.l")
 
 (defclass capsule
   :super cascaded-link

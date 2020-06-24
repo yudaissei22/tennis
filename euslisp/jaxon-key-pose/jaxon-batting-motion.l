@@ -1,4 +1,4 @@
-(require "package://baseball/euslisp/robot-interface.l")
+(require "package://tennis/euslisp/robot-interface.l")
 
 (objects (list *robot* *bat-model* *bat-coords* *bat-lhand-grip* *bat-rhand-grip*))
 

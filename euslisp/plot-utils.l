@@ -1,7 +1,7 @@
-(require "package://baseball/../../../../../irteus_proposals/motion-lib-proposal.l")
-(require "package://baseball/../../../../../jsk/gnuplotlib.l")
-(require "package://baseball/euslisp/my-range.l")
-(require "package://baseball/euslisp/robot-interface.l")
+(require "package://tennis/../../../../../irteus_proposals/motion-lib-proposal.l")
+(require "package://tennis/../../../../../jsk/gnuplotlib.l")
+(require "package://tennis/euslisp/my-range.l")
+(require "package://tennis/euslisp/robot-interface.l")
 
 (defun show-jvel (&key (robot *robot*) (limb :rarm) (tm-list *bspline-tm-list*) (av-list *bspline-av-list*))
   (let ((rs-list '()) (rs-list2 '()))

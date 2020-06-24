@@ -5,7 +5,7 @@
   <arg name="LAUNCH_ZED" default="false" />
   <arg name="LAUNCH_RVIZ" default="false" />
 
-  <include file="$(find baseball)/launch/zed_camera.launch">
+  <include file="$(find tennis)/launch/zed_camera.launch">
     <arg name="svo_file" value="$(arg svo_file)" />
     <arg name="RESOLUTION" value="$(arg RESOLUTION)" />
     <arg name="FPS" value="$(arg FPS)" />
@@ -13,7 +13,7 @@
   </include>
 
   <!-- Stereo reconstruction with labeling -->
-  <include file="$(find baseball)/launch/stereo_ball_reconstruction.launch" >
+  <include file="$(find tennis)/launch/stereo_ball_reconstruction.launch" >
     <arg name="LAUNCH_BASEBALL_RVIZ" value="false" />
     <arg name="LAUNCH_TENNIS_RVIZ" value="$(arg LAUNCH_RVIZ)" />
     <arg name="CAMERA_NAMESPACE" value="/zed_camera" />
@@ -25,7 +25,7 @@
   </include>
 
   <!-- UKF ball prediction -->
-  <include file="$(find baseball)/launch/ukf_ball_prediction.launch" >
+  <include file="$(find tennis)/launch/ukf_ball_prediction.launch" >
     <arg name="BASEBALL" value="false" />
     <arg name="TENNIS" value="true" />
   </include>

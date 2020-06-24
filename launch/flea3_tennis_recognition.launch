@@ -5,14 +5,14 @@
   <arg name="LAUNCH_FLEA3" default="false" />
   <arg name="LAUNCH_RVIZ" default="false" />
 
-  <include file="$(find baseball)/launch/flea3_camera.launch">
+  <include file="$(find tennis)/launch/flea3_camera.launch">
     <arg name="LAUNCH_FLEA3" default="$(arg LAUNCH_FLEA3)" />
     <arg name="camera_serial_left" default="$(arg camera_serial_left)" />
     <arg name="camera_serial_right" default="$(arg camera_serial_right)" />
   </include>
 
   <!-- Stereo reconstruction with labeling -->
-  <include file="$(find baseball)/launch/stereo_ball_reconstruction.launch" >
+  <include file="$(find tennis)/launch/stereo_ball_reconstruction.launch" >
     <arg name="LAUNCH_BASEBALL_RVIZ" value="false" />
     <arg name="LAUNCH_TENNIS_RVIZ" value="$(arg LAUNCH_RVIZ)" />
     <arg name="CAMERA_NAMESPACE" value="/flea3_camera" />
@@ -24,7 +24,7 @@
   </include>
 
   <!-- UKF ball prediction -->
-  <include file="$(find baseball)/launch/ukf_ball_prediction.launch" >
+  <include file="$(find tennis)/launch/ukf_ball_prediction.launch" >
     <arg name="BASEBALL" value="false" />
     <arg name="TENNIS" value="true" />
   </include>

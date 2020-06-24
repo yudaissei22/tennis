@@ -3,19 +3,19 @@
   <arg name="TENNIS" default="false"/>
 
   <group if="$(arg BASEBALL)" >
-    <node name="ukf_baseball_prediction" pkg="baseball" type="ukf_baseball_prediction" output="screen" >
+    <node name="ukf_tennis_prediction" pkg="tennis" type="ukf_tennis_prediction" output="screen" >
       <remap from="ball_position" to="/stereo_reconstruction/observation/ball_pos" />
-      <remap from="ukf_prediction" to="/ukf_baseball_prediction/ball_pos" />
+      <remap from="ukf_prediction" to="/ukf_tennis_prediction/ball_pos" />
 
-      <remap from="prediction_marker" to="/ukf_baseball_prediction/predicted_ball_pos" />
-      <remap from="ukf_marker" to="/ukf_baseball_prediction/ukf_baseball_pos" />
+      <remap from="prediction_marker" to="/ukf_tennis_prediction/predicted_ball_pos" />
+      <remap from="ukf_marker" to="/ukf_tennis_prediction/ukf_tennis_pos" />
     </node>
   </group>
 
   <group if="$(arg TENNIS)" >
-    <node name="ukf_tennis_prediction" pkg="baseball" type="ukf_tennis_prediction" output="screen" >
+    <node name="ukf_tennis_prediction" pkg="tennis" type="ukf_tennis_prediction" output="screen" >
       <remap from="ball_position" to="/stereo_reconstruction/observation/ball_pos" />
-      <remap from="ukf_prediction" to="/ukf_baseball_prediction/ball_pos" />
+      <remap from="ukf_prediction" to="/ukf_tennis_prediction/ball_pos" />
 
       <remap from="prediction_marker" to="/ukf_tennis_prediction/predicted_ball_pos" />
       <remap from="ukf_marker" to="/ukf_tennis_prediction/ukf_tennis_pos" />

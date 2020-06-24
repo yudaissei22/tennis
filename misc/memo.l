@@ -245,4 +245,4 @@
 (setq lp4 (set-mocap-pose 267 :link-list '(:larm :lleg :rleg) :target-coords (list *bat-lhand-coords* *lfoot* *rfoot*) :cog 0.6 :rot-axis (list t t t)))
 
 (make-loadpattern (list lp1 lp2 lp3 lp4) :tm-list (list 3 3 3) :dt 1 :lp-file "../config/swing")
-(send *ri* :load-pattern "/home/terasawa/ros/hydro/src/jsk-ros-pkg/euslib/demo/terasawa/catkin_ws/src/baseball/config/swing" 10)
+(send *ri* :load-pattern "/home/terasawa/ros/hydro/src/jsk-ros-pkg/euslib/demo/terasawa/catkin_ws/src/tennis/config/swing" 10)

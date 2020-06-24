@@ -2,7 +2,7 @@
 
 (ros::roseus-add-msgs "ball_state_msgs")
 
-(comp::compile-file-if-src-newer (ros::resolve-ros-path "package://baseball/euslisp/online_trajectory_modification.l") nil)
+(comp::compile-file-if-src-newer (ros::resolve-ros-path "package://tennis/euslisp/online_trajectory_modification.l") nil)
 (require "online_trajectory_modification")
 (require "is-choreonoid")
 
@@ -634,7 +634,7 @@
             (step 0.1)
             (x-max *x-max*)
             (choreonoid nil)
-            (modified-p-path nil);;"package://baseball/config/modified-p/modified-p_-70-0--50.l")
+            (modified-p-path nil);;"package://tennis/config/modified-p/modified-p_-70-0--50.l")
             (lfoot-ik nil)
             (rfoot-ik nil)
             (zmp-offset #f(0 0 0))

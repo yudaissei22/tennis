@@ -1,4 +1,4 @@
-(require "package://baseball/euslisp/robot-interface.l")
+(require "package://tennis/euslisp/robot-interface.l")
 (objects (list *robot* *racket-grip* *racket-model* *sweet-spot*))
 
 ;; make coords of robot foots

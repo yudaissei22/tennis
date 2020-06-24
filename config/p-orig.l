@@ -1,4 +1,4 @@
-(require "package://baseball/euslisp/motion-choice.l")
+(require "package://tennis/euslisp/motion-choice.l")
 (defun choose-motion (&key (motion-choice *motion-choice*))
  (cond
   ((equal motion-choice "forehand")

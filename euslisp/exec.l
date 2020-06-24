@@ -1,6 +1,6 @@
 #!/usr/bin/env roseus
-(require "package://baseball/euslisp/is-choreonoid") ;; *is-choreonoid* is defined
-(require "package://baseball/euslisp/experiment_utils.l")
+(require "package://tennis/euslisp/is-choreonoid") ;; *is-choreonoid* is defined
+(require "package://tennis/euslisp/experiment_utils.l")
 
 (progn
   (experiment-init)

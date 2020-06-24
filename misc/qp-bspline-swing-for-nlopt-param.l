@@ -1,5 +1,5 @@
-(require "package://baseball/euslisp/bspline.l")
-(require "package://baseball/euslisp/jaxon-tennis-motion.l")
+(require "package://tennis/euslisp/bspline.l")
+(require "package://tennis/euslisp/jaxon-tennis-motion.l")
 
 (require "package://eus_qpoases/euslisp/eus-qpoases.l")
 

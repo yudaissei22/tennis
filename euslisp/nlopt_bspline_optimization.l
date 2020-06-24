@@ -3,17 +3,17 @@
 ;; $ (setq *motion-choice* "forehand") ;; "punch", "kick", "smash"
 ;; $ (load "nlopt_bspline_optimization.so")
 (require "package://eus_nlopt/euslisp/nlopt")
-(require "package://baseball/config/p-orig")
+(require "package://tennis/config/p-orig")
 
-(comp::compile-file-if-src-newer  (ros::resolve-ros-path "package://baseball/euslisp/qp-bspline-optimization.l") nil)
-(require "package://baseball/euslisp/qp-bspline-optimization")
+(comp::compile-file-if-src-newer  (ros::resolve-ros-path "package://tennis/euslisp/qp-bspline-optimization.l") nil)
+(require "package://tennis/euslisp/qp-bspline-optimization")
 
 ;; capsules are set for collision check
 (cond
  ((or (equal (send *robot* :name) "JAXON") (equal (send *robot* :name) "JAXON_RED"))
-  (require "package://baseball/euslisp/jaxon-collision-model.l"))
- ;;((equal (send *robot* :name) "***") (require "package://baseball/euslisp/***-collision-model.l"))
- (t (require "package://baseball/euslisp/jaxon-collision-model.l")))
+  (require "package://tennis/euslisp/jaxon-collision-model.l"))
+ ;;((equal (send *robot* :name) "***") (require "package://tennis/euslisp/***-collision-model.l"))
+ (t (require "package://tennis/euslisp/jaxon-collision-model.l")))
 
 (defun nlopt-init
     (&key

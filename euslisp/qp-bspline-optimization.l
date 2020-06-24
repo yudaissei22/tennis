@@ -1,6 +1,6 @@
-(require "package://baseball/euslisp/motion-choice") ;; for *load-pose-func*
-(comp::compile-file-if-src-newer  (ros::resolve-ros-path "package://baseball/euslisp/bspline.l") nil)
-(require "package://baseball/euslisp/bspline")
+(require "package://tennis/euslisp/motion-choice") ;; for *load-pose-func*
+(comp::compile-file-if-src-newer  (ros::resolve-ros-path "package://tennis/euslisp/bspline.l") nil)
+(require "package://tennis/euslisp/bspline")
 (require "package://eus_qpoases/euslisp/eus-qpoases")
 
 (defun qp-init (&key (robot *robot*))

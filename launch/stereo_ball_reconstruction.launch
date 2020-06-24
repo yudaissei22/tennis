@@ -22,27 +22,27 @@
     <rosparam param="principal_point_y" subst_value="True"> $(arg PRINCIPAL_POINT_Y)  </rosparam>
     <rosparam param="fps" subst_value="True"> $(arg FPS) </rosparam>
 
-    <node name="left_ball_centroid" pkg="baseball" type="ball_filter" output="screen" >
+    <node name="left_ball_centroid" pkg="tennis" type="ball_filter" output="screen" >
       <remap from="image_rect_color" to="$(arg CAMERA_NAMESPACE)/left/image_rect_color" />
       <remap from="center_point" to="left/center_point" />
       <remap from="roi_image" to="left/roi_image" />
     </node>
-    <node name="right_ball_centroid" pkg="baseball" type="ball_filter" output="screen" >
+    <node name="right_ball_centroid" pkg="tennis" type="ball_filter" output="screen" >
       <remap from="image_rect_color" to="$(arg CAMERA_NAMESPACE)/right/image_rect_color" />
       <remap from="center_point" to="right/center_point" />
       <remap from="roi_image" to="right/roi_image" />
     </node>
-    <node name="stereo_ball_pos" pkg="baseball" type="depth_calculation" output="screen" >
+    <node name="stereo_ball_pos" pkg="tennis" type="depth_calculation" output="screen" >
       <remap from="left_center_point" to="left/center_point" />
       <remap from="right_center_point" to="right/center_point" />
       <remap from="ball_pos_3D" to="observation/ball_pos" />
     </node>
   </group>
   <group if="$(arg LAUNCH_BASEBALL_RVIZ)">
-    <node name="ball_rviz" pkg="rviz" type="rviz" args="-d $(find baseball)/config/stereo_baseball.rviz" output="screen" > </node>
+    <node name="ball_rviz" pkg="rviz" type="rviz" args="-d $(find tennis)/config/stereo_tennis.rviz" output="screen" > </node>
   </group>
   <group if="$(arg LAUNCH_TENNIS_RVIZ)">
-    <node name="ball_rviz" pkg="rviz" type="rviz" args="-d $(find baseball)/config/stereo_tennis.rviz" output="screen" > </node>
+    <node name="ball_rviz" pkg="rviz" type="rviz" args="-d $(find tennis)/config/stereo_tennis.rviz" output="screen" > </node>
   </group>
 
 </launch>
