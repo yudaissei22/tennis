@@ -22,4 +22,5 @@ set(JVRC_CONF_DIRECTORY ${hrpsys_choreonoid_tutorials_SOURCE_PREFIX}/config)
 set(JVRC_MODELS_DIRECTORY ${jvrc_models_SOURCE_PREFIX})
 
 configure_file(${PROJECT_SOURCE_DIR}/model/grass_court.body.in ${PROJECT_SOURCE_DIR}/model/grass_court.body @ONLY)
-configure_file(${PROJECT_SOURCE_DIR}/config/JAXON_RED_TENNIS.cnoid.in ${PROJECT_SOURCE_DIR}/config/JAXON_RED_TENNIS.cnoid)
+configure_file(${PROJECT_SOURCE_DIR}/config/JAXON_RED_TENNIS.cnoid.in ${PROJECT_SOURCE_DIR}/config/JAXON_RED_TENNIS.cnoid @ONLY)
+configure_file(${PROJECT_SOURCE_DIR}/config/JAXON_RED_FOREHAND.cnoid.in ${PROJECT_SOURCE_DIR}/config/JAXON_RED_FOREHAND.cnoid @ONLY)

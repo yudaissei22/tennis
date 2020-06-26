@@ -3,7 +3,7 @@ floor:
     file: '$(find tennis)/model/grass_court.body'
     translation: [10, 0, -0.1]
 ball:
-    name: 'ball'
+    name: 'TennisBall'
     file: '$(find tennis)/model/tennis_ball.body'
     translation: [-1, 0, 0]
 net:

@@ -10,7 +10,7 @@ class Ball:
     # x, y, z: initial position
     # fx, fy, fz: external force in world frame
     # tm: time to apply external force to the ball
-    def fly(self, x = 2.3, y = 4.0, z = 1.0, fx = -1.5, fy = -4.0, fz = 4.0, tm = 0.073):
+    def fly(self, x = 20.0, y = -2.0, z = 1.0, fx = -10, fy = 0.6, fz = 8.3, tm = 0.073):
         rospy.wait_for_service('choreonoid_service')
         choreonoid_service = rospy.ServiceProxy('choreonoid_service', StringString)
         res = choreonoid_service.call(str="resetPosition('TennisBall', [{}, {}, {}], [0, 0, 0], 0.2)".format(x, y, z))
