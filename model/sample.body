@@ -1,25 +1,22 @@
 format: ChoreonoidBody
 formatVersion: 1.0
-name: TennisBall
-angleUnit: radian
-
-rootLink: TennisBall
+name: Sample
+rootLink: Sample
 links:
   -
-    name: TennisBall
+    name: Sample
     jointType: free
-    centerOfMass: [ 0, 0, 0 ]
     mass: 0.067
     inertia: [
       0.283075, 0, 0,
       0, 0.283075, 0,
       0, 0, 0.283075 ]
-    material: Default
+    material: { viscosity: 0.0 }
     elements:
       Shape:
         geometry:
-          type: Sphere
-          radius: 0.0325
+          type: Box
+          size: [ 0.2, 0.8, 0.2 ]
         appearance: &BodyAppearance
           material:
             diffuseColor: [ 0.73, 0.37, 0.28 ]

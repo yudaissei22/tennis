@@ -1,0 +1,6 @@
+<launch>
+    <include file="$(find hrpsys_choreonoid_tutorials)/launch/jaxon_red_choreonoid.launch">
+        <arg name="LOAD_OBJECTS" value="true" />
+        <arg name="ENVIRONMENT_YAML" value="@PROJECT_SOURCE_DIR@/config/tennis.yaml" />
+    </include>
+</launch>

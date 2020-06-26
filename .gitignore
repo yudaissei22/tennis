@@ -1,3 +1,5 @@
+launch/tennis.launch
+model/grass_court.body
 euslisp/*.c
 euslisp/*.h
 euslisp/*.o

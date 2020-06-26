@@ -1,7 +1,0 @@
-<launch>
-  <node pkg="tennis" type="quaternion_to_rpy.py" name="quaternion_to_rpy" output="screen" >
-    <remap from="batting_mocap/pose" to="/Bat/pose" />
-    <remap from="batting/velocity" to="/batting/head_velocity" />
-    <remap from="batting/xyzrpy" to="/batting/head_xyzrpy" />
-  </node>
-</launch>

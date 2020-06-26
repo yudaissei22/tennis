@@ -1,7 +1,0 @@
-<launch>
-  <node pkg="tennis" type="pose_to_velocity.py" name="pose_to_velocity" output="screen" >
-    <remap from="batting_mocap/pose" to="/Bat/pose" />
-    <remap from="batting/velocity" to="/batting/head_velocity" />
-    <remap from="batting/speed" to="/batting/head_speed" />
-  </node>
-</launch>
