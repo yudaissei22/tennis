@@ -1,7 +1,7 @@
 # 初期軌道生成
 1.
 ```
-$ roscd baseball/euslisp
+$ roscd tennis/euslisp
 $ roseus
 $ (qp-init)
 $ (qp-motion-optimize :use-all-joint t :use-append-root-joint t :use-margin 30 :id-max 14 :recursive-order 5 :x-min 0.0 :x-max 1.0 :x-hit 0.5)
@@ -11,7 +11,7 @@ $ (print *ret*) ;; 最後にx-hitを入れると最適化変数初期値*p-orig*
 # 最適化計算
 1. euslispディレクトリにおいてroseusを立ち上げ，変数\*motion-choice\*に"forehand"， "batting"， "punch"， "smash"， "forehand-step" などのいずれかの文字列を設定して最適化の動作を選択する．
 ```
-$ roscd baseball/euslisp ;; baseballをビルドしておく
+$ roscd tennis/euslisp ;; tennisをビルドしておく
 $ roseus
 $ (setq *motion-choice* "forehand") ;; forehandで最適化をするときの例
 ```
@@ -89,7 +89,7 @@ $ (nlopt-init :x-max 2.4 :x-hit nil :id-max 14 :recursive-order 5 :use-all-joint
 $ (load experiment_utils.l)
 ```
 * 動作をforehand以外にしたいときは「最適化計算」1.を参考に\*motion-choice\*に違う変数をセットして一度関数nlopt-initを呼んでから進めると良い．
-* 用いる設計変数\*p\*を変えたい場合は，baseball/config/p-orig.lを変更すると良い．(デフォルトではここに記された変数\*p-orig\*を\*p\*にセットしている)
+* 用いる設計変数\*p\*を変えたい場合は，tennis/config/p-orig.lを変更すると良い．(デフォルトではここに記された変数\*p-orig\*を\*p\*にセットしている)
 * p-orig.lでは\*x-max-of-p-orig\*という変数もセットしている．これは最適化時のx-maxの値に相当するため，最適化計算と等倍の時間を用いたいときは\*x-max-of-p-orig\*を使うと良い
 3. 関数experiment-initで\*ri\*を作るなどの初期設定をする
 ```
@@ -138,5 +138,7 @@ $ (experiment-init)
 * 現状AutoBalancerは入れないほうが良い．フィードフォワードで重心位置が補正されてしまうので適切でない．
 
 
-# RTCとEuslispの間のデータやりとりをshmで行うオンライン軌道修正
-デバッグが未完の状態なので，このプログラムを参考にしたいとか完成したいという場合は terasawa@jsk.imi.i.u-tokyo.ac.jp に連絡ください．現状のプログラムがどうなっているかくらいは説明できると思います．
+# テニス環境
+```bash
+rtmlaunch tennis tennis.launch
+```
