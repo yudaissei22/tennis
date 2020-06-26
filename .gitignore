@@ -1,5 +1,6 @@
 launch/tennis.launch
 model/grass_court.body
+config/JAXON_RED_TENNIS.cnoid
 euslisp/*.c
 euslisp/*.h
 euslisp/*.o

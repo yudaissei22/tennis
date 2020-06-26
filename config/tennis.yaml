@@ -1,23 +1,27 @@
-obj1:
+floor:
     name: 'floor'
     file: '$(find tennis)/model/grass_court.body'
     translation: [10, 0, -0.1]
-obj2:
+ball:
     name: 'ball'
     file: '$(find tennis)/model/tennis_ball.body'
     translation: [-1, 0, 0]
-obj3:
+net:
     name: 'net'
     file: '$(find tennis)/model/net.body'
     translation: [10, 0, 0]
     rotation: [[0, 1, 0], [-1, 0, 0], [0, 0, 1]]
-obj4:
+pole0:
     name: 'pole0'
     file: '$(find tennis)/model/pole.body'
     translation: [10, 6.399, 0.535]
     rotation: [[1, 0, 0], [0, 0, -1], [0, 1, 0]]
-obj5:
+pole1:
     name: 'pole1'
     file: '$(find tennis)/model/pole.body'
     translation: [10, -6.399, 0.535]
     rotation: [[1, 0, 0], [0, 0, -1], [0, 1, 0]]
+#racket:
+#    name: 'racket'
+#    file: '$(find tennis)/model/racket.body'
+#    translation: [2, 0, 1]
