@@ -6,3 +6,18 @@ obj2:
     name: 'ball'
     file: '$(find tennis)/model/tennis_ball.body'
     translation: [-1, 0, 0]
+obj3:
+    name: 'net'
+    file: '$(find tennis)/model/net.body'
+    translation: [10, 0, 0]
+    rotation: [[0, 1, 0], [-1, 0, 0], [0, 0, 1]]
+obj4:
+    name: 'pole0'
+    file: '$(find tennis)/model/pole.body'
+    translation: [10, 6.399, 0.535]
+    rotation: [[1, 0, 0], [0, 0, -1], [0, 1, 0]]
+obj5:
+    name: 'pole1'
+    file: '$(find tennis)/model/pole.body'
+    translation: [10, -6.399, 0.535]
+    rotation: [[1, 0, 0], [0, 0, -1], [0, 1, 0]]
