@@ -4,3 +4,4 @@ config/JAXON_RED_FOREHAND.cnoid
 euslisp/*.c
 euslisp/*.h
 euslisp/*.o
+euslisp/*.so
