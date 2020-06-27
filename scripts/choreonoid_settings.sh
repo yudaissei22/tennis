@@ -10,11 +10,7 @@ if [ $MOTION = "forehand" ]; then
     cp $(rospack find tennis)/model/RARM_LINK7_JVRC_WITH_RACKET.wrl $(rospack find jvrc_models)/JAXON_JVRC/convex_hull/RARM_LINK7_JVRC.wrl
     cp $(rospack find tennis)/model/LARM_LINK7_JVRC.wrl $(rospack find jvrc_models)/JAXON_JVRC/.
     cp $(rospack find tennis)/model/LARM_LINK7_JVRC.wrl $(rospack find jvrc_models)/JAXON_JVRC/convex_hull/.
-    cp $(rospack find tennis)/model/floor.wrl $(rospack find jvrc_models)/JAXON_JVRC/.
-    cp $(rospack find tennis)/model/tennis_ball.wrl $(rospack find jvrc_models)/JAXON_JVRC/.
-    cp $(rospack find tennis)/config/JAXON_RED_FOREHAND.cnoid.in $(rospack find hrpsys_choreonoid_tutorials)/config/.
     cp $(rospack find tennis)/scripts/CnoidPyUtil.py $(rospack find hrpsys_choreonoid_tutorials)/scripts/.
-    cp $(rospack find tennis)/scripts/moving_ball.py $(rospack find hrpsys_choreonoid_tutorials)/scripts/.
     cp $(rospack find tennis)/scripts/jaxon_red_setup.py $(rospack find hrpsys_choreonoid_tutorials)/scripts/.
 elif [ $MOTION = "punch" ]; then
     cp $(rospack find tennis)/model/RARM_LINK7_JVRC.wrl $(rospack find jvrc_models)/JAXON_JVRC/.
