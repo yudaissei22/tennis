@@ -292,7 +292,7 @@ Visualization Manager:
       Class: rviz/PointStamped
       Color: 204; 41; 204
       Enabled: true
-      History Length: 1
+      History Length: 100
       Name: PointStamped
       Radius: 0.200000003
       Topic: /pointgrey/estimated_ball_point
@@ -302,7 +302,7 @@ Visualization Manager:
       Class: rviz/PointStamped
       Color: 0; 255; 0
       Enabled: true
-      History Length: 1
+      History Length: 100
       Name: PointStamped
       Radius: 0.200000003
       Topic: /pointgrey/ball_point
@@ -333,25 +333,25 @@ Visualization Manager:
   Views:
     Current:
       Class: rviz/Orbit
-      Distance: 10
+      Distance: 11.1999998
       Enable Stereo Rendering:
         Stereo Eye Separation: 0.0599999987
         Stereo Focal Distance: 1
         Swap Stereo Eyes: false
         Value: false
       Focal Point:
-        X: 0.787915349
-        Y: 0.779391706
-        Z: 3.87412119
+        X: 0.698718905
+        Y: -0.798005939
+        Z: 2.58637047
       Focal Shape Fixed Size: true
       Focal Shape Size: 0.0500000007
       Invert Z Axis: false
       Name: Current View
       Near Clip Distance: 0.00999999978
-      Pitch: 0.185398281
+      Pitch: 0.170398295
       Target Frame: <Fixed Frame>
       Value: Orbit (rviz)
-      Yaw: 3.23857689
+      Yaw: 4.66357756
     Saved: ~
 Window Geometry:
   Displays:
@@ -369,5 +369,5 @@ Window Geometry:
   Views:
     collapsed: false
   Width: 1200
-  X: 309
-  Y: 96
+  X: 2099
+  Y: 421
