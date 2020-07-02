@@ -3,54 +3,76 @@
 
 ;; make coords of robot foots
 (setq *lfoot-step* (make-coords :pos #f(-300 0 0) :rpy (list (deg2rad 30) 0 0)))
-(setq *lfoot* (make-coords :pos #f(-100 380 0) :rpy (list (deg2rad 45) 0 0)))
-(setq *rfoot* (make-coords :pos #f(0 -380 0)))
-(setq *look-at-target* #f(0 5000 2000))
+(setq *lfoot* (make-coords :pos #f(-100 380 0) :rpy (list (deg2rad 30) 0 0)))
+(setq *rfoot* (make-coords :pos #f(0 -380 0) :rpy (list (deg2rad -30) 0 0)))
+(setq *look-at-target* #f(10000 0 2000))
 
+
+(defun util (&key (flush t))
+	(progn
+	 (objects (list *racket-model*))
+	 (send (send *robot* :rarm :end-coords) :draw-on :flush flush :size 300)
+	 (send *larm-coords* :draw-on :flush flush :size 300)
+	 (send *racket-grip* :draw-on :flush flush :size 300)
+	 (send *racket-coords* :draw-on :flush flush :size 300)
+	 ))
 
 ;; forehand swing http://www.ikeyon.com/jtc/image/stforhandonecrt.gif
 (defun pose1 (&key (robot *robot*) (base-time 5000) (real nil))
+  (send (send robot :rarm :end-coords) :dissoc *racket-coords*)
   (send robot :angle-vector
         #f(
-           5.35899 -18.7187 -43.3007 82.5595 -37.7075 17.3467 ;; rleg_joint0~5 (<legs> crotch-y,r,p / knee-p / ankle-p, r)
-           48.7875 28.4699 -45.369 58.7039 -11.0443 -28.4245  ;; lleg_joint0~5
-           3.0813 13.7412 20 ;; chest_joint0~2 (<torso> waist-r,p,y)
-           55 0.0 ;; head_joint0~1 (<head> neck-y,p)
+           -0.469077 -14.4589 -9.97825 18.9388 -10.8094 14.4694 ;; rleg_joint0~5 (<legs> crotch-y,r,p / knee-p / ankle-p, r)
+           0.455322 14.4907 -9.94546 18.8684 -10.7721 -14.4944 ;; lleg_joint0~5
+           0 0 0 ;; chest_joint0~2 (<torso> waist-r,p,y)
+           0 -5.17925 ;; head_joint0~1 (<head> neck-y,p)
            ;; -0.328496 -59.2828 -50.1455 -0.49446 -90 -69.5632 -19.1267 46.2037 ;; rarm_joint0~7 (<arms> collar-y shoulder-p,r,y elbow-p wrist-y,r,p)
-           0 -59.2828 -50.1455 -0.49446 -90 -69.5632 -19.1267 46.2037 ;; rarm_join.t0~7 (<arms> collar-y shoulder-p,r,y elbow-p wrist-y,r,p)
-           0 0 60 0 -60 45 0 0)) ;; larm_joint0~7
+           9.04974 4.35166 -15.8251 40.471 -93.8492 -20.4049 -48.7172 20.7466 ;; rarm_join.t0~7 (<arms> collar-y shoulder-p,r,y elbow-p wrist-y,r,p)
+           -9.07398 4.35839 15.8251 -40.4259 -93.8305 20.4995 48.6094 20.67)) ;; larm_joint0~7
            ;; 8 0 80 0 -40 45 0 0 ;; before Humanoids2016
 
 
   ;; rotate robot in order to use waist
-  (send robot :orient (deg2rad -6) :z :world)
-  (send robot :locate (float-vector 0 -10 -130) :world)
+  ;; (send robot :orient (deg2rad -6) :z :world)
+  ;; (send robot :locate (float-vector 0 -10 -130) :world)
 
-  (send *racket-coords* :orient (deg2rad -80) :z :world)
+  (send *racket-coords* :orient (deg2rad 0) :z :world)
   (send *racket-coords* :locate (float-vector 0 0 0) :world)
   (send *racket-coords* :rotate (deg2rad -5) :x :world)
-  (send *racket-coords* :rotate (deg2rad -10) :y :world)
-  (send *racket-coords* :locate (float-vector 500 -300 1500) :world)
+  (send *racket-coords* :rotate (deg2rad 30) :y :world)
+  (send *racket-coords* :locate (float-vector 300 -100 900) :world)
+;; mirror racket-coords
+  (setq *larm-coords* (make-coords))
+  (send *larm-coords* :orient (deg2rad 0) :z :world)
+  (send *larm-coords* :locate (float-vector 0 0 0) :world)
+  (send *larm-coords* :rotate (deg2rad 5) :x :world)
+  (send *larm-coords* :rotate (deg2rad 30) :y :world)
+  (send *larm-coords* :locate (float-vector 300 100 900) :world)
+;; end-effector <-> racket-grip transformation
+  (setq end-effector->racket-grip (make-coords :pos #f(0 0 0) :rpy (list (deg2rad -45) (deg2rad -45) 0)))
+  (setq *larm-coords* (send *larm-coords* :transform end-effector->racket-grip))
 
   ;; fullbody-inverse-kinematics
   (let* ((target-coords
           (list
+           *larm-coords*
            *racket-grip*
            *lfoot*
            *rfoot*)))
 
     (with-move-target-link-list
-     (mt ll robot '(:rarm :lleg :rleg))
+     (mt ll robot '(:larm :rarm :lleg :rleg))
      (send robot
            :fullbody-inverse-kinematics target-coords
            :root-link-virtual-joint-weight #f(0.1 0.5 0.1 0.1 0.1 0.1) ;; root-link has 6DOF
-           :target-centroid-pos (midpoint 0.6 (send *lfoot* :worldpos) (send *rfoot* :worldpos))
+           :target-centroid-pos (midpoint 0.55 (send *lfoot* :worldpos) (send *rfoot* :worldpos))
            :centroid-thre 20
            :move-target mt
            ; :link-list ll
-           :link-list (list (remove (send (send robot :rarm-collar-y) :child-link) (send robot :link-list (send (send robot :rarm :end-coords) :parent)) :count 1)
-                                     (send robot :link-list (send (send robot :lleg :end-coords) :parent))
-                                     (send robot :link-list (send (send robot :rleg :end-coords) :parent)))
+           :link-list (list (send robot :link-list (send (send robot :larm :end-coords) :parent))
+                            (remove (send (send robot :rarm-collar-y) :child-link) (send robot :link-list (send (send robot :rarm :end-coords) :parent)) :count 1)
+                            (send robot :link-list (send (send robot :lleg :end-coords) :parent))
+                            (send robot :link-list (send (send robot :rleg :end-coords) :parent)))
            :avoid-collision-distance 60
            :avoid-collision-null-gain 5.0
            :avoid-collision-joint-gain 0.8
@@ -63,7 +85,7 @@
 
            :additional-weight-list (list (list (send robot :head-neck-p :child-link) 0)
                                          (list (send robot :head-neck-y :child-link) 0))
-           :rotation-axis (list t t t)
+           :rotation-axis (list t t t t)
            :debug-view nil))) ;;:no-message) ;;t)
 
   (send *robot* :look-at-target *look-at-target*)
