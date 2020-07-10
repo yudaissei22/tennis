@@ -361,7 +361,7 @@
 
 (defun qp-motion-optimize-util ()
   (qp-motion-optimize :x-max 1.4 :x-hit 0.7 :maxvel-weight 1e3 :minjerk-weight 1e0 :x-step 0.02 :id-max 14 :recursive-order 5 :use-margin 1 :use-all-joint t :use-append-root-joint t)
-  (with-open-file (f "/tmp/p-orig.l" :direction :output :if-exists :new-version) (format f "~a" *ret*))
+  (with-open-file (f "/userdir/logs/p-orig.l" :direction :output :if-exists :new-version) (format f "~a" *ret*))
   )
 
 

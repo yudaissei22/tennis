@@ -1,8 +1,6 @@
 ;; racket-model.l
-(defun my-range-2 (i1 i2)
-    (let ((range-list))
-      (dotimes (j (1+ (- i2 i1))) (setq range-list (append range-list (list (+ j i1)))))
-      range-list))
+
+(require "package://tennis/euslisp/my-range")
 
 
 (defclass racket

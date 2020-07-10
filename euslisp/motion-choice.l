@@ -1,7 +1,7 @@
 ;; choose the motion
 (when (not (boundp '*motion-choice*))
   (print "Warning: *motion-choice* is set to \"forehand\" automatically.")
-  (setq *motion-choice* "forehand"))
+  (setq *motion-choice* "forehand-step"))
 
 ;; forehand
 ;; punch
