@@ -1,5 +1,6 @@
 ;; racket-model.l
 
+(comp::compile-file-if-src-newer "package://tennis/euslisp/my-range.l")
 (require "package://tennis/euslisp/my-range")
 
 
