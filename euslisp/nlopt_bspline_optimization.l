@@ -318,6 +318,7 @@
     ;; volley-step
     ;; list (t0, tl, tg, th, te)
     ;; 時刻間の状態
+    ;; contact-flagは(t0 とtlの間)... の4つ
     (setq *contact-flag* (list (list *lfoot* *rfoot* nil nil) (list nil *rfoot* nil nil) (list *lfoot-step* *rfoot* nil nil) (list *lfoot-step* *rfoot* nil nil)))
     (if default-switching-list
         (progn
