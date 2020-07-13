@@ -1,7 +1,7 @@
 ;; choose the motion
 (when (not (boundp '*motion-choice*))
-  (print "Warning: *motion-choice* is set to \"forehand\" automatically.")
-  (setq *motion-choice* "forehand-step"))
+  (print "Warning: *motion-choice* is set to \"volley-step\" automatically.")
+  (setq *motion-choice* "volley-step"))
 
 ;; forehand
 ;; punch
@@ -9,6 +9,7 @@
 ;; smash
 ;; batting
 ;; forehand-step
+;; volley-step
 
 (defun load-motion (&key (motion-choice *motion-choice*))
  (cond
@@ -16,6 +17,12 @@
    (load "package://tennis/euslisp/jaxon-key-pose/jaxon-forehand-motion.l")
    (setq *limb* :rarm)
    (setq *load-pose-func* 'load-forehand-pose)
+   (setq *key-pose-id* (list 1 3 4)))
+
+  ((equal motion-choice "volley")
+   (load "package://tennis/euslisp/jaxon-key-pose/jaxon-volley-motion.l")
+   (setq *limb* :rarm)
+   (setq *load-pose-func* 'load-volley-pose)
    (setq *key-pose-id* (list 1 3 4)))
 
   ((equal motion-choice "punch")
@@ -47,6 +54,12 @@
    (setq *limb* :rarm)
    (setq *load-pose-func* 'load-forehand-pose)
    (setq *key-pose-id* (list 5 3 4)))
+
+  ((equal motion-choice "volley-step")
+   (load "package://tennis/euslisp/jaxon-key-pose/jaxon-volley-motion.l")
+   (setq *limb* :rarm)
+   (setq *load-pose-func* 'load-volley-pose)
+   (setq *key-pose-id* (list 1 3 5)))
 
   ((equal motion-choice "kick-step")
    (load "package://tennis/euslisp/jaxon-key-pose/jaxon-kick-motion.l")

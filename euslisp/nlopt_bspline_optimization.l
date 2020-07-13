@@ -284,6 +284,7 @@
 
     ;; forehand-step
     ;; list (t0, tl, tg, th, te)
+    ;; 時刻間の状態
     (setq *contact-flag* (list (list *lfoot-step* *rfoot* nil nil) (list nil *rfoot* nil nil) (list *lfoot* *rfoot* nil nil) (list *lfoot* *rfoot* nil nil)))
     (if default-switching-list
         (progn
@@ -302,6 +303,38 @@
     (format t "(nlopt-motion-optimize :x-max ~a :x-hit ~a :id-max ~a :recursive-order ~a :max-eval 100000000 :alg SLSQP :delta (deg2rad 0.01) :eqthre 1e-8 :xtol 1e-10 :ftol 1e-15 :use-all-joint t :use-margin 0.5 :use-append-root-joint t :maxvel-weight 1 :minjerk-weight 5e-3 :modify-ec t :p *p* :interval-num ~a :title \"maximize-speed\" :max-time (* 2 24 60 60) :file-path \"/userdir/logs\")~%~%~%"
             *x-max* *default-x-hit* *id-max* *recursive-order* *interval-num*))
 
+   ((equal motion-choice "volley-step")
+    (setq *x-hit-id* 1)
+    (setq *hit-point* *sweet-spot*)
+    (setq *target-coords* *racket-coords*)
+    (setq *collision-pair*
+          (list (list (list *rarm-no-upper-collision* *chest/head-collision* '*epsilon-c*)   (list *rarm-no-shoulder-collision* *chest/head-collision* 0))
+                (list (list *rarm-no-upper-collision* *body/torso-collision* '*epsilon-c*)   (list *rarm-collision* *larm-collision* '*epsilon-c*))
+                (list (list *larm-no-upper-collision* (append *chest/head-collision* *rarm-collision*) '*epsilon-c*)   (list *racket-capsule-list* *chest/head-collision* '*epsilon-c*))
+                (list (list *lleg-no-groin-collision* *rleg-collision* 20)   (list *racket-capsule-list* *larm-collision* '*epsilon-c*))
+                (list (list (append *lleg-no-foot-collision* (list *lfoot-plate*)) (list *floor*) 0)   (list *larm-no-shoulder-collision* *body/torso-collision* 20))))
+
+
+    ;; volley-step
+    ;; list (t0, tl, tg, th, te)
+    ;; 時刻間の状態
+    (setq *contact-flag* (list (list *lfoot* *rfoot* nil nil) (list nil *rfoot* nil nil) (list *lfoot-step* *rfoot* nil nil) (list *lfoot-step* *rfoot* nil nil)))
+    (if default-switching-list
+        (progn
+          (setq *default-switching-list* default-switching-list)
+          (setq *default-x-hit* (nth (- (length default-switching-list) *x-hit-id*) default-switching-list)))
+
+      (progn
+        (dotimes (i (1- (length *contact-flag*)))
+          (push (aref *p* (- (length *p*) 1 i)) *default-switching-list*))
+
+        (setq *default-x-hit* (eval *x-hit*))))
+
+
+    (format t "*********** volley-step ***********~%")
+    (format t "(nlopt-init :x-max 1.4 :x-hit nil :id-max 10 :recursive-order 5 :use-all-joint t :use-append-root-joint t :support-polygon-margin (list 50 50 0 100 50) :epsilon-c 30 :mu 0.3 :use-final-pose nil :default-switching-list nil :use-6dof-p t)~%~%")
+    (format t "(nlopt-motion-optimize :x-max ~a :x-hit ~a :id-max ~a :recursive-order ~a :max-eval 100000000 :alg SLSQP :delta (deg2rad 0.01) :eqthre 1e-8 :xtol 1e-10 :ftol 1e-15 :use-all-joint t :use-margin 0.5 :use-append-root-joint t :maxvel-weight 1 :minjerk-weight 5e-3 :modify-ec t :p *p* :interval-num ~a :title \"maximize-speed\" :max-time (* 2 24 60 60) :file-path \"/userdir/logs\")~%~%~%"
+            *x-max* *default-x-hit* *id-max* *recursive-order* *interval-num*))
 
    ((equal motion-choice "kick-step")
     (setq *x-hit-id* 2)
@@ -592,7 +625,7 @@
 
         ;; *hit-point*はラケットがあったらラケットの先まで計算される
         (setq hitting-sweet-spot (send *hit-point* :copy-worldcoords)) ;; 打つ姿勢における*hit-point*
-        (setq hitting-direction (v- (send hitting-sweet-spot :transform-vector #f(0 0 1)) (send hitting-sweet-spot :worldpos))) ;; *hit-point*のz方向の速度を最大化する
+        (setq hitting-direction (v- (send hitting-sweet-spot :transform-vector #f(0 0 1)) (send hitting-sweet-spot :worldpos))) ;; *hit-point*のz方向以外の速度を最大化する
 
         ;; 打つ姿勢におけるヤコビアン（単位系は[rad],[m]）を計算
         (setq hitting-jacobian
@@ -2118,7 +2151,8 @@
       (with-append-root-joint
        (link-list-with-robot-6dof *robot* (list (cdr (send *robot* :links)))
                                   :joint-class 6dof-joint)
-       (show-optimized-motion *p* :cnt 20 :x-max *x-max-of-p-orig* :real-time t :lfoot-ik t :rfoot-ik t)
+       ;; (show-optimized-motion *p* :cnt 20 :x-max *x-max-of-p-orig* :real-time t :lfoot-ik t :rfoot-ik t)
+       (show-optimized-motion *p* :cnt 20 :x-max *x-max-of-p-orig* :real-time t :lfoot-ik nil :rfoot-ik t)
        ;;(show-optimized-motion *p* :x-max *x-max-of-p-orig* :real-time nil :make-loadpattern "/home/terasawa/bspline_1.5_M-14_N-5" :zmp-offset #f(0 0 0) :choreonoid nil)
        ;;(show-optimized-motion *p* :specific-time *x-max-of-p-orig*)
        ;;(show-optimized-motion *p* :x-step 0.01 :x-max *x-max-of-p-orig* :real-time nil :make-sequence t :zmp-offset #f(0 0 0) :choreonoid t)

@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-opt_list=`ls /tmp/ | grep Sep-14-2`
+opt_list=`ls /tmp/ | grep Jul`
 for f in ${opt_list}
 do
   margin=`echo $f | sed 's/^.*sp-\([0-9\.]*\)-.*$/\1/'`

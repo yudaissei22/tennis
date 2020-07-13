@@ -5,7 +5,7 @@
 (setq *lfoot-step* (make-coords :pos #f(-300 0 0) :rpy (list (deg2rad 30) 0 0)))
 (setq *lfoot* (make-coords :pos #f(-100 380 0) :rpy (list (deg2rad 45) 0 0)))
 (setq *rfoot* (make-coords :pos #f(0 -380 0)))
-(setq *look-at-target* #f(5000 4000 2000))
+(setq *look-at-target* #f(10000 0 2000))
 
 
 ;; forehand swing http://www.ikeyon.com/jtc/image/stforhandonecrt.gif
