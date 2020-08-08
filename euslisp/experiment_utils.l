@@ -40,6 +40,7 @@
 
 (defun swing-with-online-adjustment (jpos tm bsorder id-max x-min x-hit x-max p rc zmp optional
                                           &key (initial-time 10000) (final-time 5000) (log-fname "/userdir/logs/swing-with-online-adjustment"))
+  (format t "set base pos; start sec~%")
   (send *ri* :set-base-pos (send (car *exp-rc1*) :worldpos) initial-time)
   (send *ri* :set-base-rpy (coerce (reverse (nth 0 (rpy-angle (send (car *exp-rc1*) :worldrot)))) float-vector) initial-time)
   (send *ri* :angle-vector (send *robot* :angle-vector (car jpos)) initial-time) ;; initial-timeまでに最初の姿勢にする
@@ -47,7 +48,10 @@
   (unless *is-choreonoid*
     (progn (print "Press Enter key when you want to start-st.")
            (read-line)))
+
+  (format t "start-st begin~%")
   (send *ri* :start-st)
+  (format t "start-st done~%")
   (print "initialization process ended.")
   (setq *vision-initialized* nil)
   (print "TODO: virtual jointなしの場合も作る")

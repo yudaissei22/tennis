@@ -365,14 +365,14 @@
   (send *racket-coords* :locate (float-vector 0 0 0) :world)
   (send *racket-coords* :rotate (deg2rad -5) :x :world)
   (send *racket-coords* :rotate (deg2rad 30) :y :world)
-  (send *racket-coords* :locate (float-vector 300 -100 900) :world)
+  (send *racket-coords* :locate (float-vector 500 -100 900) :world)
 ;; mirror racket-coords
   (setq *larm-coords* (make-coords))
   (send *larm-coords* :orient (deg2rad 0) :z :world)
   (send *larm-coords* :locate (float-vector 0 0 0) :world)
   (send *larm-coords* :rotate (deg2rad 5) :x :world)
   (send *larm-coords* :rotate (deg2rad 30) :y :world)
-  (send *larm-coords* :locate (float-vector 300 100 900) :world)
+  (send *larm-coords* :locate (float-vector 500 100 900) :world)
 ;; end-effector <-> racket-grip transformation
   (setq end-effector->racket-grip (make-coords :pos #f(0 0 0) :rpy (list (deg2rad -45) (deg2rad -45) 0)))
   (setq *larm-coords* (send *larm-coords* :transform end-effector->racket-grip))

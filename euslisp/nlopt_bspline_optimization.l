@@ -2005,6 +2005,7 @@
       (if real-time
           (while (< (send tm :stop) (* x-step show-loop)))
          ;; (unix:usleep 1)
+         (unix::usleep 1000000)
           (print "sleep")
         )
 
@@ -2153,7 +2154,7 @@
        (link-list-with-robot-6dof *robot* (list (cdr (send *robot* :links)))
                                   :joint-class 6dof-joint)
        ;; (show-optimized-motion *p* :cnt 20 :x-max *x-max-of-p-orig* :real-time t :lfoot-ik t :rfoot-ik t)
-       (show-optimized-motion *p* :cnt 20 :x-max *x-max-of-p-orig* :real-time t :lfoot-ik nil :rfoot-ik t)
+       (show-optimized-motion *p* :cnt 20 :x-max *x-max-of-p-orig* :real-time nil :lfoot-ik t :rfoot-ik t)
        ;;(show-optimized-motion *p* :x-max *x-max-of-p-orig* :real-time nil :make-loadpattern "/home/terasawa/bspline_1.5_M-14_N-5" :zmp-offset #f(0 0 0) :choreonoid nil)
        ;;(show-optimized-motion *p* :specific-time *x-max-of-p-orig*)
        ;;(show-optimized-motion *p* :x-step 0.01 :x-max *x-max-of-p-orig* :real-time nil :make-sequence t :zmp-offset #f(0 0 0) :choreonoid t)
