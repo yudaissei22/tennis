@@ -21,10 +21,16 @@
   (send *ri* :angle-vector (send *robot* :angle-vector) tm)
   )
 
-
+(if (probe-file "/userdir/logs/timestamp.txt")
+    (let (l)
+        (with-open-file (f "/userdir/logs/timestamp.txt" :direction :input)
+            (while (setq l (read-line f nil nil))
+                (setq *timestamp-str* l))))
+    (setq *timestamp-str* ""))
+(format t "*timestamp-str* is ~A~%" *timestamp-str*)
 
 (defun experiment-loadpattern
-  (sequence-fname &key (log-fname "/userdir/logs/loadpattern") (reverse-fname nil #|"/userdir/logs/reverse"|#))
+  (sequence-fname &key (log-fname (concatenate string "/userdir/logs/" *timestamp-str* "loadpattern")) (reverse-fname nil #|"/userdir/logs/reverse"|#))
   "Sequence files consist of ***.pos, ***.zmp, ***.waist, ***.optionaldata.
    sequence-fname (***) should be full path.
    revese is the sequence file for returning to the initial pose."
@@ -39,7 +45,7 @@
   )
 
 (defun swing-with-online-adjustment (jpos tm bsorder id-max x-min x-hit x-max p rc zmp optional
-                                          &key (initial-time 10000) (final-time 5000) (log-fname "/userdir/logs/swing-with-online-adjustment"))
+                                          &key (initial-time 10000) (final-time 5000) (log-fname (concatenate string "/userdir/logs/" *timestamp-str* "swing-with-online-adjustment")))
   (format t "set base pos; start sec~%")
   (send *ri* :set-base-pos (send (car *exp-rc1*) :worldpos) initial-time)
   (send *ri* :set-base-rpy (coerce (reverse (nth 0 (rpy-angle (send (car *exp-rc1*) :worldrot)))) float-vector) initial-time)
@@ -166,7 +172,7 @@
 
 (defun experiment-angle-vector-sequence-full
   (jpos tm rc zmp optional
-   &key (initial-time 10000) (final-time 5000) (log-fname "/userdir/logs/angle-vector-sequence-full"))
+   &key (initial-time 10000) (final-time 5000) (log-fname (concatenate string "/userdir/logs/" *timestamp-str* "angle-vector-sequence-full")))
 
   ;;(send *ri* :set-interpolation-mode :linear)
   (send *ri* :start-log)
@@ -181,7 +187,7 @@
 (defun experiment-angle-vector-sequence-full-switch
   (jpos1 tm1 rc1 zmp1 optional1
    jpos2 tm2 rc2 zmp2 optional2
-   &key (switch-time 0.0) (initial-time 10000) (log-fname "/userdir/logs/angle-vector-sequence-full-switch"))
+   &key (switch-time 0.0) (initial-time 10000) (log-fname (concatenate string "/userdir/logs/" *timestamp-str* "angle-vector-sequence-full-switch")))
 
   (let* ((step (* 1e-3 (car tm1))) ;; [s]
          (nthcdr-num (round (+ (/ switch-time step) 2 #|1|#))))
@@ -337,7 +343,7 @@
 
 ;; (send *ri* :angle-vector-sequence-full *bspline-avsf-jpos-deg* *bspline-avsf-tm-ms* :root-coords *bspline-avsf-rc* :zmp *bspline-avsf-zmp-wc* :optional *bspline-avsf-optional*)
 
-(experiment-angle-vector-sequence-full-switch *exp-jpos-deg2* *exp-tm-ms2* *exp-rc2* *exp-zmp-wc2* *exp-optional2* *exp-jpos-deg1* *exp-tm-ms1* *exp-rc1* *exp-zmp-wc1* *exp-optional1* :initial-time 10000 :log-fname "/userdir/logs/one-switch" :switch-time 6.1)
+(experiment-angle-vector-sequence-full-switch *exp-jpos-deg2* *exp-tm-ms2* *exp-rc2* *exp-zmp-wc2* *exp-optional2* *exp-jpos-deg1* *exp-tm-ms1* *exp-rc1* *exp-zmp-wc1* *exp-optional1* :initial-time 10000 :log-fname (concatenate string "/userdir/logs/" *timestamp-str* "one-switch") :switch-time 6.1)
 
 (modify-joint-constant (send-all (send *robot* :larm :links) :joint) (send *robot* :larm :angle-vector))
 
@@ -353,9 +359,9 @@
    (setq *p* (copy-seq *p-orig*))
    nil))
 
-(experiment-angle-vector-sequence-full *exp-jpos-deg1* *exp-tm-ms1* *exp-rc1* *exp-zmp-wc1* *exp-optional1* :initial-time 10000 :final-time 5000 :log-fname "/userdir/logs/angle-vector-sequence-full")
+(experiment-angle-vector-sequence-full *exp-jpos-deg1* *exp-tm-ms1* *exp-rc1* *exp-zmp-wc1* *exp-optional1* :initial-time 10000 :final-time 5000 :log-fname (concatenate string "/userdir/logs/" *timestamp-str* "angle-vector-sequence-full"))
 
-(experiment-angle-vector-sequence-full (list (car *exp-jpos-deg1*)) (list (car *exp-tm-ms1*)) (list (car *exp-rc1*)) (list (car *exp-zmp-wc1*)) (list (car *exp-optional1*)) :initial-time 2000 :final-time 0 :log-fname "/userdir/logs/init")
+(experiment-angle-vector-sequence-full (list (car *exp-jpos-deg1*)) (list (car *exp-tm-ms1*)) (list (car *exp-rc1*)) (list (car *exp-zmp-wc1*)) (list (car *exp-optional1*)) :initial-time 2000 :final-time 0 :log-fname (concatenate string "/userdir/logs/" *timestamp-str* "init"))
 
 (let* ((t-max *x-max-of-p-orig*) (step (/ *x-max-of-p-orig* 40.0)) (seq-num (round (+ 1 (/ t-max step)))))
   (setq *exp-jpos-deg1* (make-list seq-num))
