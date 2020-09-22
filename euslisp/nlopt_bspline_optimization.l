@@ -1998,8 +1998,8 @@
       (push (send (send robot *limb* :end-coords) :copy-worldcoords) *bspline-ec-list*)
       (push (send *hit-point* :copy-worldcoords) *bspline-hp-list*)
       (send *irtviewer* :draw-objects)
-      ;; (send *viewer* :viewsurface :write-to-image-file (format nil "/userdir/logs/~A.jpg" image-idx))
-	  (incf image-idx)
+      (send *viewer* :viewsurface :write-to-image-file (format nil "/userdir/logs/~A.jpg" image-idx))
+      (incf image-idx)
       (x::window-main-one)
 
       (if real-time

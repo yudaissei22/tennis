@@ -1,5 +1,5 @@
 (load "nlopt_bspline_optimization.l")
-(load "/home/future731/prog/euslib/jsk/gnuplotlib.l")
+(load "/userdir/gnuplotlib.l")
 (send *robot* :move-to (make-coords) :world)
 (with-append-root-joint
   (link-list-with-robot-6dof *robot* (list (cdr (send *robot* :links)))

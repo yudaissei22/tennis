@@ -56,7 +56,7 @@
            (read-line)))
 
   (format t "start-st begin~%")
-  (send *ri* :start-st)
+  ;; (send *ri* :start-st)
   (format t "start-st done~%")
   (print "initialization process ended.")
   (setq *vision-initialized* nil)
@@ -184,30 +184,6 @@
   )
 
 
-(defun experiment-angle-vector-sequence-full-switch
-  (jpos1 tm1 rc1 zmp1 optional1
-   jpos2 tm2 rc2 zmp2 optional2
-   &key (switch-time 0.0) (initial-time 10000) (log-fname (concatenate string "/userdir/logs/" *timestamp-str* "angle-vector-sequence-full-switch")))
-
-  (let* ((step (* 1e-3 (car tm1))) ;; [s]
-         (nthcdr-num (round (+ (/ switch-time step) 2 #|1|#))))
-    (setq jpos2 (nthcdr nthcdr-num jpos2))
-    (setq tm2 (nthcdr nthcdr-num tm2))
-    (setq rc2 (nthcdr nthcdr-num rc2))
-    (setq optional2 (nthcdr nthcdr-num optional2))
-    (send *ri* :start-log)
-    (let* ((timer (instance mtimer :init)))
-      (send-angle-vector-sequence-full jpos1 tm1 rc1 zmp1 optional1 initial-time)
-      (while (< (send timer :stop) (+ (* 1e-3 initial-time) switch-time))
-        )
-      (send-angle-vector-sequence-full-no-wait jpos2 tm2 rc2 zmp2 optional2)
-      (send *ri* :wait-interpolation-seq)
-      (send *ri* :save-log log-fname)
-      )
-    )
-  )
-
-
 (defun make-sequence-in-advance
   (jpos-deg tm-ms rc zmp-wc optional
    jpos-rad tm-s pos rpy zmp-rc robot-wc cog-wc
@@ -252,134 +228,4 @@
     )
   nil
   )
-
-
-
-
-;; 特定の関節を一定の関節角度にする
-(defun modify-joint-constant (jlist av &key (p *p*))
-  (let* (link-id
-         (modified-av-list
-          (mapcar #'(lambda (x)
-                      (coerce (make-list *id-max* :initial-element x) float-vector)
-                      )
-                  (coerce av cons))
-          )
-         )
-    (print modified-av-list)
-    (mapc
-     #'(lambda (jl av-list)
-         (setq link-id (position jl *jlist* :test #'equal))
-         (replace *p* av-list
-                  :start1 (* link-id *id-max*) :end1 (* link-id (+ *id-max* 1))
-                  :start2 0 :end2 *id-max*
-                  )
-         )
-     jlist modified-av-list)
-    )
-  (format t ";; (setq *p-orig* (copy-seq *p*))")
-  nil
-  )
-
-
-
-(defun append-last-sequence
-  (centroid-pos &key (append nil) (tm 1000) (optional #f(1 1 0 0 1 1 1 1)) (choreonoid t))
-  (let* ((target-coords
-          (list
-           *lfoot*
-           *rfoot*
-           )))
-    (with-move-target-link-list
-     (mt ll *robot* '(:lleg :rleg))
-     (send *robot*
-           :fullbody-inverse-kinematics target-coords
-           :root-link-virtual-joint-weight #f(1.0 1.0 1.0 0.1 0.1 0.1) ;; root-link has 6DOF
-           :target-centroid-pos centroid-pos
-           :centroid-thre 5
-           :move-target mt
-           :link-list ll
-           :avoid-collision-distance 60
-           :avoid-collision-null-gain 5.0
-           :avoid-collision-joint-gain 0.8
-           :additional-weight-list (list (list (send *robot* :head-neck-p :child-link) 0)
-                                         (list (send *robot* :head-neck-y :child-link) 0))
-           :rotation-axis (list t t)
-           :debug-view nil) ;;:no-message) ;;t)
-     ))
-  (send *irtviewer* :draw-objects)
-
-  (when append
-    (let* ((rc (send (car (send *robot* :links)) :copy-worldcoords))
-           (av (send *robot* :angle-vector)))
-      (setq *exp-jpos-deg1* (append *exp-jpos-deg1* (list (concatenate float-vector av (if choreonoid #f(-80 80 -80 80) nil))) ))
-      (setq *exp-tm-ms1* (append *exp-tm-ms1* (list tm) ))
-      (setq *exp-rc1* (append *exp-rc1* (list rc) ))
-      (setq *exp-zmp-wc1* (append *exp-zmp-wc1* (list centroid-pos) ))
-      (setq *exp-optional1* (append *exp-optional1* (list optional)))
-      (setq *exp-jpos-rad1* (append *exp-jpos-rad1* (list (map float-vector #'deg2rad (concatenate float-vector av (if choreonoid #f(-80 80 -80 80) nil)))) ))
-      (setq *exp-tm-s1*  (append *exp-tm-s1* (list (* 1e-3 tm))))
-      (setq *exp-pos1* (append *exp-pos1* (list (scale 1e-3 (send rc :worldpos))) ))
-      (setq *exp-rpy1* (append *exp-rpy1* (list (reverse (nth 0 (rpy-angle (send rc :worldrot))))) ))
-      (setq *exp-zmp-rc1* (append *exp-zmp-rc1* (list (scale 1e-3 (send rc :inverse-transform-vector centroid-pos))) ))
-      (setq *exp-wc1* (append *exp-wc1* (list (send *robot* :copy-worldcoords)) ))
-      (setq *exp-cog-wc1* (append *exp-cog-wc1* (list (send *robot* :centroid)) ))
-      )
-    )
-
-  nil
-  )
-
-#|
-;; (append-last-sequence (midpoint 0.35 (send *lfoot* :worldpos) (send *rfoot* :worldpos)) :tm 1000 :append nil)
-(setq *append-list*
-      (list
-       (list (float-vector (aref (send *robot* :centroid) 0) (aref (send *robot* :centroid) 1) 0) 1000)
-       ;; (list (car (last *exp-zmp-wc1*)) 1000)
-       (list (midpoint 0.5 (send *lfoot* :worldpos) (send *rfoot* :worldpos)) 1000)
-       )
-      )
-(dolist (als *append-list*) (append-last-sequence (nth 0 als) :tm (nth 1 als) :append nil))
-
-;; (send *ri* :angle-vector-sequence-full *bspline-avsf-jpos-deg* *bspline-avsf-tm-ms* :root-coords *bspline-avsf-rc* :zmp *bspline-avsf-zmp-wc* :optional *bspline-avsf-optional*)
-
-(experiment-angle-vector-sequence-full-switch *exp-jpos-deg2* *exp-tm-ms2* *exp-rc2* *exp-zmp-wc2* *exp-optional2* *exp-jpos-deg1* *exp-tm-ms1* *exp-rc1* *exp-zmp-wc1* *exp-optional1* :initial-time 10000 :log-fname (concatenate string "/userdir/logs/" *timestamp-str* "one-switch") :switch-time 6.1)
-
-(modify-joint-constant (send-all (send *robot* :larm :links) :joint) (send *robot* :larm :angle-vector))
-
-
-
-(let* ((time-scale 1.0))
-  (setq *p* (copy-seq *p-orig*))
-  (send *robot* :move-to (make-coords) :world)
-  (with-append-root-joint
-   (link-list-with-robot-6dof *robot* (list (cdr (send *robot* :links)))
-                              :joint-class 6dof-joint)
-   (experiment-online-trajectory-modification *exp-jpos-rad1* *exp-tm-s1* *exp-pos1* *exp-rpy1* *exp-zmp-rc1* *exp-optional1* (* *x-max-of-p-orig* time-scale) (* (eval *x-hit*) time-scale) (* (- (eval *x-hit*) (* 3.0 (car *exp-tm-s1*))) time-scale) :initial-time 2000 :final-time 5000 :test-target #f(0 0 -0.02 0 0 0) :real nil :debug? t :append *append-list* :lfoot-ik t :rfoot-ik t)
-   (setq *p* (copy-seq *p-orig*))
-   nil))
-
-(experiment-angle-vector-sequence-full *exp-jpos-deg1* *exp-tm-ms1* *exp-rc1* *exp-zmp-wc1* *exp-optional1* :initial-time 10000 :final-time 5000 :log-fname (concatenate string "/userdir/logs/" *timestamp-str* "angle-vector-sequence-full"))
-
-(experiment-angle-vector-sequence-full (list (car *exp-jpos-deg1*)) (list (car *exp-tm-ms1*)) (list (car *exp-rc1*)) (list (car *exp-zmp-wc1*)) (list (car *exp-optional1*)) :initial-time 2000 :final-time 0 :log-fname (concatenate string "/userdir/logs/" *timestamp-str* "init"))
-
-(let* ((t-max *x-max-of-p-orig*) (step (/ *x-max-of-p-orig* 40.0)) (seq-num (round (+ 1 (/ t-max step)))))
-  (setq *exp-jpos-deg1* (make-list seq-num))
-  (setq *exp-tm-ms1* (make-list seq-num))
-  (setq *exp-rc1* (make-list seq-num))
-  (setq *exp-zmp-wc1* (make-list seq-num))
-  (setq *exp-optional1* (make-list seq-num))
-  (setq *exp-jpos-rad1* (make-list seq-num))
-  (setq *exp-tm-s1* (make-list seq-num))
-  (setq *exp-pos1* (make-list seq-num))
-  (setq *exp-rpy1* (make-list seq-num))
-  (setq *exp-zmp-rc1* (make-list seq-num))
-  (setq *exp-wc1* (make-list seq-num))
-  (setq *exp-cog-wc1* (make-list seq-num))
-  (make-sequence-in-advance
-   *exp-jpos-deg1* *exp-tm-ms1* *exp-rc1* *exp-zmp-wc1* *exp-optional1*
-   *exp-jpos-rad1* *exp-tm-s1* *exp-pos1* *exp-rpy1* *exp-zmp-rc1* *exp-wc1* *exp-cog-wc1*
-   :step step :x-max t-max :choreonoid t :p *p* :lfoot-ik t :rfoot-ik t)
-  )
-|#
 

@@ -216,6 +216,7 @@
           (list
            *racket-grip*
            *lfoot-step*
+           ; *lfoot*
            *rfoot*)))
 
     (with-move-target-link-list
@@ -224,6 +225,7 @@
            :fullbody-inverse-kinematics target-coords
            :root-link-virtual-joint-weight #f(0.1 0.5 0.1 0.1 0.1 0.1) ;; root-link has 6DOF
            :target-centroid-pos (midpoint 0.5 (send *lfoot-step* :worldpos) (send *rfoot* :worldpos))
+           ; :target-centroid-pos (midpoint 0.5 (send *lfoot* :worldpos) (send *rfoot* :worldpos))
            :centroid-thre 20
            :move-target mt
            ; :link-list ll
@@ -260,6 +262,84 @@
         :root-coords (send (car (send robot :links)) :copy-worldcoords) ;; (send robot :copy-worldcoords)
         :worldcoords (send robot :copy-worldcoords)
         :time base-time))
+
+(defun pose3-test (&key (robot *robot*) (base-time 5000) (real nil))
+  (send robot :angle-vector
+        ;; rleg_joint0~5 (<legs> crotch-y,r,p / knee-p / ankle-p, r)
+        ;; lleg_joint0~5
+        ;; chest_joint0~2 (<torso> waist-r,p,y) head_joint0~1 (<head> neck-y,p)
+        ;; rarm_joint0~7 (<arms> collar-y shoulder-p,r,y elbow-p wrist-y,r,p)
+        ;; larm_joint0~7
+        #f(-0.851399 -25.3628 -43.6886 81.0988 -37.0053 23.9976 43.4412 23.4412 -52.1147 73.8623 -20.4123 -24.1527
+           4.69939 17.9085 19.7456 10 0.0
+           ;; 13.9379 -1.29912 -50.4969 -82.3214 -80 -71.956 -85.2512 16.7357
+           0.0 -1.29912 -50.4969 -82.3214 -80 -71.956 -85.2512 16.7357
+           5.0 20.0 50.0 0.0 -100.0 45.0 0.0 0.0))
+        ;; #f(-0.851399 -25.3628 -43.6886 81.0988 -37.0053 23.9976 43.4412 23.4412 -52.1147 73.8623 -20.4123 -24.1527 4.69939 17.9085 19.7456 22.4 0.0 13.9379 -1.29912 -50.4969 -82.3214 -108.234 -71.956 -85.2512 16.7357 8.0 0.0 80.0 0.0 -40.0 45.0 0.0 0.0)) ;; before Humanoids2016
+
+  ;; rotate robot in order to use waist
+  ;; (send robot :orient (deg2rad 10) :z :world)
+  ;; (send robot :locate (float-vector 0 -10 -240) :world)
+
+  (send *racket-coords* :orient (deg2rad 0) :z :world)
+  (send *racket-coords* :locate (float-vector 0 0 0) :world)
+  (send *racket-coords* :rotate (deg2rad 90) :x :world)
+  (send *racket-coords* :rotate (deg2rad 70) :y :world)
+  (send *racket-coords* :locate (float-vector 550 -900 1200) :world)
+  ;; (send *racket-coords* :locate (float-vector 550 300 805) :world) ;; before Humanoids2016
+
+  ;; fullbody-inverse-kinematics
+  (let* ((target-coords
+          (list
+           *racket-grip*
+           ; *lfoot-step*
+           *lfoot*
+           *rfoot*)))
+
+    (with-move-target-link-list
+     (mt ll robot '(:rarm :lleg :rleg))
+     (send robot
+           :fullbody-inverse-kinematics target-coords
+           :root-link-virtual-joint-weight #f(0.1 0.5 0.1 0.1 0.1 0.1) ;; root-link has 6DOF
+           ; :target-centroid-pos (midpoint 0.5 (send *lfoot-step* :worldpos) (send *rfoot* :worldpos))
+           :target-centroid-pos (midpoint 0.5 (send *lfoot* :worldpos) (send *rfoot* :worldpos))
+           :centroid-thre 20
+           :move-target mt
+           ; :link-list ll
+           :link-list (list (remove (send (send robot :rarm-collar-y) :child-link) (send robot :link-list (send (send robot :rarm :end-coords) :parent)) :count 1)
+                                     (send robot :link-list (send (send robot :lleg :end-coords) :parent))
+                                     (send robot :link-list (send (send robot :rleg :end-coords) :parent)))
+           :avoid-collision-distance 60
+           :avoid-collision-null-gain 5.0
+           :avoid-collision-joint-gain 0.8
+           :collision-avoidance-link-pair
+           (list
+            (list (cadr (send robot :torso :links))
+                  (send robot :larm_link2_lk))
+            (list (cadr (send robot :torso :links))
+                  (send robot :rarm_link2_lk)))
+
+           :additional-weight-list (list (list (send robot :head-neck-p :child-link) 0)
+                                         (list (send robot :head-neck-y :child-link) 0))
+           :rotation-axis (list t t t)
+           :debug-view nil))) ;;:no-message) ;;t)
+
+  (send *robot* :look-at-target *look-at-target*)
+
+  (send *irtviewer* :draw-objects)
+
+  (if real
+      (progn
+        (send *ri* :angle-vector (send robot :angle-vector) base-time)
+        (send *ri* :wait-interpolation)))
+
+
+
+  (list :angle-vector (send robot :angle-vector)
+        :root-coords (send (car (send robot :links)) :copy-worldcoords) ;; (send robot :copy-worldcoords)
+        :worldcoords (send robot :copy-worldcoords)
+        :time base-time))
+
 
 
 
