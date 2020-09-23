@@ -2,7 +2,8 @@
 
 (ros::roseus-add-msgs "ball_state_msgs")
 
-(load "package://hrpsys_ros_bridge_tutorials/euslisp/jaxon-interface.l")
+;; (load "package://hrpsys_ros_bridge_tutorials/euslisp/jaxon-interface.l")
+(load "package://hrpsys_ros_bridge_tutorials/euslisp/jaxon_red-interface.l")
 (load "../model/racket-model.l")
 (load "fullbody-ik-jaxon.l")
 
@@ -39,9 +40,12 @@
 
 (defun jaxon-with-racket (ik-callback)
     (ros::roseus "ball-track")
-    (if *real* (jaxon-init))
-    (jaxon)
-    (setq *robot* *jaxon*)
+    ;; (if *real* (jaxon-init))
+    ;; (jaxon)
+    ;; (setq *robot* *jaxon*)
+    (if *real* (jaxon_red-init))
+    (jaxon_red)
+    (setq *robot* *jaxon_red*)
     (objects (list *robot*))
     (send *robot* :angle-vector #f(-9.54233 -26.193 -40.7962 78.6206 -35.5597 26.135 33.8677 22.2323 -55.5383 78.2569 -21.1087 -20.8566 6.44576 18.0757 30.8128 22.4 0.0 47.3534 0.189209 -39.5928 -40.6674 -81.0774 -93.1095 -40.6221 12.5816 5.0 20.0 50.0 0.0 -100.0 45.0 0.0 0.0))
     (send *robot* :fix-leg-to-coords (make-coords :rpy (list (- (/ pi 2)) 0 0)))

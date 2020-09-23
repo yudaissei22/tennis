@@ -6,7 +6,8 @@
 (require "nlopt_bspline_optimization")
 
 (defun experiment-init ()
-  (jaxon-init)
+  ;; (jaxon-init)
+  (jaxon_red-init)
   (send *ri* :start-grasp)
   (send *ri* :set-st-param :emergency-check-mode 0)
   (send *ri* :set-interpolation-mode :linear)

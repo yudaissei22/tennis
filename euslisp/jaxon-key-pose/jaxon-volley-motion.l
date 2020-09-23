@@ -40,14 +40,14 @@
   (send *racket-coords* :locate (float-vector 0 0 0) :world)
   (send *racket-coords* :rotate (deg2rad -5) :x :world)
   (send *racket-coords* :rotate (deg2rad 30) :y :world)
-  (send *racket-coords* :locate (float-vector 300 -100 900) :world)
+  (send *racket-coords* :locate (float-vector 400 -100 900) :world)
 ;; mirror racket-coords
   (setq *larm-coords* (make-coords))
   (send *larm-coords* :orient (deg2rad 0) :z :world)
   (send *larm-coords* :locate (float-vector 0 0 0) :world)
   (send *larm-coords* :rotate (deg2rad 5) :x :world)
   (send *larm-coords* :rotate (deg2rad 30) :y :world)
-  (send *larm-coords* :locate (float-vector 300 100 900) :world)
+  (send *larm-coords* :locate (float-vector 400 100 900) :world)
 ;; end-effector <-> racket-grip transformation
   (setq end-effector->racket-grip (make-coords :pos #f(0 0 0) :rpy (list (deg2rad -45) (deg2rad -45) 0)))
   (setq *larm-coords* (send *larm-coords* :transform end-effector->racket-grip))
@@ -65,7 +65,7 @@
      (send robot
            :fullbody-inverse-kinematics target-coords
            :root-link-virtual-joint-weight #f(0.1 0.5 0.1 0.1 0.1 0.1) ;; root-link has 6DOF
-           :target-centroid-pos (midpoint 0.55 (send *lfoot* :worldpos) (send *rfoot* :worldpos))
+           :target-centroid-pos (midpoint 0.5 (send *lfoot* :worldpos) (send *rfoot* :worldpos))
            :centroid-thre 20
            :move-target mt
            ; :link-list ll
