@@ -1754,7 +1754,7 @@
           :equality-function-gradient (read-from-string "motion-dg")
           :inequality-function (read-from-string "motion-h")
           :inequality-function-gradient (read-from-string "motion-dh")
-          :equality-dimension (+ 7 (- (/ (length *contact-flag*) 2) 1) (if *use-final-pose* 1 0))
+          :equality-dimension (+ 6 (- (/ (length *contact-flag*) 2) 1) (if *use-hit-pose* 1 0) (if *use-hit-ee* 1 0) (if *use-final-pose* 1 0))
           :inequality-dimension (round (+ (* (- id-max 1) (length jvel-list)) (* (+ interval-num 1) (+ 3 (length jvel-list) (length *collision-pair*))) (- (length *contact-flag*) 2))) ;; (* (- id-max 1) (length jvel-list) 2)
           :alg alg ;; SLSQP ;; COBYLA ;; DIRECT
           :max-time max-time ;;(* 10 60 60)
