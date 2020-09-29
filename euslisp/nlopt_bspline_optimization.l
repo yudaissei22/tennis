@@ -15,6 +15,26 @@
  ;;((equal (send *robot* :name) "***") (require "package://tennis/euslisp/***-collision-model.l"))
  (t (require "package://tennis/euslisp/jaxon-collision-model.l")))
 
+(defun change-robot-state-specific-time (p time use-append-root-joint)
+    (let ((id 0))
+        (mapc
+            #'(lambda (jl bs)
+              (send jl :joint-angle
+                    (send bs :calc time (subseq p id (+ id *id-max*))))
+              (send jl :put :dq (deg2rad (send bs :calc-delta time (subseq v1 id (+ id *id-max*)) :n 1))) ;; 関節速度の単位は[rad]
+              )
+
+        *jlist* *bspline*)
+        (when use-append-root-joint
+            (send (send (car (send *robot* :links)) :joint) :joint-angle
+                (coerce
+                    (mapcar
+                    #'(lambda (bs)
+                        (send bs :calc time (subseq p id (setq id (+ id *id-max*)))))
+                    (subseq *bspline* (length *jlist*) (+ (length *jlist*) 6))
+                    float-vector)))))
+    )
+
 (defun nlopt-init
     (&key
      (robot *robot*)
@@ -33,6 +53,8 @@
      (x-max *x-max-of-p-orig*)
      (x-hit nil)
      (use-final-pose nil)
+     (use-hit-pose nil)
+     (use-hit-ee t)
      (use-6dof-p nil)
      (default-switching-list nil)
      (support-polygon-margin (list 50 50 0 100 50))
@@ -110,6 +132,8 @@
   (setq *concatenate-root-joint* (instantiate float-vector 18))
   (setq *default-switching-list* nil)
   (setq *use-final-pose* use-final-pose)
+  (setq *use-hit-pose* use-hit-pose)
+  (setq *use-hit-ee* use-hit-ee)
   (setq *use-6dof-p* use-6dof-p)
 
   (format t "*************** motion ***************~%*id-max*=~a, *recursive-order*=~a, *x-min*=~a, *x-hit*=~a, *x-max*=~a, *sp-front*=~a, *sp-back*=~a, *sp-inside*=~a, *sp-outside*=~a, *epsilon-c*=~a, *mu*=~a~%~%" *id-max* *recursive-order* *x-min* (eval *x-hit*) *x-max* *sp-front* *sp-back* *sp-inside* *sp-outside* *epsilon-c* *mu*)
@@ -726,7 +750,7 @@
 
   (let* ((id 0)
          (x-min-pose nil) (x-min-vel nil) (x-min-acc nil)
-         (x-hit-pose nil)
+         (x-hit-pose nil) (x-hit-ee nil)
          (x-max-pose nil) (x-max-vel nil) (x-max-acc nil)
          (contact-tm-cnt 0)
          (g-dim-id 0)
@@ -738,7 +762,12 @@
          (push (send bs :calc-delta *x-min* (subseq v1 id (+ id *id-max*)) :n 1) x-min-vel) ;; 時刻x-minにおける関節角速度 (nは微分階数)
          (push (send bs :calc-delta *x-min* (subseq v1 id (+ id *id-max*)) :n 2) x-min-acc) ;; 時刻x-minにおける関節角加速度
          ;; (push (send bs :calc (aref v1 (- (length v1) *x-hit-id*)) (subseq v1 id (+ id *id-max*))) x-hit-pose) ;; 時刻x-hitにおける関節角度
-         (push (send bs :calc *default-x-hit* (subseq v1 id (+ id *id-max*))) x-hit-pose) ;; 時刻x-hitにおける関節角度
+         (when *use-hit-pose*
+             (progn
+                 (push (send bs :calc *default-x-hit* (subseq v1 id (+ id *id-max*))) x-hit-pose) ;; 時刻x-hitにおける関節角度
+             ))
+
+
          (when *use-final-pose*
            (push (send bs :calc *x-max* (subseq v1 id (+ id *id-max*))) x-max-pose)) ;; 時刻x-maxにおける関節角度
    ;;(push (send bs :calc (aref *p* (- (length v1) 2)) (subseq v1 id (+ id *id-max*))) x-max-pose) ;; 着地時刻の関節角度
@@ -748,6 +777,13 @@
          (setq id (+ id *id-max*)))
 
      *jlist* *bspline*);; *bspline*に仮想ジョイント分追加されているので数合わせ用に*jlist*を渡す
+     (when *use-hit-ee*
+         (progn
+             (change-robot-state-specific-time v1 *default-x-hit* (send (car (send *robot* :links)) :joint))
+             (setq x-hit-ee-pos (send (send *sweet-spot* :copy-worldcoords) :worldpos))
+             (setq x-hit-ee-rpy (nth 0 (rpy-angle (send (send *sweet-spot* :copy-worldcoords) :worldrot))))
+             (setq x-hit-ee (concatenate float-vector x-hit-ee-pos (mapcar #'rad2deg (reverse x-hit-ee-rpy))))
+             ))
 
     (when (send (car (send *robot* :links)) :joint) ;; virtual joint
       (mapc
@@ -756,7 +792,8 @@
            (push (send bs :calc-delta *x-min* (subseq v1 id (+ id *id-max*)) :n 1) x-min-vel) ;; 時刻x-minにおける関節角速度
            (push (send bs :calc-delta *x-min* (subseq v1 id (+ id *id-max*)) :n 2) x-min-acc) ;; 時刻x-minにおける関節角加速度
            ;; (push (send bs :calc (aref v1 (- (length v1) *x-hit-id*)) (subseq v1 id (+ id *id-max*))) x-hit-pose) ;; 時刻x-hitにおける関節角度
-           (push (send bs :calc *default-x-hit* (subseq v1 id (+ id *id-max*))) x-hit-pose) ;; 時刻x-hitにおける関節角度
+           (when *use-hit-pose*
+               (push (send bs :calc *default-x-hit* (subseq v1 id (+ id *id-max*))) x-hit-pose)) ;; 時刻x-hitにおける関節角度
            (when *use-final-pose*
              (push (send bs :calc *x-max* (subseq v1 id (+ id *id-max*))) x-max-pose)) ;; 時刻x-maxにおける関節角度
      ;; (push (send bs :calc (aref *p* (- (length v1) 2)) (subseq v1 id (+ id *id-max*))) x-max-pose) ;; 着地時刻における関節角度
@@ -767,11 +804,19 @@
 
        (subseq *bspline* (length *jlist*) (+ (length *jlist*) 6)))) ;; 最後のvirtual joint6自由度
 
+    (setq *target-hitting-ee*
+        (let* ((pose-wc (progn (funcall *load-pose-func* :pose (nth 1 *key-pose-id*)) (send *sweet-spot* :copy-worldcoords)))
+               (ee-pos (send pose-wc :worldpos))
+               (ee-rpy (nth 0 (rpy-angle (send pose-wc :worldrot)))))
+              (concatenate float-vector ee-pos (mapcar #'rad2deg (reverse ee-rpy)))))))
 
     (setq x-min-pose (coerce (reverse x-min-pose) float-vector))
     (setq x-min-vel (coerce (reverse x-min-vel) float-vector))
     (setq x-min-acc (coerce (reverse x-min-acc) float-vector))
-    (setq x-hit-pose (coerce (reverse x-hit-pose) float-vector))
+    (when *use-hit-pose*
+      (setq x-hit-pose (coerce (reverse x-hit-pose) float-vector)))
+    (when *use-hit-ee*
+      (setq x-hit-ee (coerce x-hit-ee float-vector)))
     (when *use-final-pose*
       (setq x-max-pose (coerce (reverse x-max-pose) float-vector)))
 
@@ -782,7 +827,8 @@
     (let* ((v2-0 (v- x-min-pose *initial-pose*))
            (v2-1 x-min-vel)
            (v2-2 x-min-acc)
-           (v2-3 (v- x-hit-pose *hitting-pose*))
+           (v2-3 (if *use-hit-pose* (v- x-hit-pose *hitting-pose*) nil))
+           (v2-3.5 (if *use-hit-ee* (v- x-hit-ee *target-hitting-ee*) nil))
            (v2-4 (if *use-final-pose* (v- x-max-pose *final-pose*) nil))
            (v2-5 x-max-vel)
            (v2-6 x-max-acc))
@@ -790,7 +836,10 @@
       (setf (aref v2 g-dim-id) (norm2 (map float-vector #'(lambda (x) (deg2rad x)) v2-0) ))  (incf g-dim-id)
       (setf (aref v2 g-dim-id) (norm2 (map float-vector #'(lambda (x) (deg2rad x)) v2-1) ))  (incf g-dim-id)
       (setf (aref v2 g-dim-id) (norm2 (map float-vector #'(lambda (x) (deg2rad x)) v2-2) ))  (incf g-dim-id)
-      (setf (aref v2 g-dim-id) (norm2 (map float-vector #'(lambda (x) (deg2rad x)) v2-3) ))  (incf g-dim-id)
+      (when *use-hit-pose*
+        (setf (aref v2 g-dim-id) (norm2 (map float-vector #'(lambda (x) (deg2rad x)) v2-3) ))  (incf g-dim-id))
+      (when *use-hit-ee*
+        (setf (aref v2 g-dim-id) (norm2 (map float-vector #'(lambda (x) (deg2rad x)) v2-3.5) ))  (incf g-dim-id))
       (when *use-final-pose*
         (setf (aref v2 g-dim-id) (norm2 (map float-vector #'(lambda (x) (deg2rad x)) v2-4) ))  (incf g-dim-id))
 
@@ -1731,7 +1780,7 @@
        :equality-function-gradient (read-from-string "motion-dg")
        :inequality-function (read-from-string "motion-h")
        :inequality-function-gradient (read-from-string "motion-dh")
-       :equality-dimension (+ 6 (- (/ (length *contact-flag*) 2) 1) (if *use-final-pose* 1 0))
+       :equality-dimension (+ 5 (- (/ (length *contact-flag*) 2) 1) (if *use-hit-pose* 1 0) (if *use-hit-ee* 1 0) (if *use-final-pose* 1 0))
        :inequality-dimension (round (+ (* (- id-max 1) (length jvel-list)) (* (+ interval-num 1) (+ 3 (length jvel-list) (length *collision-pair*))) (- (length *contact-flag*) 2)))
        :alg alg ;; SLSQP ;; COBYLA ;; DIRECT
        :max-time max-time ;;(* 10 60 60)
