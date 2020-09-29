@@ -802,13 +802,14 @@
            (push (send bs :calc-delta *x-max* (subseq v1 id (+ id *id-max*)) :n 2) x-max-acc) ;; 時刻x-maxにおける関節角加速度
            (setq id (+ id *id-max*)))
 
-       (subseq *bspline* (length *jlist*) (+ (length *jlist*) 6)))) ;; 最後のvirtual joint6自由度
+       (subseq *bspline* (length *jlist*) (+ (length *jlist*) 6))))) ;; 最後のvirtual joint6自由度
 
     (setq *target-hitting-ee*
         (let* ((pose-wc (progn (funcall *load-pose-func* :pose (nth 1 *key-pose-id*)) (send *sweet-spot* :copy-worldcoords)))
                (ee-pos (send pose-wc :worldpos))
                (ee-rpy (nth 0 (rpy-angle (send pose-wc :worldrot)))))
-              (concatenate float-vector ee-pos (mapcar #'rad2deg (reverse ee-rpy)))))))
+              (concatenate float-vector ee-pos (mapcar #'rad2deg (reverse ee-rpy)))
+              ))
 
     (setq x-min-pose (coerce (reverse x-min-pose) float-vector))
     (setq x-min-vel (coerce (reverse x-min-vel) float-vector))
