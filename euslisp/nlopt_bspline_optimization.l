@@ -19,20 +19,19 @@
     (let ((id 0))
         (mapc
             #'(lambda (jl bs)
-              (send jl :joint-angle
-                    (send bs :calc time (subseq p id (+ id *id-max*))))
-              (send jl :put :dq (deg2rad (send bs :calc-delta time (subseq v1 id (+ id *id-max*)) :n 1))) ;; 関節速度の単位は[rad]
-              )
-
-        *jlist* *bspline*)
+                  (send jl :joint-angle
+                        (send bs :calc time (subseq p id (+ id *id-max*))))
+                  (send jl :put :dq (deg2rad (send bs :calc-delta time (subseq p id (+ id *id-max*)) :n 1))) ;; 関節速度の単位は[rad]
+                  (setq id (+ id *id-max*)))
+         *jlist* *bspline*)
         (when use-append-root-joint
             (send (send (car (send *robot* :links)) :joint) :joint-angle
                 (coerce
                     (mapcar
                     #'(lambda (bs)
                         (send bs :calc time (subseq p id (setq id (+ id *id-max*)))))
-                    (subseq *bspline* (length *jlist*) (+ (length *jlist*) 6))
-                    float-vector)))))
+                     (subseq *bspline* (length *jlist*) (+ (length *jlist*) 6)))
+                 float-vector))))
     )
 
 (defun nlopt-init
@@ -53,8 +52,8 @@
      (x-max *x-max-of-p-orig*)
      (x-hit nil)
      (use-final-pose nil)
-     (use-hit-pose nil)
-     (use-hit-ee t)
+     (use-hit-pose t)
+     (use-hit-ee nil)
      (use-6dof-p nil)
      (default-switching-list nil)
      (support-polygon-margin (list 50 50 0 100 50))
@@ -777,14 +776,6 @@
          (setq id (+ id *id-max*)))
 
      *jlist* *bspline*);; *bspline*に仮想ジョイント分追加されているので数合わせ用に*jlist*を渡す
-     (when *use-hit-ee*
-         (progn
-             (change-robot-state-specific-time v1 *default-x-hit* (send (car (send *robot* :links)) :joint))
-             (setq x-hit-ee-pos (send (send *sweet-spot* :copy-worldcoords) :worldpos))
-             (setq x-hit-ee-rpy (nth 0 (rpy-angle (send (send *sweet-spot* :copy-worldcoords) :worldrot))))
-             (setq x-hit-ee (concatenate float-vector x-hit-ee-pos (mapcar #'rad2deg (reverse x-hit-ee-rpy))))
-             ))
-
     (when (send (car (send *robot* :links)) :joint) ;; virtual joint
       (mapc
        #'(lambda (bs)
@@ -804,12 +795,21 @@
 
        (subseq *bspline* (length *jlist*) (+ (length *jlist*) 6)))) ;; 最後のvirtual joint6自由度
 
-    (setq *target-hitting-ee*
-        (let* ((pose-wc (progn (funcall *load-pose-func* :pose (nth 1 *key-pose-id*)) (send *sweet-spot* :copy-worldcoords)))
-               (ee-pos (send pose-wc :worldpos))
-               (ee-rpy (nth 0 (rpy-angle (send pose-wc :worldrot)))))
-              (concatenate float-vector ee-pos (mapcar #'rad2deg (reverse ee-rpy)))
-              ))
+     (when *use-hit-ee*
+         (progn
+             (change-robot-state-specific-time v1 *default-x-hit* (send (car (send *robot* :links)) :joint))
+             (setq x-hit-ee-pos (send (send *sweet-spot* :copy-worldcoords) :worldpos))
+             (setq x-hit-ee-rpy (nth 0 (rpy-angle (send (send *sweet-spot* :copy-worldcoords) :worldrot))))
+             (setq x-hit-ee (concatenate float-vector x-hit-ee-pos (mapcar #'rad2deg (reverse x-hit-ee-rpy))))
+
+             (setq *target-hitting-ee*
+                 (let* ((pose-wc (progn (funcall *load-pose-func* :pose (nth 1 *key-pose-id*)) (send *sweet-spot* :copy-worldcoords)))
+                        (ee-pos (send pose-wc :worldpos))
+                        (ee-rpy (nth 0 (rpy-angle (send pose-wc :worldrot)))))
+                       (concatenate float-vector ee-pos (mapcar #'rad2deg (reverse ee-rpy)))
+                       ))
+                 ))
+
 
     (setq x-min-pose (coerce (reverse x-min-pose) float-vector))
     (setq x-min-vel (coerce (reverse x-min-vel) float-vector))
