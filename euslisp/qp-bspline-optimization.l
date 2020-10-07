@@ -359,9 +359,11 @@
 
 
 
-(defun qp-motion-optimize-util ()
+(defun qp-motion-optimize-util (&key (x-takeoff 0.1) (x-land 0.5) (x-hit 0.7))
   (qp-motion-optimize :x-max 1.4 :x-hit 0.7 :maxvel-weight 1e3 :minjerk-weight 1e0 :x-step 0.02 :id-max 14 :recursive-order 5 :use-margin 1 :use-all-joint t :use-append-root-joint t)
-  (with-open-file (f "/userdir/logs/p-orig.l" :direction :output :if-exists :new-version) (format f "~a" *ret*))
+  (setq *x-max-of-p-orig* 1.4)
+  (setq *p-orig* (concatenate float-vector *ret* (float-vector x-takeoff x-land x-hit)))
+  (with-open-file (f "/userdir/logs/p-orig.l" :direction :output :if-exists :new-version) (format f "~a" *p-orig*))
   )
 
 

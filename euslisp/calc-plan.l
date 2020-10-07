@@ -8,11 +8,17 @@
 
 (setq *joint-indices-rarm* (list 17 18 19 20 21 22 23 24))
 (setq *joint-names-rarm* (list "collar-y" "shoulder-p" "shoulder-r" "shoulder-y" "elbow-p" "wrist-y" "wrist-r" "wrist-p"))
+(setq *joint-indices-rleg* (list 0 1 2 3 4 5))
+(setq *joint-names-rleg* (list "rleg-crotch-y" "rleg-crotch-r" "rleg-crotch-p" "rleg-knee-p" "rleg-ankle-p" "rleg-ankle-r"))
+(setq *joint-indices-lleg* (list 0 1 2 3 4 5))
+(setq *joint-names-lleg* (list "lleg-crotch-y" "lleg-crotch-r" "lleg-crotch-p" "lleg-knee-p" "lleg-ankle-p" "lleg-ankle-r"))
 (setq *joint-indices-chest* (list 12 13 14))
 (setq *joint-names-chest* (list "torso-waist-r" "torso-waist-p" "torso-waist-y"))
 
-(setq *joint-indices* (flatten *joint-indices-rarm* *joint-indices-chest*))
-(setq *joint-names* (flatten *joint-names-rarm* *joint-names-chest*))
+; (setq *joint-indices* (flatten *joint-indices-rarm* *joint-indices-chest*))
+; (setq *joint-names* (flatten *joint-names-rarm* *joint-names-chest*))
+(setq *joint-indices* (flatten *joint-indices-rleg* *joint-indices-lleg*))
+(setq *joint-names* (flatten *joint-names-rleg* *joint-names-lleg*))
 
 
 (setq *gp* (gnuplot))
