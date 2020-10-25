@@ -4,7 +4,7 @@
 (with-append-root-joint
   (link-list-with-robot-6dof *robot* (list (cdr (send *robot* :links)))
                              :joint-class 6dof-joint)
-  (show-optimized-motion *p* :cnt 50 :x-max *x-max-of-p-orig* :real-time nil :lfoot-ik nil :rfoot-ik nil))
+  (show-optimized-motion *p* :cnt 70 :x-max *x-max-of-p-orig* :real-time nil :lfoot-ik t :rfoot-ik t))
 
 (setq *joint-indices-rarm* (list 17 18 19 20 21 22 23 24))
 (setq *joint-names-rarm* (list "collar-y" "shoulder-p" "shoulder-r" "shoulder-y" "elbow-p" "wrist-y" "wrist-r" "wrist-p"))

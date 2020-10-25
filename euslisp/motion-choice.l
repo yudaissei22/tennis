@@ -1,7 +1,7 @@
 ;; choose the motion
 (when (not (boundp '*motion-choice*))
-  (print "Warning: *motion-choice* is set to \"volley-step\" automatically.")
-  (setq *motion-choice* "volley-step"))
+  (print "Warning: *motion-choice* is set to \"forehand-volley-step\" automatically.")
+  (setq *motion-choice* "forehand-volley-step"))
 
 ;; forehand
 ;; punch
@@ -9,7 +9,8 @@
 ;; smash
 ;; batting
 ;; forehand-step
-;; volley-step
+;; forehand-volley-step
+;; backhand-volley-step
 
 (defun load-motion (&key (motion-choice *motion-choice*))
  (cond
@@ -19,10 +20,16 @@
    (setq *load-pose-func* 'load-forehand-pose)
    (setq *key-pose-id* (list 1 3 4)))
 
-  ((equal motion-choice "volley")
-   (load "package://tennis/euslisp/jaxon-key-pose/jaxon-volley-motion.l")
+  ((equal motion-choice "forehand-volley")
+   (load "package://tennis/euslisp/jaxon-key-pose/jaxon-forehand-volley-motion.l")
    (setq *limb* :rarm)
-   (setq *load-pose-func* 'load-volley-pose)
+   (setq *load-pose-func* 'load-forehand-volley-pose)
+   (setq *key-pose-id* (list 1 3 4)))
+
+  ((equal motion-choice "backhand-volley")
+   (load "package://tennis/euslisp/jaxon-key-pose/jaxon-backhand-volley-motion.l")
+   (setq *limb* :rarm)
+   (setq *load-pose-func* 'load-backhand-volley-pose)
    (setq *key-pose-id* (list 1 3 4)))
 
   ((equal motion-choice "punch")
@@ -55,10 +62,16 @@
    (setq *load-pose-func* 'load-forehand-pose)
    (setq *key-pose-id* (list 5 3 4)))
 
-  ((equal motion-choice "volley-step")
-   (load "package://tennis/euslisp/jaxon-key-pose/jaxon-volley-motion.l")
+  ((equal motion-choice "forehand-volley-step")
+   (load "package://tennis/euslisp/jaxon-key-pose/jaxon-forehand-volley-motion.l")
    (setq *limb* :rarm)
-   (setq *load-pose-func* 'load-volley-pose)
+   (setq *load-pose-func* 'load-forehand-volley-pose)
+   (setq *key-pose-id* (list 1 3 5)))
+
+  ((equal motion-choice "backhand-volley-step")
+   (load "package://tennis/euslisp/jaxon-key-pose/jaxon-backhand-volley-motion.l")
+   (setq *limb* :rarm)
+   (setq *load-pose-func* 'load-backhand-volley-pose)
    (setq *key-pose-id* (list 1 3 5)))
 
   ((equal motion-choice "kick-step")

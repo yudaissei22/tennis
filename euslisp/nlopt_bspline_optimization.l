@@ -326,7 +326,7 @@
     (format t "(nlopt-motion-optimize :x-max ~a :x-hit ~a :id-max ~a :recursive-order ~a :max-eval 100000000 :alg SLSQP :delta (deg2rad 0.01) :eqthre 1e-8 :xtol 1e-10 :ftol 1e-15 :use-all-joint t :use-margin 0.5 :use-append-root-joint t :maxvel-weight 1 :minjerk-weight 5e-3 :modify-ec t :p *p* :interval-num ~a :title \"maximize-speed\" :max-time (* 2 24 60 60) :file-path \"/userdir/logs\")~%~%~%"
             *x-max* *default-x-hit* *id-max* *recursive-order* *interval-num*))
 
-   ((equal motion-choice "volley-step")
+   ((equal motion-choice "forehand-volley-step")
     (setq *x-hit-id* 1)
     (setq *hit-point* *sweet-spot*)
     (setq *target-coords* *racket-coords*)
@@ -338,7 +338,7 @@
                 (list (list (append *lleg-no-foot-collision* (list *lfoot-plate*)) (list *floor*) 0)   (list *larm-no-shoulder-collision* *body/torso-collision* 20))))
 
 
-    ;; volley-step
+    ;; forehand-volley-step
     ;; list (t0, tl, tg, th, te)
     ;; 時刻間の状態
     ;; contact-flagは(t0 とtlの間)... の4つ
@@ -355,7 +355,7 @@
         (setq *default-x-hit* (eval *x-hit*))))
 
 
-    (format t "*********** volley-step ***********~%")
+    (format t "*********** foerhand-volley-step ***********~%")
     (format t "(nlopt-init :x-max 1.4 :x-hit nil :id-max 10 :recursive-order 5 :use-all-joint t :use-append-root-joint t :support-polygon-margin (list 50 50 0 100 50) :epsilon-c 30 :mu 0.3 :use-final-pose nil :default-switching-list nil :use-6dof-p t)~%~%")
     (format t "(nlopt-motion-optimize :x-max ~a :x-hit ~a :id-max ~a :recursive-order ~a :max-eval 100000000 :alg SLSQP :delta (deg2rad 0.01) :eqthre 1e-8 :xtol 1e-10 :ftol 1e-15 :use-all-joint t :use-margin 0.5 :use-append-root-joint t :maxvel-weight 1 :minjerk-weight 5e-3 :modify-ec t :p *p* :interval-num ~a :title \"maximize-speed\" :max-time (* 2 24 60 60) :file-path \"/userdir/logs\")~%~%~%"
             *x-max* *default-x-hit* *id-max* *recursive-order* *interval-num*))

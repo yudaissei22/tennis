@@ -514,7 +514,7 @@
 
 
 ;; pose番号を指定すると
-(defun load-volley-pose (&key (robot *robot*) (pose 0))
+(defun load-forehand-volley-pose (&key (robot *robot*) (pose 0))
   (send (send robot :rarm :end-coords) :dissoc *racket-coords*)
   (let* ((robot-worldcoords nil))
     (cond ((eq pose 1) (pose1) (push (send robot :copy-worldcoords) robot-worldcoords))
