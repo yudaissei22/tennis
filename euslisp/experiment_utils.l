@@ -163,6 +163,12 @@
   (send *ri* :angle-vector-sequence-full jpos tm :root-coords rc :zmp zmp :optional optional)
   )
 
+(defun send-angle-vector-sequence-full-with-bspline (jpos tm bsorder id-max x-min x-hit x-max p rc zmp optional &optional (initial-time 10000))
+  (send *ri* :angle-vector (send *robot* :angle-vector (car jpos)) initial-time) ;; initial-timeまでに最初の姿勢にする
+  (send *ri* :wait-interpolation)
+  (send *ri* :angle-vector-sequence-full-with-bspline jpos tm bsorder id-max x-min x-hit x-max p :root-coords rc :zmp zmp :optional optional)
+  )
+
 
 (defun send-angle-vector-sequence-full-no-wait (jpos tm rc zmp optional)
   (send *ri* :angle-vector-sequence-full jpos tm :root-coords rc :zmp zmp :optional optional)
@@ -178,6 +184,19 @@
   ;;(send *ri* :set-interpolation-mode :linear)
   (send *ri* :start-log)
   (send-angle-vector-sequence-full jpos tm rc zmp optional initial-time)
+  (send *ri* :wait-interpolation-seq)
+  (unix:usleep (* final-time 1000))
+  (send *ri* :save-log log-fname)
+  ;;(send *ri* :set-interpolation-mode :hoffarbib)
+  )
+
+(defun experiment-angle-vector-sequence-full-with-bspline
+  (jpos tm bsorder id-max x-min x-hit x-max p rc zmp optional
+   &key (initial-time 10000) (final-time 5000) (log-fname (concatenate string "/userdir/logs/" *timestamp-str* "angle-vector-sequence-full-with-bspline")))
+
+  ;;(send *ri* :set-interpolation-mode :linear)
+  (send *ri* :start-log)
+  (send-angle-vector-sequence-full-with-bspline jpos tm bsorder id-max x-min x-hit x-max p rc zmp optional initial-time)
   (send *ri* :wait-interpolation-seq)
   (unix:usleep (* final-time 1000))
   (send *ri* :save-log log-fname)

@@ -78,6 +78,6 @@
   (experiment-angle-vector-sequence-full (list (car *exp-jpos-deg1*)) (list (car *exp-tm-ms1*)) (list (car *exp-rc1*)) (list (car *exp-zmp-wc1*)) (list (car *exp-optional1*))
                                          :initial-time *initial-time* :final-time 0 :log-fname (concatenate string "/userdir/logs/" *timestamp-str* "init"))
   (format t "exec motion~%")
-  (experiment-angle-vector-sequence-full *exp-jpos-deg1* *exp-tm-ms1* *exp-rc1* *exp-zmp-wc1* *exp-optional1*
+  (experiment-angle-vector-sequence-full-with-bspline *exp-jpos-deg1* *exp-tm-ms1* *recursive-order* *id-max* *x-min* *default-x-hit* *x-max* *p* *exp-rc1* *exp-zmp-wc1* *exp-optional1*
                                          :initial-time *initial-time* :final-time 0 :log-fname (concatenate string "/userdir/logs/" *timestamp-str* "play_motion"))
 )
