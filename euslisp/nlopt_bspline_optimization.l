@@ -355,11 +355,44 @@
         (setq *default-x-hit* (eval *x-hit*))))
 
 
-    (format t "*********** foerhand-volley-step ***********~%")
+    (format t "*********** forehand-volley-step ***********~%")
     (format t "(nlopt-init :x-max 1.4 :x-hit nil :id-max 10 :recursive-order 5 :use-all-joint t :use-append-root-joint t :support-polygon-margin (list 50 50 0 100 50) :epsilon-c 30 :mu 0.3 :use-final-pose nil :default-switching-list nil :use-6dof-p t)~%~%")
     (format t "(nlopt-motion-optimize :x-max ~a :x-hit ~a :id-max ~a :recursive-order ~a :max-eval 100000000 :alg SLSQP :delta (deg2rad 0.01) :eqthre 1e-8 :xtol 1e-10 :ftol 1e-15 :use-all-joint t :use-margin 0.5 :use-append-root-joint t :maxvel-weight 1 :minjerk-weight 5e-3 :modify-ec t :p *p* :interval-num ~a :title \"maximize-speed\" :max-time (* 2 24 60 60) :file-path \"/userdir/logs\")~%~%~%"
             *x-max* *default-x-hit* *id-max* *recursive-order* *interval-num*))
 
+   ((equal motion-choice "backhand-volley-step")
+    (setq *x-hit-id* 1)
+    (setq *hit-point* *sweet-spot*)
+    (setq *target-coords* *racket-coords*)
+    (setq *collision-pair*
+          (list (list (list *rarm-no-upper-collision* *chest/head-collision* '*epsilon-c*)   (list *rarm-no-shoulder-collision* *chest/head-collision* 0))
+                (list (list *rarm-no-upper-collision* *body/torso-collision* '*epsilon-c*)   (list *rarm-collision* *larm-collision* '*epsilon-c*))
+                (list (list *larm-no-upper-collision* (append *chest/head-collision* *rarm-collision*) '*epsilon-c*)   (list *racket-capsule-list* *chest/head-collision* '*epsilon-c*))
+                (list (list *lleg-no-groin-collision* *rleg-collision* 20)   (list *racket-capsule-list* *larm-collision* '*epsilon-c*))
+                (list (list (append *lleg-no-foot-collision* (list *lfoot-plate*)) (list *floor*) 0)   (list *larm-no-shoulder-collision* *body/torso-collision* 20))))
+
+
+    ;; backhand-volley-step
+    ;; list (t0, tl, tg, th, te)
+    ;; 時刻間の状態
+    ;; contact-flagは(t0 とtlの間)... の4つ
+    (setq *contact-flag* (list (list *lfoot* *rfoot* nil nil) (list *lfoot* nil nil nil) (list *lfoot* *rfoot-step* nil nil) (list *lfoot* *rfoot-step* nil nil)))
+    (if default-switching-list
+        (progn
+          (setq *default-switching-list* default-switching-list)
+          (setq *default-x-hit* (nth (- (length default-switching-list) *x-hit-id*) default-switching-list)))
+
+      (progn
+        (dotimes (i (1- (length *contact-flag*)))
+          (push (aref *p* (- (length *p*) 1 i)) *default-switching-list*))
+
+        (setq *default-x-hit* (eval *x-hit*))))
+
+
+    (format t "*********** backhand-volley-step ***********~%")
+    (format t "(nlopt-init :x-max 1.4 :x-hit nil :id-max 10 :recursive-order 5 :use-all-joint t :use-append-root-joint t :support-polygon-margin (list 50 50 0 100 50) :epsilon-c 30 :mu 0.3 :use-final-pose nil :default-switching-list nil :use-6dof-p t)~%~%")
+    (format t "(nlopt-motion-optimize :x-max ~a :x-hit ~a :id-max ~a :recursive-order ~a :max-eval 100000000 :alg SLSQP :delta (deg2rad 0.01) :eqthre 1e-8 :xtol 1e-10 :ftol 1e-15 :use-all-joint t :use-margin 0.5 :use-append-root-joint t :maxvel-weight 1 :minjerk-weight 5e-3 :modify-ec t :p *p* :interval-num ~a :title \"maximize-speed\" :max-time (* 2 24 60 60) :file-path \"/userdir/logs\")~%~%~%"
+            *x-max* *default-x-hit* *id-max* *recursive-order* *interval-num*))
    ((equal motion-choice "kick-step")
     (setq *x-hit-id* 2)
     (setq *hit-point* *hitting-point*)
@@ -673,7 +706,11 @@
         ;; ヤコビアンと関節速度から手先速度を計算
         (setq hitting-dr (transform hitting-jacobian hitting-dq))
         ;; 評価値は最大化したい方向の正射影ベクトルの大きさ
-        (setq hitting-maxvel (* -1e3 (v. hitting-dr hitting-direction))))) ;; 最大化するため負にして、スケール合わせのために1000倍する
+        (if *vel-positive*
+          (setq hitting-maxvel (* -1e3 (v. hitting-dr hitting-direction)))  ;; 面の正方向の速度を最大化するため面の反対方向の速度の最小化問題にする、スケール合わせのために1000倍する
+          (setq hitting-maxvel (* 1e3 (v. hitting-dr hitting-direction)))  ;; バックハンドの場合は面の正方向の速度を最小化して、スケール合わせのために1000倍する
+          )
+          ))
 
 
 

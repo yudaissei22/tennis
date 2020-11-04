@@ -5,6 +5,7 @@
 (setq *lfoot-step* (make-coords :pos #f(300 380 0) :rpy (list (deg2rad 30) 0 0)))
 (setq *lfoot* (make-coords :pos #f(0 280 0) :rpy (list (deg2rad 30) 0 0)))
 (setq *rfoot* (make-coords :pos #f(0 -280 0) :rpy (list (deg2rad -30) 0 0)))
+(setq *rfoot-step* (make-coords :pos #f(300 -280 0) :rpy (list (deg2rad -30) 0 0)))
 (setq *look-at-target* #f(10000 0 2000))
 
 
@@ -199,25 +200,27 @@
            0.0 -1.29912 -50.4969 -82.3214 -80 -71.956 -85.2512 16.7357
            5.0 20.0 50.0 0.0 -100.0 45.0 0.0 0.0))
         ;; #f(-0.851399 -25.3628 -43.6886 81.0988 -37.0053 23.9976 43.4412 23.4412 -52.1147 73.8623 -20.4123 -24.1527 4.69939 17.9085 19.7456 22.4 0.0 13.9379 -1.29912 -50.4969 -82.3214 -108.234 -71.956 -85.2512 16.7357 8.0 0.0 80.0 0.0 -40.0 45.0 0.0 0.0)) ;; before Humanoids2016
+  (send robot :reset-manip-pose)
 
   ;; rotate robot in order to use waist
   ;; (send robot :orient (deg2rad 10) :z :world)
   ;; (send robot :locate (float-vector 0 -10 -240) :world)
 
+  ;; そういえばバックハンドは打面逆だけどまだ対処してない
   (send *racket-coords* :orient (deg2rad 0) :z :world)
   (send *racket-coords* :locate (float-vector 0 0 0) :world)
-  (send *racket-coords* :rotate (deg2rad 90) :x :world)
-  (send *racket-coords* :rotate (deg2rad 70) :y :world)
-  (send *racket-coords* :locate (float-vector 550 -900 1200) :world)
+  (send *racket-coords* :rotate (deg2rad -90) :x :world)
+  (send *racket-coords* :rotate (deg2rad 110) :y :world)
+  (send *racket-coords* :rotate (deg2rad -40) :z :world)
+  (send *racket-coords* :locate (float-vector 700 0 1200) :world)
   ;; (send *racket-coords* :locate (float-vector 550 300 805) :world) ;; before Humanoids2016
 
   ;; fullbody-inverse-kinematics
   (let* ((target-coords
           (list
            *racket-grip*
-           *lfoot-step*
-           ; *lfoot*
-           *rfoot*)))
+           *lfoot*
+           *rfoot-step*)))
 
     (with-move-target-link-list
      (mt ll robot '(:rarm :lleg :rleg))
