@@ -3,7 +3,8 @@
 ;; $ (setq *motion-choice* "forehand") ;; "punch", "kick", "smash"
 ;; $ (load "nlopt_bspline_optimization.so")
 (require "package://eus_nlopt/euslisp/nlopt")
-(require "package://tennis/config/p-orig")
+(when (and (not (boundp *p-orig*)) (not (boundp *x-max-of-p-orig*)))
+    (require "package://tennis/config/p-orig"))
 
 (comp::compile-file-if-src-newer  (ros::resolve-ros-path "package://tennis/euslisp/qp-bspline-optimization.l") nil)
 (require "package://tennis/euslisp/qp-bspline-optimization")
