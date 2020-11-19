@@ -47,7 +47,7 @@
   (send *larm-coords* :locate (float-vector 0 0 0) :world)
   (send *larm-coords* :rotate (deg2rad 5) :x :world)
   (send *larm-coords* :rotate (deg2rad 30) :y :world)
-  (send *larm-coords* :locate (float-vector 400 100 900) :world)
+  (send *larm-coords* :locate (float-vector 500 100 900) :world)
 ;; end-effector <-> racket-grip transformation
   (setq end-effector->racket-grip (make-coords :pos #f(0 0 0) :rpy (list (deg2rad -45) (deg2rad -45) 0)))
   (setq *larm-coords* (send *larm-coords* :transform end-effector->racket-grip))

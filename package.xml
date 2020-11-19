@@ -32,11 +32,9 @@
   <!-- Dependencies can be catkin packages or system dependencies -->
   <!-- Examples: -->
   <!-- Use build_depend for packages you need at compile time: -->
-  <build_depend>message_generation</build_depend>
   <!-- Use buildtool_depend for build tool packages: -->
   <!--   <buildtool_depend>catkin</buildtool_depend> -->
   <!-- Use run_depend for packages you need at runtime: -->
-  <run_depend>message_runtime</run_depend>
   <!-- Use test_depend for packages you need only for testing: -->
   <!--   <test_depend>gtest</test_depend> -->
   <buildtool_depend>catkin</buildtool_depend>
@@ -47,21 +45,15 @@
   <build_depend>eus_nlopt</build_depend>
   <build_depend>eus_qpoases</build_depend>
   <build_depend>hrpsys_ros_bridge</build_depend>
-  <build_depend>hrpsys_choreonoid</build_depend>
-  <build_depend>hrpsys_choreonoid_tutorials</build_depend>
-  <build_depend>jvrc_models</build_depend>
 
   <run_depend>roscpp</run_depend>
   <run_depend>rospy</run_depend>
   <run_depend>ball_state_msgs</run_depend>
   <run_depend>cmake_modules</run_depend>
-  <run_depend>gsll</run_depend>
   <run_depend>eus_nlopt</run_depend>
   <run_depend>eus_qpoases</run_depend>
+  <run_depend>message_runtime</run_depend>
   <run_depend>hrpsys_ros_bridge</run_depend>
-  <run_depend>hrpsys_choreonoid</run_depend>
-  <run_depend>hrpsys_choreonoid_tutorials</run_depend>
-  <run_depend>jvrc_models</run_depend>
 
   <!-- The export tag contains other, unspecified, tags -->
   <export>
