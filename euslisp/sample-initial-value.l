@@ -4,4 +4,6 @@
 (qp-motion-optimize  :x-max 2.0 :x-hit 1.0 :maxvel-weight -1e-3 :unit-matrix-weight 1e-4 :minjerk-weight 1e0 :x-step 0.02 :id-max 18 :recursive-order 7 :use-margin 30 :use-all-joint t :use-append-root-joint t)
 (setq *x-max-of-p-orig* 2.0)
 (setq *p-orig* (concatenate float-vector *ret* (float-vector 0.4 0.8 1.0)))
-(with-open-file (f "/userdir/logs/p-orig.l" :direction :output :if-exists :new-version) (format f "~a" *p-orig*))
+(setq *p-orig-file-header* (format nil ";; {{{ initial value: (qp-motion-optimize  :x-max 2.0 :x-hit 1.0 :maxvel-weight -1e-3 :unit-matrix-weight 1e-4 :minjerk-weight 1e0 :x-step 0.02 :id-max 18 :recursive-order 7 :use-margin 30 :use-all-joint t :use-append-root-joint t)~%(progn (setq *p-orig* " ))
+(setq *p-orig-file-footer* (format nil ") (setq *x-max-of-p-orig* ~a))~%;; }}}" *x-max-of-p-orig*))
+(with-open-file (f "/userdir/logs/p-orig.l" :direction :output :if-exists :new-version) (format f "~a~%~a~%~a~%" *p-orig-file-header* *p-orig* *p-orig-file-footer*))

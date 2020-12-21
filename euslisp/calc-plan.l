@@ -1,7 +1,7 @@
 (load "nlopt_bspline_optimization.l")
 (load "/userdir/gnuplotlib.l")
 (setq *motion-choice* "forehand-volley-step")
-(nlopt-init :id-max 18 :recursive-order 7 :x-min 0.0 :x-max *x-max-of-p-orig* :x-hit 1.0 :use-hit-pose t)
+(nlopt-init :id-max 14 :recursive-order 5 :x-min 0.0 :x-max *x-max-of-p-orig* :x-hit 1.0 :use-hit-pose t)
 (send *robot* :move-to (make-coords) :world)
 (with-append-root-joint
   (link-list-with-robot-6dof *robot* (list (cdr (send *robot* :links)))

@@ -62,6 +62,7 @@
      (mu 0.3)
      (interval-num (round (/ x-max 0.05))))
 
+  ;; jskeus/eus/models/arrow-object.l
   (require "models/arrow-object.l")
   (when (not (boundp '*arrow*))
     (setq *arrow* (arrow))
@@ -458,7 +459,7 @@
 
 
   ;; prepare for the initial state and limit of root joint
-  (make-concatenate-rootjoint (funcall *load-pose-func*))
+  ;; (make-concatenate-rootjoint (funcall *load-pose-func*))
 
   (setq *dump-nloptlog* nil)
   nil)
@@ -2093,7 +2094,7 @@
       (if real-time
           (while (< (send tm :stop) (* x-step show-loop)))
          ;; (unix:usleep 1)
-         (unix::usleep 1000000)
+         (unix::usleep 100000)
           (print "sleep")
         )
 
