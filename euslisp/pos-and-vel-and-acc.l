@@ -3,8 +3,9 @@
 (load "../config/p-orig.l")
 
 (setq *id-max* 14)
+(setq *recursive-order* 5)
 
-(setq a (instance basic-spline :init :id-max *id-max* :recursive-order 5 :x-min 0.0 :x-max 1.0))
+(setq a (instance basic-spline :init :id-max *id-max* :recursive-order *recursive-order* :x-min 0.0 :x-max 1.0))
 
 (setq x-min 0)
 (setq x-buf x-min)

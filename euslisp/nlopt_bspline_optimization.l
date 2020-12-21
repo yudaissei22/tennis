@@ -47,14 +47,14 @@
               (send robot :joint-list) ;; length jlist = 33
              (send robot *limb* :joint-list)))
 
-     (id-max 14)
-     (recursive-order 5)
+     (id-max nil)
+     (recursive-order nil)
      (x-min 0.0)
      (x-max *x-max-of-p-orig*)
      (x-hit nil)
      (use-final-pose nil)
      (use-hit-pose t)
-     (use-hit-ee nil)
+     (use-hit-ee nil) ;; bug is included
      (use-6dof-p nil)
      (default-switching-list nil)
      (support-polygon-margin (list 50 50 0 100 50))
@@ -2502,11 +2502,10 @@
 
 
 
-(when (not (boundp '*bspline*))
-  (if (not (boundp '*id-max*))
-      (nlopt-init)
-    (nlopt-init :id-max *id-max*)))
-
+;(when (not (boundp '*bspline*))
+;  (if (not (boundp '*id-max*))
+;      (nlopt-init)
+;    (nlopt-init :id-max *id-max*)))
 
 
 

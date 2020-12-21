@@ -240,6 +240,7 @@
       (m* (transpose mat) mat))) ;; M^T*M jerkの二乗
 
 
+   (unit-matrix-weight 1e-3)
    ;; (eigen-weight 1) ;; for compile
    (maxvel-weight 1)
    (eval-weight-matrix2 (progn
@@ -272,7 +273,7 @@
          :eval-weight-matrix (setq *mat* (m+ (scale-matrix minjerk-weight eval-weight-matrix)
                                              ;; 正定値性を保とうとして足しこんだ(ここは小さくする)
                                              ;; (scale-matrix eigen-weight
-                                             (scale-matrix 1e-3 (unit-matrix (send eval-weight-matrix :get-val 'dim0)))
+                                             (scale-matrix unit-matrix-weight (unit-matrix (send eval-weight-matrix :get-val 'dim0)))
                                              ;; )
                                              ;; 速度の評価用に使う行列
                                              (scale-matrix maxvel-weight eval-weight-matrix2)))
@@ -341,7 +342,7 @@
       (setq x-buf (+ x-buf x-step))
       (send *irtviewer* :draw-objects)
       (x::window-main-one)
-      (unix:usleep (round (* 0.1 1000 1000))))
+      (unix:usleep (round (* 0.01 1000 1000))))
     (push (cons :p (reverse p)) retl)
     (push (cons :dp (reverse dp)) retl)
     (push (cons :ddp (reverse ddp)) retl)

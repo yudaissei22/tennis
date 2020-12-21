@@ -1,10 +1,12 @@
 (load "nlopt_bspline_optimization.l")
 (load "/userdir/gnuplotlib.l")
+(setq *motion-choice* "forehand-volley-step")
+(nlopt-init :id-max 18 :recursive-order 7 :x-min 0.0 :x-max *x-max-of-p-orig* :x-hit 1.0 :use-hit-pose t)
 (send *robot* :move-to (make-coords) :world)
 (with-append-root-joint
   (link-list-with-robot-6dof *robot* (list (cdr (send *robot* :links)))
                              :joint-class 6dof-joint)
-  (show-optimized-motion *p* :cnt 70 :x-max *x-max-of-p-orig* :real-time nil :lfoot-ik t :rfoot-ik t))
+  (show-optimized-motion *p-orig* :cnt 70 :x-max *x-max-of-p-orig* :real-time nil :lfoot-ik nil :rfoot-ik nil))
 
 (setq *joint-indices-rarm* (list 17 18 19 20 21 22 23 24))
 (setq *joint-names-rarm* (list "collar-y" "shoulder-p" "shoulder-r" "shoulder-y" "elbow-p" "wrist-y" "wrist-r" "wrist-p"))

@@ -1,0 +1,7 @@
+(comp::compile-file-if-src-newer "qp-bspline-optimization.l")
+(setq *motion-choice* "forehand-volley-step")
+(load "qp-bspline-optimization.so")
+(qp-motion-optimize  :x-max 2.0 :x-hit 1.0 :maxvel-weight -1e-3 :unit-matrix-weight 1e-4 :minjerk-weight 1e0 :x-step 0.02 :id-max 18 :recursive-order 7 :use-margin 30 :use-all-joint t :use-append-root-joint t)
+(setq *x-max-of-p-orig* 2.0)
+(setq *p-orig* (concatenate float-vector *ret* (float-vector 0.4 0.8 1.0)))
+(with-open-file (f "/userdir/logs/p-orig.l" :direction :output :if-exists :new-version) (format f "~a" *p-orig*))
