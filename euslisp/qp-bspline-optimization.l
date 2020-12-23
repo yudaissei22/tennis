@@ -1,5 +1,5 @@
 (require "package://tennis/euslisp/motion-choice") ;; for *load-pose-func*
-(comp::compile-file-if-src-newer  (ros::resolve-ros-path "package://tennis/euslisp/bspline.l") (ros::resolve-ros-path "package://tennis/euslisp"))
+(comp::compile-file-if-src-newer  (ros::resolve-ros-path "package://tennis/euslisp/bspline.l") (ros::resolve-ros-path "package://tennis/euslisp/"))
 (require "package://tennis/euslisp/bspline")
 (require "package://eus_qpoases/euslisp/eus-qpoases")
 

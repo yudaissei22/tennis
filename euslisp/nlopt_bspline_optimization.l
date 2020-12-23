@@ -6,6 +6,7 @@
 (when (and (not (boundp '*p-orig*)) (not (boundp '*x-max-of-p-orig*)))
     (require "package://tennis/config/p-orig"))
 
+
 (comp::compile-file-if-src-newer  (ros::resolve-ros-path "package://tennis/euslisp/qp-bspline-optimization.l") (ros::resolve-ros-path "package://tennis/euslisp/"))
 (require "package://tennis/euslisp/qp-bspline-optimization")
 
@@ -34,6 +35,14 @@
                      (subseq *bspline* (length *jlist*) (+ (length *jlist*) 6)))
                  float-vector))))
     )
+
+(defun validate-p-orig-and-bspline-dim ()
+  (when (or (> (- (length *p-orig*) (* *id-max* (length *bspline*))) 3)
+            (< (- (length *p-orig*) (* *id-max* (length *bspline*))) 0))
+    (format t "size does not match: ~A~%" (length *p-orig*) (* *id-max* (length *bspline*)))
+    (exit)
+    )
+  )
 
 (defun nlopt-init
     (&key
