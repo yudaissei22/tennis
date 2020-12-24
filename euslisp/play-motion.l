@@ -1,14 +1,11 @@
 #!/usr/bin/env roseus
 (require "package://tennis/euslisp/is-choreonoid") ;; *is-choreonoid* is defined
 (require "package://tennis/euslisp/experiment_utils.l")
-(require "package://tennis/euslisp/show-global-variables.l")
+(require "package://tennis/euslisp/global-variables.l")
 
-(setq *x-min* 0.0)
-(setq *x-max* *x-max-of-p-orig*)
+(setq *id-max* 14)
 (setq *recursive-order* 5)
-(setq *id-max* 16)
-
-(nlopt-init :use-all-joint t :use-append-root-joint t :id-max 16 :recursive-order 5 :x-min 0.0 :x-hit 1.0)
+(nlopt-init :use-all-joint t :use-append-root-joint t :id-max 14 :recursive-order 5 :x-min 0.0 :x-hit 1.0)
 
 
 (progn
@@ -87,7 +84,7 @@
     (progn (print "Press Enter key when you want to start st.")
            (read-line)))
   (format t "start st ~%")
-  (send *ri* :start-st)
+  ;; (send *ri* :start-st)
   (unless *is-choreonoid*
     (progn (print "Press Enter key when you want to play the motion.")
            (read-line)))
