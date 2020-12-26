@@ -1,5 +1,6 @@
 (comp::compile-file-if-src-newer (ros::resolve-ros-path "package://tennis/euslisp/qp-bspline-optimization.l") (ros::resolve-ros-path "package://tennis/euslisp/"))
-(setq *motion-choice* "forehand-volley-step")
+;; (setq *motion-choice* "forehand-volley-step")
+(setq *motion-choice* "backhand-volley-step")
 (load "qp-bspline-optimization.so")
 (qp-motion-optimize  :x-max 2.0 :x-hit 1.0 :maxvel-weight -1e-3 :unit-matrix-weight 1e-4 :minjerk-weight 1e0 :x-step 0.02 :id-max 14 :recursive-order 5 :use-margin 30 :use-all-joint t :use-append-root-joint t)
 (setq *x-max-of-p-orig* 2.0)
