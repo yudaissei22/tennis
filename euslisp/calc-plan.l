@@ -4,6 +4,7 @@
 (load "is-choreonoid")
 (setq *is-choreonoid* nil)
 (require "package://tennis/euslisp/experiment_utils.l")
+(print "po")
 (nlopt-init :id-max 14 :recursive-order 5 :x-min 0.0 :x-max *x-max-of-p-orig* :x-hit 1.0 :use-hit-pose t)
 (validate-p-orig-and-bspline-dim)
 (send *robot* :move-to (make-coords) :world)

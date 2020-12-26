@@ -2,8 +2,9 @@
 
 (ros::roseus-add-msgs "ball_state_msgs")
 
-(require "is-choreonoid")
-(require "nlopt_bspline_optimization")
+(require "package://tennis/euslisp/is-choreonoid")
+(comp::compile-file-if-src-newer (ros::resolve-ros-path "package://tennis/euslisp/nlopt_bspline_optimization.l") (ros::resolve-ros-path "package://tennis/euslisp/"))
+(require "package://tennis/euslisp/nlopt_bspline_optimization.so")
 
 (defun experiment-init ()
   ;; (jaxon-init)
