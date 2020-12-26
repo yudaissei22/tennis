@@ -468,7 +468,7 @@
 
 
   ;; prepare for the initial state and limit of root joint
-  ;; (make-concatenate-rootjoint (funcall *load-pose-func*))
+  (make-concatenate-rootjoint (funcall *load-pose-func*))
 
   (setq *dump-nloptlog* nil)
   nil)
