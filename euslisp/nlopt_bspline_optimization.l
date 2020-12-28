@@ -69,7 +69,7 @@
      (support-polygon-margin (list 50 50 0 100 50))
      (epsilon-c 30)
      (mu 0.3)
-     (interval-num (round (/ x-max 0.05))))
+     (interval-num nil))
 
   ;; jskeus/eus/models/arrow-object.l
   (require "models/arrow-object.l")
@@ -1434,7 +1434,8 @@
     ;; 着地時間などの不等式制約
     (dotimes (i (- (length *contact-flag*) 2))
       (incf h-dim-id)
-      (setf (aref v2 h-dim-id) (- (aref #|*p-orig*|# v1 (- (length #|*p-orig*|# v1) i 2)) (aref #|*p-orig*|# v1 (- (length #|*p-orig*|# v1) i 1))))))
+      (setf (aref v2 h-dim-id) (- (aref #|*p-orig*|# v1 (- (length #|*p-orig*|# v1) i 2)) (aref #|*p-orig*|# v1 (- (length #|*p-orig*|# v1) i 1)))))
+    )
 
 
 
@@ -1493,7 +1494,7 @@
      (use-append-root-joint *use-append-root-joint*)
      (maxvel-weight 1)
      (minjerk-weight 1e-3)
-     (interval-num 52.0)
+     (interval-num *interval-num*)
      ;; (support-polygon-margin (list *sp-front* *sp-back* *sp-inside* *sp-outside*))
      (modify-ec t)
      (robot *robot*)
@@ -1509,7 +1510,7 @@
 
 
 
-     (id-max *id-max*) ;; タスク変数より大きくする（今回は位置姿勢の6か？）
+     (id-max (print *id-max*)) ;; タスク変数より大きくする（今回は位置姿勢の6か？）
      (recursive-order *recursive-order*)
 
      (x-min *x-min*)
@@ -1804,7 +1805,7 @@
           :inequality-function (read-from-string "motion-h")
           :inequality-function-gradient (read-from-string "motion-dh")
           :equality-dimension (+ 6 (- (/ (length *contact-flag*) 2) 1) (if *use-hit-pose* 1 0) (if *use-hit-ee* 1 0) (if *use-final-pose* 1 0))
-          :inequality-dimension (round (+ (* (- id-max 1) (length jvel-list)) (* (+ interval-num 1) (+ 3 (length jvel-list) (length *collision-pair*))) (- (length *contact-flag*) 2))) ;; (* (- id-max 1) (length jvel-list) 2)
+          :inequality-dimension (print (round (+ (* (- id-max 1) (length jvel-list)) (* (+ interval-num 1) (+ 3 (length jvel-list) (length *collision-pair*))) (- (length *contact-flag*) 2)))) ;; (* (- id-max 1) (length jvel-list) 2)
           :alg alg ;; SLSQP ;; COBYLA ;; DIRECT
           :max-time max-time ;;(* 10 60 60)
           :max-eval max-eval ;; 10000
