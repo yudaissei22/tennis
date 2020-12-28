@@ -48,6 +48,13 @@ def parse_dirname(dir_name):
 
 
 def parse_logfiles(log_dir):
+    with open(in_dir + "/" + log_dir + "/maximize-speed_obj.dat", "r") as f:
+        whole_lines = f.readlines()
+        lines_num = len(whole_lines) # same as eq and ieq
+        if whole_lines:
+            obj = np.array([float(i) for i in whole_lines[-1].rstrip('\n').split()])
+        else:
+            obj = np.zeros(1)
     with open(in_dir + "/" + log_dir + "/maximize-speed_eq.dat", "r") as f:
         whole_lines = f.readlines()
         if whole_lines:
@@ -62,6 +69,8 @@ def parse_logfiles(log_dir):
         else:
             ieq = np.zeros(0)
     return { \
+        "lines_num": lines_num, \
+        "obj": obj[0], \
         "eq": eq, \
         "ieq": ieq, \
     }
@@ -79,6 +88,8 @@ for dirname in dirs_sorted:
           "{} "
           "{} "
           "{:<8} "
+          "{:<5} "
+          "{:8.1f} "
           "{:8.1f} "
           "{:9.1f} ".format(\
                 attr["dt"], \
@@ -88,6 +99,8 @@ for dirname in dirs_sorted:
                 attr["recursive-order"], \
                 attr["alg"], \
                 attr["sp"], \
+                log["lines_num"], \
+                log["obj"], \
                 np.linalg.norm(log["eq"]), \
                 np.linalg.norm(log["ieq"]), \
           )

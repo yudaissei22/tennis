@@ -32,20 +32,20 @@ algs = [
 
 motions = [
     "forehand-volley-step",
-    # "backhand-volley-step",
+    "backhand-volley-step",
 ]
 
 margins = [
     "50.0",
-    # "50.1",
-    # "50.2",
-    # "50.3",
-    # "50.4",
-    # "50.5",
-    # "50.6",
-    # "50.7",
-    # "50.8",
-    # "50.9",
+    "50.1",
+    "50.2",
+    "50.3",
+    "50.4",
+    "50.5",
+    "50.6",
+    "50.7",
+    "50.8",
+    "50.9",
 ]
 
 output_dir = "/userdir/logs/motion-planning"
@@ -65,6 +65,7 @@ use_all_joint = "t"
 use_append_root_joint = "t"
 x_takeoff = "0.4"
 x_land = "0.8"
+interval_num = "20"
 
 
 for alg in algs:
@@ -94,8 +95,8 @@ for alg in algs:
                     f.write("(format t \"(boundp '*p-orig*) => ~A~%\" (boundp '*p-orig*))\n")
                 f.write("(comp::compile-file-if-src-newer (ros::resolve-ros-path \"package://tennis/euslisp/nlopt_bspline_optimization.l\") (ros::resolve-ros-path \"package://tennis/euslisp/\"))\n")
                 f.write("(load \"package://tennis/euslisp/nlopt_bspline_optimization.so\")\n")
-                f.write("(nlopt-init :x-max " + x_max + " :x-hit " + x_hit + " :id-max " + id_max + " :recursive-order " + recursive_order +  " :use-all-joint t :use-append-root-joint t :support-polygon-margin (list " + margin + " " + margin + " 0 100 50) :epsilon-c 30 :mu 0.3 :use-final-pose nil :default-switching-list nil :use-6dof-p t)\n")
-                f.write("(nlopt-motion-optimize :x-max " + x_max + " :x-hit " + x_hit + " :id-max " + id_max + " :recursive-order " + recursive_order + " :max-eval 10000000000 :alg " + alg + " :delta (deg2rad 0.01) :eqthre 1e-8 :xtol 1e-10 :ftol 1e-15 :use-all-joint t :use-margin 0.5 :use-append-root-joint t :maxvel-weight 1 :minjerk-weight 5e-4 :modify-ec t :p *p* :interval-num 20 :title \"maximize-speed\" :max-time (* 14 24 60 60) :file-path \"" + output_dir + "\")\n")
+                f.write("(nlopt-init :x-max " + x_max + " :x-hit " + x_hit + " :id-max " + id_max + " :recursive-order " + recursive_order +  " :use-all-joint t :use-append-root-joint t :interval-num " + interval_num +  " :support-polygon-margin (list " + margin + " " + margin + " 0 100 50) :epsilon-c 30 :mu 0.3 :use-final-pose nil :default-switching-list nil :use-6dof-p t)\n")
+                f.write("(nlopt-motion-optimize :x-max " + x_max + " :x-hit " + x_hit + " :id-max " + id_max + " :recursive-order " + recursive_order + " :max-eval 10000000000 :alg " + alg + " :delta (deg2rad 0.01) :eqthre 1e-8 :xtol 1e-10 :ftol 1e-15 :use-all-joint t :use-margin 0.5 :use-append-root-joint t :maxvel-weight 1 :minjerk-weight 5e-4 :modify-ec t :p *p* :interval-num " + interval_num + " :title \"maximize-speed\" :max-time (* 14 24 60 60) :file-path \"" + output_dir + "\")\n")
                 if not dry_run:
                     proc = subprocess.Popen(["roseus", "alg/" + motion + "/" + alg + "/" + margin + ".l"], shell=False, stdout=None, stderr=None)
                 # result = proc.communicate() # wait block
