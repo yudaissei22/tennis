@@ -1,4 +1,5 @@
 #!/usr/bin/env roseus
+(setq *motion-choice* "forehand-volley-step")
 (require "package://tennis/euslisp/is-choreonoid") ;; *is-choreonoid* is defined
 (require "package://tennis/euslisp/experiment_utils.l")
 (require "package://tennis/euslisp/global-variables.l")

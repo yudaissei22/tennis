@@ -48,28 +48,41 @@ def parse_dirname(dir_name):
 
 
 def parse_logfiles(log_dir):
+    with open(in_dir + "/" + log_dir + "/maximize-speed_p.dat", "r") as f:
+        whole_lines = f.readlines()
+        p_lines_num = len(whole_lines)
+        if whole_lines:
+            p = whole_lines[-1].rstrip('\n')
+        else:
+            p = ""
     with open(in_dir + "/" + log_dir + "/maximize-speed_obj.dat", "r") as f:
         whole_lines = f.readlines()
-        lines_num = len(whole_lines) # same as eq and ieq
+        obj_lines_num = len(whole_lines)
         if whole_lines:
             obj = np.array([float(i) for i in whole_lines[-1].rstrip('\n').split()])
         else:
             obj = np.zeros(1)
     with open(in_dir + "/" + log_dir + "/maximize-speed_eq.dat", "r") as f:
         whole_lines = f.readlines()
+        eq_lines_num = len(whole_lines)
         if whole_lines:
             eq = np.array([float(i) for i in whole_lines[-1].rstrip('\n').split()])
         else:
             eq = np.zeros(0)
     with open(in_dir + "/" + log_dir + "/maximize-speed_ieq.dat", "r") as f:
         whole_lines = f.readlines()
+        ieq_lines_num = len(whole_lines)
         if whole_lines:
             ieq = np.array([float(i) for i in whole_lines[-1].rstrip('\n').split()])
             ieq[ieq < 0] = 0
         else:
             ieq = np.zeros(0)
     return { \
-        "lines_num": lines_num, \
+        "p_lines_num": p_lines_num, \
+        "obj_lines_num": obj_lines_num, \
+        "eq_lines_num": eq_lines_num, \
+        "ieq_lines_num": ieq_lines_num, \
+        "p": p, \
         "obj": obj[0], \
         "eq": eq, \
         "ieq": ieq, \
@@ -81,27 +94,39 @@ dirs_sorted = sorted(os.listdir(in_dir), key=lambda s: parse_dirname(s)["dt"])
 for dirname in dirs_sorted:
     attr = parse_dirname(dirname)
     log = parse_logfiles(dirname)
-    print("{} "
-          "{} "
-          "{} "
-          "{} "
-          "{} "
-          "{} "
-          "{:<8} "
-          "{:<5} "
-          "{:8.1f} "
-          "{:8.1f} "
-          "{:9.1f} ".format(\
-                attr["dt"], \
-                attr["x_max"], \
-                attr["x_hit"], \
-                attr["id_max"], \
-                attr["recursive-order"], \
-                attr["alg"], \
-                attr["sp"], \
-                log["lines_num"], \
-                log["obj"], \
-                np.linalg.norm(log["eq"]), \
-                np.linalg.norm(log["ieq"]), \
-          )
+    print_line =  \
+    "{} " \
+    "{} " \
+    "{} " \
+    "{} " \
+    "{} " \
+    "{} " \
+    "{} " \
+    "{} " \
+    "{:<5} " \
+    "{:<5} " \
+    "{:<5} " \
+    "{:8.1f} " \
+    "{:8.1f} " \
+    "{:9.1f} ".format(\
+          attr["motion"], \
+          attr["dt"], \
+          attr["x_max"], \
+          attr["x_hit"], \
+          attr["id_max"], \
+          attr["recursive-order"], \
+          attr["alg"], \
+          attr["sp"], \
+          log["obj_lines_num"], \
+          log["eq_lines_num"], \
+          log["ieq_lines_num"], \
+          log["obj"], \
+          np.linalg.norm(log["eq"]), \
+          np.linalg.norm(log["ieq"]), \
     )
+    print(print_line)
+    with open(in_dir + "/" + dirname + "/" + attr["motion"] + "-p-orig.l", "w") as f:
+        f.write(";; " + print_line + "\n")
+        f.write("(progn (setq *p-orig* ")
+        f.write(log["p"])
+        f.write(") (setq *x-max-of-p-orig* " + attr["x_max"] + "))")

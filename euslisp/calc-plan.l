@@ -1,8 +1,7 @@
 (load "/userdir/gnuplotlib.l")
-;; (setq *motion-choice* "forehand-volley-step")
-(setq *motion-choice* "backhand-volley-step")
-(load "is-choreonoid")
-(setq *is-choreonoid* nil)
+(setq *motion-choice* "forehand-volley-step")
+;; (setq *motion-choice* "backhand-volley-step")
+(setq *is-choreonoid* t)
 (require "package://tennis/euslisp/experiment_utils.l")
 (nlopt-init :x-max 2.0 :x-hit 1.0 :id-max 14 :recursive-order 5 :use-all-joint t :use-append-root-joint t :interval-num 20 :support-polygon-margin (list 50.0 50.0 0 100 50) :epsilon-c 30 :mu 0.3 :use-final-pose nil :default-switching-list nil :use-6dof-p t)
 (validate-p-orig-and-bspline-dim)
@@ -21,12 +20,7 @@
     (setq *exp-wc1* (make-list seq-num))
     (setq *exp-cog-wc1* (make-list seq-num))
     (make-sequence-in-advance *exp-jpos-deg1* *exp-tm-ms1* *exp-rc1* *exp-zmp-wc1* *exp-optional1* *exp-jpos-rad1* *exp-tm-s1* *exp-pos1* *exp-rpy1* *exp-zmp-rc1* *exp-wc1* *exp-cog-wc1*
-                              :step step :x-max t-max :choreonoid *is-choreonoid* :p *p* :lfoot-ik t :rfoot-ik t))
-
-(with-append-root-joint
-  (link-list-with-robot-6dof *robot* (list (cdr (send *robot* :links)))
-                             :joint-class 6dof-joint)
-  (show-optimized-motion *p-orig* :x-step 0.1 :x-max *x-max-of-p-orig* :real-time nil :make-sequence t :choreonoid *is-choreonoid* :lfoot-ik nil :rfoot-ik nil :zmp-offset #f(0 0 0)))
+                              :step step :x-max t-max :choreonoid *is-choreonoid* :p *p* :lfoot-ik nil :rfoot-ik nil))
 
 (setq *joint-indices-rarm* (list 17 18 19 20 21 22 23 24))
 (setq *joint-names-rarm* (list "collar-y" "shoulder-p" "shoulder-r" "shoulder-y" "elbow-p" "wrist-y" "wrist-r" "wrist-p"))

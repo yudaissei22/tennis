@@ -1,5 +1,5 @@
 #!/usr/bin/env roseus
-(setq *motion-choice* "backhand-volley-step")
+(setq *motion-choice* "forehand-volley-step")
 
 (require "package://tennis/euslisp/experiment_utils.l")
 (require "package://tennis/euslisp/global-variables.l")
@@ -24,4 +24,4 @@
     (setq *exp-wc1* (make-list seq-num))
     (setq *exp-cog-wc1* (make-list seq-num))
     (make-sequence-in-advance *exp-jpos-deg1* *exp-tm-ms1* *exp-rc1* *exp-zmp-wc1* *exp-optional1* *exp-jpos-rad1* *exp-tm-s1* *exp-pos1* *exp-rpy1* *exp-zmp-rc1* *exp-wc1* *exp-cog-wc1*
-		      :step step :x-max t-max :choreonoid *is-choreonoid* :p nil :lfoot-ik t :rfoot-ik t))
+		      :step step :x-max t-max :choreonoid *is-choreonoid* :p nil :lfoot-ik nil :rfoot-ik nil))

@@ -4,8 +4,7 @@
 (defun is-choreonoid ()
   (and (is-simulation) (> (read-from-string (read-line (piped-fork "rtls localhost:15005/ -l |grep HEAD | wc -l"))) 0)))
 
-(setq *is-choreonoid* (is-choreonoid))
+(defvar *is-choreonoid* (is-choreonoid))
 (when (not *is-choreonoid*)
   (format t "Are you using a real robot? If yes, press enter.~%")
   (read-line))
-;; (setq *is-choreonoid* t)

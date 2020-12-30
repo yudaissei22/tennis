@@ -95,6 +95,7 @@
   (setq *current-force* #f(0 0 0))
   (setq *current-zmp-moment* #f(0 0 0))
   (setq *current-zmp* #f(0 0 0))
+  (setq *current-tqv* (instantiate float-vector (length (send *robot* :angle-vector))))
   (return-end-coords)
   (funcall *load-pose-func*)
   (send *irtviewer* :draw-objects)
@@ -576,6 +577,7 @@
 ;; v2: 1次元
 ;; 返り値: 成功なら0?
 (defun-c-callable motion-f ((v1 :string) (v2 :string)) :integer
+  (print v1)
   (when (equal (aref v1 0) (aref #f(nan) 0)) ;; (aref #f(nan) 0)はnanを取り出している
     (dotimes (i (length v1))
       (setf (aref v1 i) (aref *tmp-p* i)))) ;; tmp-pに入力を保存している
@@ -739,7 +741,7 @@
     (if *use-delta-func*
         (progn
           (when (null (eq *eval-cnt-f* *eval-cnt-f-old*))
-            (format t "objective functiion: ~a~%" v2)
+            (format t "objective function: ~a~%" v2)
             (with-open-file
              (f (concatenate string *file-name* "_obj.dat") :direction :output :if-exists :append)
              (dolist (obj-data (coerce v2 cons))
@@ -755,7 +757,7 @@
 
 
       (progn
-        (format t "objective functiion: ~a~%" v2)
+        (format t "objective function: ~a~%" v2)
         (with-open-file
          (f (concatenate string *file-name* "_obj.dat") :direction :output :if-exists :append)
          (dolist (obj-data (coerce v2 cons))
@@ -1123,6 +1125,7 @@
          (dp nil)
          max-ieq-cond
          (discretized-zmp #f(0 0 0))
+         (discretized-tqv (instantiate float-vector (length (send *robot* :angle-vector))))
          inside-zmp
          (discretized-force #f(0 0 0))
          (discretized-zmp-moment #f(0 0 0))
@@ -1164,47 +1167,9 @@
              (push (aref *p-orig* (- (length *p-orig* #|v1|#) 1 i)) switching-tm-list))
 
 
-           ;; (calc-specific-time-force-zmp v1 x-buf :zmp-at-specific-time discretized-zmp :force-at-specific-time discretized-force :zmp-moment-at-specific-time discretized-zmp-moment :contact-flag (nth contact-tm-cnt *contact-flag*) :step-time (/ (- *x-max* *x-min*) interval-num))
-           (if (< x-buf (* 3 (/ (- *x-max* *x-min*) interval-num)))
-               (calc-specific-time-force-zmp v1 x-buf :zmp-at-specific-time discretized-zmp :force-at-specific-time discretized-force :zmp-moment-at-specific-time discretized-zmp-moment :contact-flag (nth contact-tm-cnt *contact-flag*) :step-time (/ (- *x-max* *x-min*) interval-num))
-             (let ((jid 0))
-               (mapc
-                #'(lambda (jl bs)
-                    (list
-                     (send jl :joint-angle
-                           (send bs :calc x-buf (subseq v1 jid (setq jid (+ jid *id-max*)))))))
-
-                *jlist* *bspline*)
-               ;; root-joint
-               (if (send (car (send *robot* :links)) :joint)
-                   (progn
-                     (send (send (car (send *robot* :links)) :joint) :joint-angle
-                           (coerce
-                            (mapcar
-                             #'(lambda (bs)
-                                 (send bs :calc x-buf (subseq v1 jid (setq jid (+ jid *id-max*)))))
-
-                             (subseq *bspline* (length *jlist*) (+ (length *jlist*) 6)))
-                            float-vector))
-
-                     (when (nth 0 (nth contact-tm-cnt *contact-flag*))
-                       (send *robot* :lleg :inverse-kinematics (nth 0 (nth contact-tm-cnt *contact-flag*)) :rotation-axis t :revert-if-fail nil))
-
-                     (when (nth 1 (nth contact-tm-cnt *contact-flag*))
-                       (send *robot* :rleg :inverse-kinematics (nth 1 (nth contact-tm-cnt *contact-flag*)) :rotation-axis t :revert-if-fail nil)))
-
-
-                 (progn
-                   (send *robot* :fix-leg-to-coords *lfoot* :lleg)))
-
-
-               (setq discretized-zmp (send *robot* :calc-zmp (send *robot* :angle-vector) (send (car (send *robot* :links)) :copy-worldcoords) :dt (/ (- *x-max* *x-min*) interval-num)))
-               (setq discretized-force (send (car (send *robot* :links)) :force))
-               (setq discretized-zmp-moment (send *robot* :get :zmp-moment))))
-
-
+           (calc-specific-time-force-zmp v1 x-buf :tqv-at-specific-time discretized-tqv :zmp-at-specific-time discretized-zmp :force-at-specific-time discretized-force :zmp-moment-at-specific-time discretized-zmp-moment :contact-flag (nth contact-tm-cnt *contact-flag*) :rfoot-ik nil :lfoot-ik nil :step-time (/ (- *x-max* *x-min*) interval-num))
            (make-support-face :front *sp-front* :back *sp-back* :inside *sp-inside* :outside *sp-outside* :oneleg *sp-oneleg* :contact-flag (nth contact-tm-cnt *contact-flag*))
-           ;; (send *arrow* :locate discretized-zmp :world) (send *irtviewer* :draw-objects)
+           (send *arrow* :locate discretized-zmp :world)
 
            (setq inside-zmp
                  (* 1e-3
@@ -1218,6 +1183,10 @@
 
            (when (eq (send *support-face* :insidep discretized-zmp) :inside)
              (setq inside-zmp (- inside-zmp))) ;; 負であればよい(:inside)
+           ;; (send *irtviewer* :draw-objects)
+           ;; (x::window-main-one)
+           ;; (send *support-face* :draw-on :flush t :color #f(0.5 0.5 0) :width 50.0)
+           ; (read-line)
 
            ;; zmpの条件
            (setf (aref v2 id) inside-zmp)
@@ -1370,60 +1339,13 @@
              (incf contact-tm-cnt))
 
            ;; トルク制限
-           (let ((jid 0)
-                 (av (instantiate float-vector (length (send *robot* :angle-vector)))) ;; angle-vector
-                 (jvv (instantiate float-vector (length (send *robot* :angle-vector)))) ;; joint-velocity-vector
-                 (jav (instantiate float-vector (length (send *robot* :angle-vector)))) ;; joint-acceleration-vector
-                 (root-spacial-velocity (instantiate float-vector 3))
-                 (root-angular-velocity (instantiate float-vector 3))
-                 (root-spacial-acceleration (instantiate float-vector 3))
-                 (root-angular-acceleration (instantiate float-vector 3))
-                 (tqv (instantiate float-vector (length (send *robot* :angle-vector)))) ;; torque-vector
-                 )
-             ;; 現在時刻における関節角度，速度，加速度
+           (let ((rjid 0))
              (mapc
-              #'(lambda (jl bs)
-                  (setf (aref av jid) (send bs :calc x-buf (subseq v1 (* jid *id-max*) (* (+ jid 1) *id-max*))))
-                  (setf (aref jvv jid) (send bs :calc-delta x-buf (subseq v1 (* jid *id-max*) (* (+ jid 1) *id-max*)) :n 1))
-                  (setf (aref jav jid) (send bs :calc-delta x-buf (subseq v1 (* jid *id-max*) (* (+ jid 1) *id-max*)) :n 2))
-                  (setq jid (+ jid 1))
-                  )
-              *jlist* *bspline*)
-             ;; root-joint
-             ;; TODO ルートリンク角加速度が本当にこれでいいのか検証
-             (if (send (car (send *robot* :links)) :joint)
-                 (let ((rid 0)
-                       (root-link-pos (instantiate float-vector 6))
-                       (root-link-vel (instantiate float-vector 6))
-                       (root-link-acc (instantiate float-vector 6)))
-                   (map float-vector
-                     #'(lambda (bs)
-                         (setf (aref root-link-pos rid) (send bs :calc x-buf (subseq v1 (* rid *id-max*) (* (+ rid 1) *id-max*))))
-                         (setf (aref root-link-vel rid) (send bs :calc-delta x-buf (subseq v1 (* rid *id-max*) (* (+ rid 1) *id-max*)) :n 1))
-                         (setf (aref root-link-acc rid) (send bs :calc-delta x-buf (subseq v1 (* rid *id-max*) (* (+ rid 1) *id-max*)) :n 2))
-                         (setq rid (+ rid 1)))
-                     (subseq *bspline* (length *jlist*) (+ (length *jlist*) 6)))
-                   (setq root-spacial-velocity (subseq root-link-vel 0 3))
-                   (setq root-angular-velocity (subseq root-link-vel 3 6))
-                   (setq root-spacial-acceleration (subseq root-link-acc 0 3))
-                   (setq root-angular-acceleration (subseq root-link-acc 3 6)))
-                 (progn
-                   (send *robot* :fix-leg-to-coords *lfoot* :lleg)))
-
-             (setq tqv (send *robot* :calc-torque-from-vel-acc
-                             :root-spacial-velocity root-spacial-velocity
-                             :root-angular-velocity root-angular-velocity
-                             :root-spacial-acceleration root-spacial-acceleration
-                             :root-angular-acceleration root-angular-acceleration
-                             :jvv (map float-vector #'(lambda (a) (deg2rad a)) jvv)
-                             :jav (map float-vector #'(lambda (a) (deg2rad a)) jav)))
-             (let ((rjid 0))
-               (mapc
-                 #'(lambda (jvl bs)
-                     (setq h-dim-id (round (+ id (* (+ 3 (length *collision-pair*) rjid) (+ interval-num 1)))))
-                     (setf (aref v2 h-dim-id) (- (send jvl :max-joint-torque) (abs (elt tqv (position jvl *jlist*)))))
-                     (setq rjid (+ rjid 1)))
-                 *jvel-list* *bspline*)))
+               #'(lambda (jvl bs)
+                   (setq h-dim-id (round (+ id (* (+ 3 (length *collision-pair*) rjid) (+ interval-num 1)))))
+                   (setf (aref v2 h-dim-id) (- (send jvl :max-joint-torque) (abs (elt discretized-tqv (position jvl *jlist*)))))
+                   (setq rjid (+ rjid 1)))
+               *jvel-list* *bspline*))
            (incf id)))
 
 
@@ -1480,6 +1402,9 @@
 ;; optimization
 (defun nlopt-motion-optimize
     (&key
+     (dry-run nil) ;; global variables such as *initial-pose* can only be created by dry-run
+     ;; q_k(t)=\bm{p}_k^{T} \bm{b}(t)
+     ;; B-splineの重みベクトル\bm{p}=[\bm{p}_1 ... \bm{p}_K]（ (*id-max (length bspline))個の要素を持つベクトル）
      (file-path "/userdir/logs")
      (title "nlopt-maximize-velocity")
      (alg SLSQP)
@@ -1494,10 +1419,9 @@
      (use-append-root-joint *use-append-root-joint*)
      (maxvel-weight 1)
      (minjerk-weight 1e-3)
-     (interval-num *interval-num*)
+     (interval-num (progn (*interval-num*) (nth 10 (list 0))))
      ;; (support-polygon-margin (list *sp-front* *sp-back* *sp-inside* *sp-outside*))
      (modify-ec t)
-     (robot *robot*)
      (motion-choice *motion-choice*)
 
      (jlist (if use-all-joint
@@ -1510,7 +1434,7 @@
 
 
 
-     (id-max (print *id-max*)) ;; タスク変数より大きくする（今回は位置姿勢の6か？）
+     (id-max *id-max*) ;; タスク変数より大きくする（今回は位置姿勢の6か？）
      (recursive-order *recursive-order*)
 
      (x-min *x-min*)
@@ -1590,15 +1514,11 @@
                      (nth (nth 2 *key-pose-id*) *limb-av-pose-list*))))
                       ;; 終端姿勢(float-vector)
 
+     (p nil)
+     ;; これ以上新しい引数作ると引数が32個超えてバグる
+     )
 
-     ;; q_k(t)=\bm{p}_k^{T} \bm{b}(t)
-     ;; B-splineの重みベクトル\bm{p}=[\bm{p}_1 ... \bm{p}_K]（ (*id-max (length bspline))個の要素を持つベクトル）
-     (p
-      (progn
-        (qp-motion-optimize :x-max x-max :x-hit x-hit :x-step 0.1 :maxvel-weight 0 :minjerk-weight 1 :id-max id-max :recursive-order recursive-order :use-all-joint use-all-joint :use-margin use-margin)
-        (setq *qp-flag* t)
-        (setq *q-orig* (copy-seq *ret*))))) ;; qpのminjerkで解いたときのパラメータ
-
+  (setq robot *robot*)
 
 
 
@@ -1793,6 +1713,17 @@
         (with-append-root-joint
          (link-list-with-robot-6dof *robot* (list (cdr (send *robot* :links)))
                                     :joint-class 6dof-joint)
+         (when dry-run
+           (setq v2_ (instantiate float-vector 10000))
+           (motion-g *p-orig* v2_)
+           (with-open-file (f "/userdir/logs/eq.dat" :direction :output :if-exists :new-version)
+                           (format f "~A~%" (coerce (set-difference (coerce v2_ cons) (list 0.0)) float-vector)))
+           (setq v2_ (instantiate float-vector 10000))
+           (motion-h *p-orig* v2_)
+           (with-open-file (f "/userdir/logs/ieq.dat" :direction :output :if-exists :new-version)
+                           (format f "~A~%" (coerce (set-difference (coerce v2_ cons) (list 0.0)) float-vector)))
+           )
+         (when (not dry-run)
          (print (nlopt-optimize
           :initial-state p
           :state-min-vector state-min-vector
@@ -1805,20 +1736,22 @@
           :inequality-function (read-from-string "motion-h")
           :inequality-function-gradient (read-from-string "motion-dh")
           :equality-dimension (+ 6 (- (/ (length *contact-flag*) 2) 1) (if *use-hit-pose* 1 0) (if *use-hit-ee* 1 0) (if *use-final-pose* 1 0))
-          :inequality-dimension (print (round (+ (* (- id-max 1) (length jvel-list)) (* (+ interval-num 1) (+ 3 (length jvel-list) (length *collision-pair*))) (- (length *contact-flag*) 2)))) ;; (* (- id-max 1) (length jvel-list) 2)
+          :inequality-dimension (round (+ (* (- id-max 1) (length jvel-list)) (* (+ interval-num 1) (+ 3 (length jvel-list) (length *collision-pair*))) (- (length *contact-flag*) 2))) ;; (* (- id-max 1) (length jvel-list) 2)
           :alg alg ;; SLSQP ;; COBYLA ;; DIRECT
           :max-time max-time ;;(* 10 60 60)
           :max-eval max-eval ;; 10000
           :eqthre eqthre
           :ftol ftol ;; 1e-10
           :xtol xtol)) ;; 1e-10
+         )
 
          (setq *p* (copy-seq p))
          (print *p*)
-         (show-optimized-motion p :cnt 50 :real-time t)))
+         ))
           ;; with-append-root-joint
 
     (progn
+      (when (not dry-run)
       (nlopt-optimize
        :initial-state p
        :state-min-vector state-min-vector
@@ -1838,10 +1771,11 @@
        :eqthre eqthre
        :ftol ftol ;; 1e-10
        :xtol xtol) ;; 1e-10
+      )
 
       (setq *p* (copy-seq p))
       (print *p*)
-      (show-optimized-motion p :cnt 50 :real-time t)))
+      ))
 
 
   (when modify-ec
@@ -1885,8 +1819,8 @@
     (setq *bspline-ec-list* '())
     (setq *bspline-tau-list* '())
     (setq *bspline-sweet-spot-list* '()) ;; not for load-pattern just for calc-plan
-    (setq *bspline-hp-list* '()))
-    (setq *bspline-jvv-list* '()) ;; for jvv list
+    (setq *bspline-hp-list* '())
+    (setq *bspline-jvv-list* '())) ;; for jvv list
 
 
   (let* ((x-buf (if specific-time specific-time *x-min*))
@@ -1924,17 +1858,15 @@
 
 
     (while (<= x-buf x-max)
-      (setq id 0)
-      (mapc
-       #'(lambda (jl bs)
-            (send jl :joint-angle
-                  (send bs :calc x-buf (subseq p-ret id (setq id (+ id *id-max*))))))
-       *jlist* bspline)
 
       (let ((jid 0)
+            max-jid
             (av (instantiate float-vector (length (send *robot* :angle-vector)))) ;; angle-vector
             (jvv (instantiate float-vector (length (send *robot* :angle-vector)))) ;; joint-velocity-vector
             (jav (instantiate float-vector (length (send *robot* :angle-vector)))) ;; joint-acceleration-vector
+            (root-link-pos (instantiate float-vector 6))
+            (root-link-vel (instantiate float-vector 6))
+            (root-link-acc (instantiate float-vector 6))
             (root-spacial-velocity (instantiate float-vector 3))
             (root-angular-velocity (instantiate float-vector 3))
             (root-spacial-acceleration (instantiate float-vector 3))
@@ -1944,35 +1876,34 @@
         ;; 現在時刻における関節角度，速度，加速度
         (mapc
          #'(lambda (jl bs)
+             (send jl :joint-angle (send bs :calc x-buf (subseq p-ret (* jid *id-max*) (* (+ jid 1) *id-max*))))
              (setf (aref av jid) (send bs :calc x-buf (subseq p-ret (* jid *id-max*) (* (+ jid 1) *id-max*))))
              (setf (aref jvv jid) (send bs :calc-delta x-buf (subseq p-ret (* jid *id-max*) (* (+ jid 1) *id-max*)) :n 1))
              (setf (aref jav jid) (send bs :calc-delta x-buf (subseq p-ret (* jid *id-max*) (* (+ jid 1) *id-max*)) :n 2))
              (setq jid (+ jid 1))
              )
          *jlist* *bspline*)
+        (setq max-jid jid)
         (push (coerce av cons) p)
         (push (coerce jvv cons) dp)
         (push (coerce jvv cons) ddp)
         ;; root-joint
         ;; TODO ルートリンク角加速度が本当にこれでいいのか検証
         (if (send (car (send *robot* :links)) :joint)
-            (let ((rid 0)
-                  (root-link-pos (instantiate float-vector 6))
-                  (root-link-vel (instantiate float-vector 6))
-                  (root-link-acc (instantiate float-vector 6)))
               (map float-vector
                 #'(lambda (bs)
-                    (setf (aref root-link-pos rid) (send bs :calc x-buf (subseq p-ret (* rid *id-max*) (* (+ rid 1) *id-max*))))
-                    (setf (aref root-link-vel rid) (send bs :calc-delta x-buf (subseq p-ret (* rid *id-max*) (* (+ rid 1) *id-max*)) :n 1))
-                    (setf (aref root-link-acc rid) (send bs :calc-delta x-buf (subseq p-ret (* rid *id-max*) (* (+ rid 1) *id-max*)) :n 2))
-                    (setq rid (+ rid 1)))
+                    (setf (aref root-link-pos (- jid max-jid)) (send bs :calc x-buf (subseq p-ret (* jid *id-max*) (* (+ jid 1) *id-max*))))
+                    (setf (aref root-link-vel (- jid max-jid)) (send bs :calc-delta x-buf (subseq p-ret (* jid *id-max*) (* (+ jid 1) *id-max*)) :n 1))
+                    (setf (aref root-link-acc (- jid max-jid)) (send bs :calc-delta x-buf (subseq p-ret (* jid *id-max*) (* (+ jid 1) *id-max*)) :n 2))
+                    (setq jid (+ jid 1)))
                 (subseq *bspline* (length *jlist*) (+ (length *jlist*) 6)))
               (setq root-spacial-velocity (scale 1e-3 (subseq root-link-vel 0 3)))
-              (setq root-angular-velocity (mapcar #'deg2rad (subseq root-link-vel 3 6))))
+              (setq root-angular-velocity (mapcar #'deg2rad (subseq root-link-vel 3 6)))
               (setq root-spacial-acceleration (scale 1e-3 (subseq root-link-acc 0 3)))
               (setq root-angular-acceleration (mapcar #'deg2rad (subseq root-link-acc 3 6)))
+            ;; else
             (progn
-              (send *robot* :fix-leg-to-coords *lfoot* :lleg)))
+              (send *robot* :fix-leg-to-coords (nth 1 fix-leg-coords) (nth 0 fix-leg-coords))))
 
         (setq tqv (send *robot* :calc-torque-from-vel-acc
                         :root-spacial-velocity root-spacial-velocity
@@ -1986,29 +1917,9 @@
         (push (coerce tqv cons) tau)
         )
 
-      (let* (each-6dof current-zmp-tf current-zmp-with-offset)
-        (if (send (car (send robot :links)) :joint)
-            ;(print
-              (progn
-                (send (send (car (send robot :links)) :joint) :joint-angle
-                    (coerce
-                     (mapcar
-                      #'(lambda (bs)
-                          (setq each-6dof (send bs :calc x-buf (subseq p-ret id (+ id *id-max*))))
-                          ;; (send bs :calc-delta x-buf (subseq p-ret id (+ id *id-max*)) :n 1)
-                          ;; (send bs :calc-delta x-buf (subseq p-ret id (+ id *id-max*)) :n 2)
-                          (setq id (+ id *id-max*))
-                          each-6dof)
-                      (subseq bspline (length *jlist*) (+ (length *jlist*) 6)))
-                     float-vector)))
-              ;)
-          (progn
-            (send robot :fix-leg-to-coords (nth 1 fix-leg-coords) (nth 0 fix-leg-coords))))
-
-
-
-        ;; 支持多角形の表示
-        (calc-specific-time-force-zmp p-ret x-buf :bspline bspline :zmp-at-specific-time *current-zmp* :force-at-specific-time *current-force* :zmp-moment-at-specific-time *current-zmp-moment* :contact-flag (nth contact-tm-cnt *contact-flag*) :lfoot-ik lfoot-ik :rfoot-ik rfoot-ik :step-time x-step)
+      (let* (current-zmp-tf current-zmp-with-offset)
+        ;; 支持多角形の表示 これはこの上でやってたのとほぼ同じ処理にikが入った/入らないもの
+        (calc-specific-time-force-zmp p-ret x-buf :bspline bspline :zmp-at-specific-time *current-zmp* :force-at-specific-time *current-force* :zmp-moment-at-specific-time *current-zmp-moment* :contact-flag (nth contact-tm-cnt *contact-flag*) :lfoot-ik lfoot-ik :rfoot-ik rfoot-ik :step-time x-step :fix-leg-coords fix-leg-coords)
         (send *support-face* :draw-on :flush t :color #f(0.5 0.5 0) :width 2.5)
 
         (setq current-zmp-with-offset (v+ *current-zmp* zmp-offset))
@@ -2246,20 +2157,6 @@
 
     nil))
 
-(defun show-optimized-motion-util ()
-    (progn
-      (send *robot* :move-to (make-coords) :world)
-      (with-append-root-joint
-       (link-list-with-robot-6dof *robot* (list (cdr (send *robot* :links)))
-                                  :joint-class 6dof-joint)
-       ;; (show-optimized-motion *p* :cnt 20 :x-max *x-max-of-p-orig* :real-time t :lfoot-ik t :rfoot-ik t)
-       (show-optimized-motion *p* :cnt 20 :x-max *x-max-of-p-orig* :real-time nil :lfoot-ik t :rfoot-ik t)
-       ;;(show-optimized-motion *p* :x-max *x-max-of-p-orig* :real-time nil :make-loadpattern "/home/terasawa/bspline_1.5_M-14_N-5" :zmp-offset #f(0 0 0) :choreonoid nil)
-       ;;(show-optimized-motion *p* :specific-time *x-max-of-p-orig*)
-       ;;(show-optimized-motion *p* :x-step 0.01 :x-max *x-max-of-p-orig* :real-time nil :make-sequence t :zmp-offset #f(0 0 0) :choreonoid t)
-       ))
-  )
-
 
 
 ;; 特定の時刻におけるzmpとforce, momentを計算
@@ -2268,192 +2165,95 @@
      &key
      (robot *robot*)
      (bspline *bspline*)
+     (tqv-at-specific-time *current-tqv*)
      (zmp-at-specific-time *current-zmp*)
      (force-at-specific-time *current-force*)
      (zmp-moment-at-specific-time *current-zmp-moment*)
      (contact-flag (list *lfoot* *rfoot* nil nil))
      (step-time 0.002)
-     (lfoot-ik t)
-     (rfoot-ik t)
+     (lfoot-ik nil)
+     (rfoot-ik nil)
      (fix-leg-coords (list :lleg *lfoot*)))
 
-
-  (let* (id
-         ;; calc-zmpではロボットの関節角度列とルートリンクの姿勢列のみを与え，逆動力学を解くことができる
-         ;; しかし，このままでは加速度項がうまく出ないため，現在の周期だけでなくその前も含めた3回calc-zmpを解くことで加速度項まで計算してもらう
-         (specific-time-2 (if (>= specific-time (* step-time 2))
-                              (- specific-time (* step-time 2))
-                            0.0))
-
-         (specific-time-1 (if (>= specific-time (* step-time 2))
-                              (- specific-time step-time)
-                            (/ specific-time 2.0)))
-         (dt (if (or (>= specific-time (* step-time 2)) (= specific-time 0.0)) step-time specific-time-1)))
-
-
-    ;; specific-time-2
-    (setq id 0)
-    ;; joint-angle
+  (let* ((jid 0)
+         (av (instantiate float-vector (length (send *robot* :angle-vector)))) ;; angle-vector
+         (jvv (instantiate float-vector (length (send *robot* :angle-vector)))) ;; joint-velocity-vector
+         (jav (instantiate float-vector (length (send *robot* :angle-vector)))) ;; joint-acceleration-vector
+         (root-spacial-velocity (instantiate float-vector 3))
+         (root-angular-velocity (instantiate float-vector 3))
+         (root-spacial-acceleration (instantiate float-vector 3))
+         (root-angular-acceleration (instantiate float-vector 3))
+         (tqv (instantiate float-vector (length (send *robot* :angle-vector)))) ;; torque-vector
+         )
     (mapc
-     #'(lambda (jl bs)
-         (list
+    #'(lambda (jl bs)
           (send jl :joint-angle
-                (send bs :calc specific-time-2 (subseq p-ret id (setq id  (+ id *id-max*)))))))
-
-     *jlist* bspline)
-    ;; root-joint
-    (if (send (car (send robot :links)) :joint)
+                (send bs :calc specific-time (subseq p-ret (* jid *id-max*) (* (+ jid 1) *id-max*))))
+          (setf (aref av jid) (send bs :calc specific-time (subseq p-ret (* jid *id-max*) (* (+ jid 1) *id-max*))))
+          (setf (aref jvv jid) (send bs :calc-delta specific-time (subseq p-ret (* jid *id-max*) (* (+ jid 1) *id-max*)) :n 1))
+          (setf (aref jav jid) (send bs :calc-delta specific-time (subseq p-ret (* jid *id-max*) (* (+ jid 1) *id-max*)) :n 2))
+          (setq jid (+ jid 1))
+          )
+      *jlist* bspline)
+    ;; TODO ルートリンク角加速度が本当にこれでいいのか検証
+    (if (send (car (send *robot* :links)) :joint)
+        (let ((rid 0)
+              (root-link-pos (instantiate float-vector 6))
+              (root-link-vel (instantiate float-vector 6))
+              (root-link-acc (instantiate float-vector 6)))
+          (map float-vector
+            #'(lambda (bs)
+                (setf (aref root-link-pos rid) (send bs :calc specific-time (subseq p-ret (* rid *id-max*) (* (+ rid 1) *id-max*))))
+                (setf (aref root-link-vel rid) (send bs :calc-delta specific-time (subseq p-ret (* rid *id-max*) (* (+ rid 1) *id-max*)) :n 1))
+                (setf (aref root-link-acc rid) (send bs :calc-delta specific-time (subseq p-ret (* rid *id-max*) (* (+ rid 1) *id-max*)) :n 2))
+                (setq rid (+ rid 1)))
+            (subseq *bspline* (length *jlist*) (+ (length *jlist*) 6)))
+          (setq root-spacial-velocity (scale 1e-3 (subseq root-link-vel 0 3)))
+          (setq root-angular-velocity (mapcar #'deg2rad (subseq root-link-vel 3 6)))
+          (setq root-spacial-acceleration (scale 1e-3 (subseq root-link-acc 0 3)))
+          (setq root-angular-acceleration (mapcar #'deg2rad (subseq root-link-acc 3 6))))
+        ;; else
         (progn
-          (send (send (car (send robot :links)) :joint) :joint-angle
-                (coerce
-                 (mapcar
-                  #'(lambda (bs)
-                      (send bs :calc specific-time-2 (subseq p-ret id (setq id (+ id *id-max*)))))
+          (send *robot* :fix-leg-to-coords (nth 1 fix-leg-coords) (nth 0 fix-leg-coord))))
+    (setq tqv (send *robot* :calc-torque-from-vel-acc
+                            :root-spacial-velocity root-spacial-velocity
+                            :root-angular-velocity root-angular-velocity
+                            :root-spacial-acceleration root-spacial-acceleration
+                            :root-angular-acceleration root-angular-acceleration
+                            :jvv (map float-vector #'deg2rad jvv)
+                            :jav (map float-vector #'deg2rad jav)))
 
-                  (subseq bspline (length *jlist*) (+ (length *jlist*) 6)))
-                 float-vector))
-
-          (when (and lfoot-ik (nth 0 contact-flag))
-            (let* ((new-lfoot (copy-object (nth 0 contact-flag))))
-              (when (vectorp lfoot-ik)
-                (send new-lfoot :translate  (subseq lfoot-ik 0 3) :world)
-                (when (= (length lfoot-ik) 4)
-                  (send new-lfoot :rotate (deg2rad (aref lfoot-ik 3)) :z)))
-
-
-              (send robot :lleg :inverse-kinematics new-lfoot :rotation-axis t :revert-if-fail nil)))
+    (when (and lfoot-ik (nth 0 contact-flag))
+      (let* ((new-lfoot (copy-object (nth 0 contact-flag))))
+        (when (vectorp lfoot-ik)
+          (send new-lfoot :translate  (subseq lfoot-ik 0 3) :world)
+          (when (= (length lfoot-ik) 4)
+            (send new-lfoot :rotate (deg2rad (aref lfoot-ik 3)) :z)))
 
 
-          (when (and rfoot-ik (nth 1 contact-flag))
-            (let* ((new-rfoot (copy-object (nth 1 contact-flag))))
-              (when (vectorp rfoot-ik)
-                (send new-rfoot :translate  (subseq rfoot-ik 0 3) :world)
-                (when (= (length rfoot-ik) 4)
-                  (send new-rfoot :rotate (deg2rad (aref rfoot-ik 3)) :z)))
+        (send robot :lleg :inverse-kinematics new-lfoot :rotation-axis t :revert-if-fail nil)))
 
 
-              (send robot :rleg :inverse-kinematics new-rfoot :rotation-axis t :revert-if-fail nil))))
+    (when (and rfoot-ik (nth 1 contact-flag))
+      (let* ((new-rfoot (copy-object (nth 1 contact-flag))))
+        (when (vectorp rfoot-ik)
+          (send new-rfoot :translate  (subseq rfoot-ik 0 3) :world)
+          (when (= (length rfoot-ik) 4)
+            (send new-rfoot :rotate (deg2rad (aref rfoot-ik 3)) :z)))
 
 
-
-      (progn
-        (send robot :fix-leg-to-coords (nth 1 fix-leg-coords) (nth 0 fix-leg-coords))))
-
-
-    ;; calc-zmp
-    (send robot :calc-zmp (send robot :angle-vector) (send (car (send robot :links)) :copy-worldcoords) :dt dt)
-
-    ;; specific-time-1
-    (setq id 0)
-    ;; joint-angle
-    (mapc
-     #'(lambda (jl bs)
-         (list
-          (send jl :joint-angle
-                (send bs :calc specific-time-1 (subseq p-ret id (setq id (+ id *id-max*)))))))
-
-     *jlist* bspline)
-    ;; root-joint
-    (if (send (car (send robot :links)) :joint)
-        (progn
-          (send (send (car (send robot :links)) :joint) :joint-angle
-                (coerce
-                 (mapcar
-                  #'(lambda (bs)
-                      (send bs :calc specific-time-1 (subseq p-ret id (setq id (+ id *id-max*)))))
-
-                  (subseq bspline (length *jlist*) (+ (length *jlist*) 6)))
-                 float-vector))
-
-          (when (and lfoot-ik (nth 0 contact-flag))
-            (let* ((new-lfoot (copy-object (nth 0 contact-flag))))
-              (when (vectorp lfoot-ik)
-                (send new-lfoot :translate  (subseq lfoot-ik 0 3) :world)
-                (when (= (length lfoot-ik) 4)
-                  (send new-lfoot :rotate (deg2rad (aref lfoot-ik 3)) :z)))
-
-
-              (send robot :lleg :inverse-kinematics new-lfoot :rotation-axis t :revert-if-fail nil)))
-
-
-          (when (and rfoot-ik (nth 1 contact-flag))
-            (let* ((new-rfoot (copy-object (nth 1 contact-flag))))
-              (when (vectorp rfoot-ik)
-                (send new-rfoot :translate  (subseq rfoot-ik 0 3) :world)
-                (when (= (length rfoot-ik) 4)
-                  (send new-rfoot :rotate (deg2rad (aref rfoot-ik 3)) :z)))
-
-
-              (send robot :rleg :inverse-kinematics new-rfoot :rotation-axis t :revert-if-fail nil))))
-
-
-
-      (progn
-        (send robot :fix-leg-to-coords (nth 1 fix-leg-coords) (nth 0 fix-leg-coords))))
-
-
-    ;; calc-zmp
-    (send robot :calc-zmp (send robot :angle-vector) (send (car (send robot :links)) :copy-worldcoords) :dt dt)
-
-    ;; specific-time
-    (setq id 0)
-    ;; joint-angle
-    (mapc
-     #'(lambda (jl bs)
-         (list
-          (send jl :joint-angle
-                (send bs :calc specific-time (subseq p-ret id (setq id (+ id *id-max*)))))))
-
-     *jlist* bspline)
-    ;; root-joint
-    (if (send (car (send robot :links)) :joint)
-        (progn
-          (send (send (car (send robot :links)) :joint) :joint-angle
-                (coerce
-                 (mapcar
-                  #'(lambda (bs)
-                      (send bs :calc specific-time (subseq p-ret id (setq id (+ id *id-max*)))))
-
-                  (subseq bspline (length *jlist*) (+ (length *jlist*) 6)))
-                 float-vector))
-
-          (when (and lfoot-ik (nth 0 contact-flag))
-            (let* ((new-lfoot (copy-object (nth 0 contact-flag))))
-              (when (vectorp lfoot-ik)
-                (send new-lfoot :translate  (subseq lfoot-ik 0 3) :world)
-                (when (= (length lfoot-ik) 4)
-                  (send new-lfoot :rotate (deg2rad (aref lfoot-ik 3)) :z)))
-
-
-              (send robot :lleg :inverse-kinematics new-lfoot :rotation-axis t :revert-if-fail nil)))
-
-
-          (when (and rfoot-ik (nth 1 contact-flag))
-            (let* ((new-rfoot (copy-object (nth 1 contact-flag))))
-              (when (vectorp rfoot-ik)
-                (send new-rfoot :translate  (subseq rfoot-ik 0 3) :world)
-                (when (= (length rfoot-ik) 4)
-                  (send new-rfoot :rotate (deg2rad (aref rfoot-ik 3)) :z)))
-
-
-              (send robot :rleg :inverse-kinematics new-rfoot :rotation-axis t :revert-if-fail nil))))
-
-
-
-      (progn
-        (send robot :fix-leg-to-coords (nth 1 fix-leg-coords) (nth 0 fix-leg-coords))))
-
-
-
+        (send robot :rleg :inverse-kinematics new-rfoot :rotation-axis t :revert-if-fail nil)))
     ;; 支持多角形の表示
     (make-support-face :front *sp-front* :back *sp-back* :inside *sp-inside* :outside *sp-outside* :oneleg *sp-oneleg* :contact-flag contact-flag)
-
+    ;; calc-zmp
+    (send robot :calc-zmp (send robot :angle-vector) (send (car (send robot :links)) :copy-worldcoords)) ; :dt step-time
     ;; zmpを計算
-    (replace zmp-at-specific-time (send robot :calc-zmp (send robot :angle-vector) (send (car (send robot :links)) :copy-worldcoords) :dt dt))
+    (replace zmp-at-specific-time (send robot :calc-zmp (send robot :angle-vector) (send (car (send robot :links)) :copy-worldcoords))) ;; :dt time-step
+    (replace tqv-at-specific-time tqv) ;; :dt time-step
     ;; force, momentも計算(:calc-zmp内部でinverse-dynamicsを呼んでいるのですでに計算されている)
     (replace force-at-specific-time (send (car (send robot :links)) :force))
-    (replace zmp-moment-at-specific-time (send robot :get :zmp-moment)))
-
+    (replace zmp-moment-at-specific-time (send robot :get :zmp-moment))
+    )
 
   nil)
 
@@ -2502,18 +2302,10 @@
                        (if (nth 0 contact-flag) (list lleg-v0 lleg-v1 lleg-v2 lleg-v3) nil)
                        (if (nth 1 contact-flag) (list rleg-v0 rleg-v1 rleg-v2 rleg-v3) nil))))))))
 
-
-
-
-
 ;; ファイルの初期化
 (defun file-init (file-name)
   (with-open-file
    (f file-name :direction :output :if-exists :new-version)))
-
-
-
-
 
 #|
 (nlopt-motion-optimize :x-max 2.6 :x-hit 1.7 :cnt 50 :id-max 14 :recursive-order 5 :max-eval 100000000 :max-time (* 24 60 60) :alg SLSQP :delta 1e-6 :eqthre 1e-2 :xtol 1e-10 :ftol 1e-10 :file-name "/userdir/logs/2016*_nlopt_SLSQP_*_M-*_N-*_delta-*_eqthre-1e-*_xtol-1e-*_ftol-1e-*_1day" :use-all-joint t :use-margin 0.5 :use-append-root-joint t)
@@ -2525,9 +2317,9 @@
   (with-append-root-joint
    (link-list-with-robot-6dof *robot* (list (cdr (send *robot* :links)))
                               :joint-class 6dof-joint)))
-   ;;(show-optimized-motion *p* :cnt 20 :x-max *x-max-of-p-orig* :real-time t :lfoot-ik nil :rfoot-ik nil)
-   ;;(show-optimized-motion *p* :x-max *x-max-of-p-orig* :real-time nil :make-loadpattern "/home/future731/bspline_1.5_M-14_N-5" :zmp-offset #f(0 0 0) :choreonoid nil)
-   ;;(show-optimized-motion *p* :specific-time *x-max-of-p-orig*)
-   ;;(show-optimized-motion *p* :x-step 0.01 :x-max *x-max-of-p-orig* :real-time nil :make-sequence t :zmp-offset #f(0 0 0) :choreonoid t)
+;;(show-optimized-motion *p* :cnt 20 :x-max *x-max-of-p-orig* :real-time t :lfoot-ik nil :rfoot-ik nil)
+;;(show-optimized-motion *p* :x-max *x-max-of-p-orig* :real-time nil :make-loadpattern "/home/future731/bspline_1.5_M-14_N-5" :zmp-offset #f(0 0 0) :choreonoid nil)
+;;(show-optimized-motion *p* :specific-time *x-max-of-p-orig*)
+;;(show-optimized-motion *p* :x-step 0.01 :x-max *x-max-of-p-orig* :real-time nil :make-sequence t :zmp-offset #f(0 0 0) :choreonoid t)
 
 |#
