@@ -1,6 +1,8 @@
 #!/usr/bin/env roseus
+
 (setq *motion-choice* "forehand-volley-step")
 (comp::compile-file-if-src-newer (ros::resolve-ros-path "package://tennis/euslisp/nlopt_bspline_optimization.l") (ros::resolve-ros-path "packege://tennis/euslisp/"))
+;; (load "package://tennis/euslisp/nlopt_bspline_optimization.l")
 (load "package://tennis/euslisp/nlopt_bspline_optimization.so")
 ;; when applying original file
 ;; (setq *p-orig* )

@@ -8,7 +8,7 @@
 
 
 (comp::compile-file-if-src-newer (ros::resolve-ros-path "package://tennis/euslisp/qp-bspline-optimization.l") (ros::resolve-ros-path "package://tennis/euslisp/"))
-(require "package://tennis/euslisp/qp-bspline-optimization")
+(require "package://tennis/euslisp/qp-bspline-optimization.so")
 
 ;; capsules are set for collision check
 (cond
@@ -599,11 +599,9 @@
                       (deg2rad (deg2rad ;; すでに2乗されているので足す前に2回deg2rad
                                 (v.
                                  (transform (subseq v1 id (+ id *id-max*))
-                                            ;;(send bs :calc-integral-objective-coeff-matrix :n 3))
+                                            ;;(send bs :calc-integral-objective-coeff-matrix :n 3)
                                             integral-objective-coeff-matrix)
                                  (subseq v1 id (+ id *id-max*)))))))
-
-
 
              (setq id (+ id *id-max*)))
 
@@ -616,12 +614,9 @@
                         (* 1e-6 ;; すでに2乗されているので足す前に2回mm2m
                            (v.
                             (transform (subseq v1 id (+ id *id-max*))
-                                       ;;(send bs :calc-integral-objective-coeff-matrix :n 3))
+                                       ;;(send bs :calc-integral-objective-coeff-matrix :n 3)
                                        integral-objective-coeff-matrix)
                             (subseq v1 id (+ id *id-max*))))))
-
-
-
                (setq id (+ id *id-max*)))
 
            (subseq *bspline* (length *jlist*) (+ (length *jlist*) 3)))
@@ -632,18 +627,13 @@
                         (deg2rad (deg2rad ;; すでに2乗されているので足す前に2回deg2rad
                                   (v.
                                    (transform (subseq v1 id (+ id *id-max*))
-                                              ;;(send bs :calc-integral-objective-coeff-matrix :n 3))
+                                              ;;(send bs :calc-integral-objective-coeff-matrix :n 3)
                                               integral-objective-coeff-matrix)
                                    (subseq v1 id (+ id *id-max*)))))))
-
-
-
                (setq id (+ id *id-max*)))
 
-           (subseq *bspline* (+ (length *jlist*) 3) (+ (length *jlist*) 6))))))
-
-
-
+           (subseq *bspline* (+ (length *jlist*) 3) (+ (length *jlist*) 6)))
+           )))
 
     ;; hitting-poseにおける速度の最大化
     (when (not (= *maxvel-weight* 0))
@@ -654,8 +644,9 @@
         (mapc
          #'(lambda (jl bs)
              (send jl :joint-angle ;; 関節ごと
-                   ;; (send bs :calc (aref v1 (- (length v1) *x-hit-id*)) (subseq v1 id (+ id *id-max*)))) ;; subseqは関節毎にpを抜き取ってる
-                   (send bs :calc *default-x-hit* (subseq v1 id (+ id *id-max*)))) ;; subseqは関節毎にpを抜き取ってる
+                   ;; (send bs :calc (aref v1 (- (length v1) *x-hit-id*)) (subseq v1 id (+ id *id-max*))) ;; subseqは関節毎にpを抜き取ってる
+                   (send bs :calc *default-x-hit* (subseq v1 id (+ id *id-max*))) ;; subseqは関節毎にpを抜き取ってる
+                   )
              ;; send bs :calc 時刻 ベクトル(基底関数の頂点の高さ(*p*と同じなのだが))->関節角がとれる
              ;; send bs :calc-delta 時刻 ベクトル(基底関数の頂点の高さ(*p*と同じなのだが))->関節速度が取れる
              ;; (send jl :put :dq (deg2rad (send bs :calc-delta (aref v1 (- (length v1) *x-hit-id*)) (subseq v1 id (+ id *id-max*)) :n 1))) ;; 関節速度の単位は[rad]
@@ -672,8 +663,10 @@
                       #'(lambda (bs)
                           ;; (push (send bs :calc-delta (aref v1 (- (length v1) *x-hit-id*)) (subseq v1 id (+ id *id-max*)) :n 1) root-joint-dq) ;; 先にルートリンクの速度を取得
                           (push (send bs :calc-delta *default-x-hit* (subseq v1 id (+ id *id-max*)) :n 1) root-joint-dq) ;; 先にルートリンクの速度を取得
-                          ;; (send bs :calc (aref v1 (- (length v1) *x-hit-id*)) (subseq v1 id (setq id (+ id *id-max*)))))
-                          (send bs :calc *default-x-hit* (subseq v1 id (setq id (+ id *id-max*)))))
+                          ;; (send bs :calc (aref v1 (- (length v1) *x-hit-id*)) (subseq v1 id (setq id (+ id *id-max*))))
+
+                          (send bs :calc *default-x-hit* (subseq v1 id (setq id (+ id *id-max*))))
+                          )
                       (subseq *bspline* (length *jlist*) (+ (length *jlist*) 6))) ;; virtual joint
                      float-vector))
 
@@ -690,7 +683,8 @@
 
             ;; virtual jointなしの場合
           (progn
-            (send *robot* :fix-leg-to-coords *lfoot* :lleg)))
+            (send *robot* :fix-leg-to-coords *lfoot* :lleg))
+          )
 
 
 
@@ -698,7 +692,7 @@
         (setq hitting-sweet-spot (send *hit-point* :copy-worldcoords)) ;; 打つ姿勢における*hit-point*
         (setq hitting-direction (v- (send hitting-sweet-spot :transform-vector #f(0 0 1)) (send hitting-sweet-spot :worldpos))) ;; *hit-point*のz方向以外の速度を最大化する
 
-        ;; 打つ姿勢におけるヤコビアン（単位系は[rad],[m]）を計算
+        ;; 打つ姿勢におけるヤコビアン(単位系は[rad],[m])を計算
         (setq hitting-jacobian
               (send *robot* :calc-jacobian-from-link-list
                     ;; virtual joint
@@ -979,7 +973,6 @@
 
 
          (mapcar #'(lambda (x) (/ x interval-num)) (my-range-2 0 interval-num)))
-        ;; '(0.0 0.1 0.2 0.3 0.4 0.5 0.6 0.7 0.8 0.9 1.0)) ;; 33(=(length jlist))*11個の要素をもつfloat-vector
         (setq integral-endcoords (* (apply #'+ tmp-endcoords-list) (/ (- *x-max* *x-min*) interval-num)))
         (setf (aref v2 g-dim-id) (* integral-endcoords 10)) (incf g-dim-id))) ;; 他の等式条件のスケールに適当に合わせる
 
@@ -1038,7 +1031,7 @@
 
 
 
-          ;; 着地姿勢におけるヤコビアン（単位系は[rad],[m]）を計算
+          ;; 着地姿勢におけるヤコビアン(単位系は[rad],[m])を計算
           (setq grounding-jacobian
                 (send *robot* :calc-jacobian-from-link-list
                       (if (send (car (send *robot* :links)) :joint)
@@ -1054,7 +1047,7 @@
                       :move-target (send *robot* *limb* :end-coords)
                       :transform-coords (make-coords)
                       :translation-axis '(t)
-                      :rotation-axis '(t))) ;; 6
+                      :rotation-axis '(t))) ;; 6death
 
           ;; ヤコビアンと関節速度から足先速度を計算
           (setq grounding-dr (transform grounding-jacobian grounding-dq))
@@ -1190,7 +1183,6 @@
            ;; (send *irtviewer* :draw-objects)
            ;; (x::window-main-one)
            ;; (send *support-face* :draw-on :flush t :color #f(0.5 0.5 0) :width 50.0)
-           ; (read-line)
 
            ;; zmpの条件
            (setf (aref v2 id) inside-zmp)
@@ -1220,8 +1212,8 @@
 
 
            ;; collision check
-           ;; (if (<= x-buf (aref v1 (- (length v1) *x-hit-id*)))
-           (if (<= x-buf *default-x-hit*)
+           (if ;; (<= x-buf (aref v1 (- (length v1) *x-hit-id*)))
+               (<= x-buf *default-x-hit*)
                (let* ((collision-id 3)
                       (collision-distance nil)
                       body0/1-distance)
@@ -1261,8 +1253,6 @@
 
                              (setq body0/1-distance (car (pqp-collision-distance body0 body1))))))
 
-
-
                        (push body0/1-distance collision-distance)))
                        ;; (when (< body0/1-distance 1e-5)
                        ;;   (format t "body0:~a body1:~a distance:~a~%" (send body0 :get :name) (send body1 :get :name) body0/1-distance)
@@ -1270,7 +1260,7 @@
 
 
                    (setf (aref v2 (round (+ id (* collision-id (+ interval-num 1)))))
-                         ;; (* 1e-3 (- (+ (send (nth 0 pair-list) :get :radius) (send (nth 1 pair-list) :get :radius)) (norm (v- (send (nth 0 pair-list) :worldpos) (send (nth 1 pair-list) :worldpos))))))
+                         ;; (* 1e-3 (- (+ (send (nth 0 pair-list) :get :radius) (send (nth 1 pair-list) :get :radius)) (norm (v- (send (nth 0 pair-list) :worldpos) (send (nth 1 pair-list) :worldpos)))))
                          (- (eval (nth 2 (nth 0 pair-list)))
                             (apply #'min collision-distance))) ;; minimum collision distance
 
@@ -1279,6 +1269,7 @@
                    (incf collision-id)))
 
 
+             ;; else
              (let* ((collision-id 3)
                     (collision-distance nil)
                     body2/3-distance)
@@ -1327,17 +1318,15 @@
 
 
                  (setf (aref v2 (round (+ id (* collision-id (+ interval-num 1)))))
-                       ;; (* 1e-3 (- (+ (send (nth 2 pair-list) :get :radius) (send (nth 3 pair-list) :get :radius)) (norm (v- (send (nth 2 pair-list) :worldpos) (send (nth 3 pair-list) :worldpos))))))
+                       ;; (* 1e-3 (- (+ (send (nth 2 pair-list) :get :radius) (send (nth 3 pair-list) :get :radius)) (norm (v- (send (nth 2 pair-list) :worldpos) (send (nth 3 pair-list) :worldpos)))))
                        (- (eval (nth 2 (nth 1 pair-list)))
-                          (apply #'min collision-distance))) ;; minimum collision distance
+                          (apply #'min collision-distance)) ;; minimum collision distance
+                   )
 
 
                  (setq h-dim-id (round (+ id (* collision-id (+ interval-num 1)))))
                  (setq collision-distance nil)
                  (incf collision-id))))
-
-
-
 
            (when (> x-buf (nth contact-tm-cnt switching-tm-list))
              (incf contact-tm-cnt))
@@ -1354,17 +1343,12 @@
 
 
      (mapcar #'(lambda (x) (/ x interval-num)) (my-range-2 0 interval-num)))
-    ;; '(0.0 0.1 0.2 0.3 0.4 0.5 0.6 0.7 0.8 0.9 1.0)) ;; 33(=(length jlist))*11個の要素をもつfloat-vector
     ;;(send *irtviewer* :draw-objects)
 
     ;; 着地時間などの不等式制約
     (dotimes (i (- (length *contact-flag*) 2))
       (incf h-dim-id)
-      (setf (aref v2 h-dim-id) (- (aref #|*p-orig*|# v1 (- (length #|*p-orig*|# v1) i 2)) (aref #|*p-orig*|# v1 (- (length #|*p-orig*|# v1) i 1)))))
-    )
-
-
-
+      (setf (aref v2 h-dim-id) (- (aref #|*p-orig*|# v1 (- (length #|*p-orig*|# v1) i 2)) (aref #|*p-orig*|# v1 (- (length #|*p-orig*|# v1) i 1))))))
   (when *dump-nloptlog*
     (if *use-delta-func*
         (progn
@@ -1388,10 +1372,6 @@
            (format f "~a   " ieq-data))
 
          (format f "~%")))))
-
-
-
-
   0)
 ;; }}}
 
@@ -1718,11 +1698,11 @@
                                     :joint-class 6dof-joint)
          (when dry-run
            (setq v2_ (instantiate float-vector 10000))
-           (motion-g *p-orig* v2_)
+           (funcall (read-from-string "motion-g") *p-orig* v2_)
            (with-open-file (f "/userdir/logs/eq.dat" :direction :output :if-exists :new-version)
                            (format f "~A~%" (coerce (set-difference (coerce v2_ cons) (list 0.0)) float-vector)))
            (setq v2_ (instantiate float-vector 10000))
-           (motion-h *p-orig* v2_)
+           (funcall (read-from-string "motion-h") *p-orig* v2_)
            (with-open-file (f "/userdir/logs/ieq.dat" :direction :output :if-exists :new-version)
                            (format f "~A~%" (coerce (set-difference (coerce v2_ cons) (list 0.0)) float-vector)))
            )
