@@ -7,7 +7,7 @@
     (require "package://tennis/config/p-orig"))
 
 
-(comp::compile-file-if-src-newer  (ros::resolve-ros-path "package://tennis/euslisp/qp-bspline-optimization.l") (ros::resolve-ros-path "package://tennis/euslisp/"))
+(comp::compile-file-if-src-newer (ros::resolve-ros-path "package://tennis/euslisp/qp-bspline-optimization.l") (ros::resolve-ros-path "package://tennis/euslisp/"))
 (require "package://tennis/euslisp/qp-bspline-optimization")
 
 ;; capsules are set for collision check
@@ -96,6 +96,7 @@
   (setq *current-zmp-moment* #f(0 0 0))
   (setq *current-zmp* #f(0 0 0))
   (setq *current-tqv* (instantiate float-vector (length (send *robot* :angle-vector))))
+
   (return-end-coords)
   (funcall *load-pose-func*)
   (send *irtviewer* :draw-objects)
@@ -128,6 +129,7 @@
                                             :id-max id-max :recursive-order recursive-order
                                             :x-min x-min :x-max x-max))
                               jlist))))
+
 
 
   (setq *mu* mu)
@@ -577,7 +579,6 @@
 ;; v2: 1次元
 ;; 返り値: 成功なら0?
 (defun-c-callable motion-f ((v1 :string) (v2 :string)) :integer
-  (print v1)
   (when (equal (aref v1 0) (aref #f(nan) 0)) ;; (aref #f(nan) 0)はnanを取り出している
     (dotimes (i (length v1))
       (setf (aref v1 i) (aref *tmp-p* i)))) ;; tmp-pに入力を保存している
@@ -811,6 +812,7 @@
          (push (send bs :calc-delta *x-min* (subseq v1 id (+ id *id-max*)) :n 1) x-min-vel) ;; 時刻x-minにおける関節角速度 (nは微分階数)
          (push (send bs :calc-delta *x-min* (subseq v1 id (+ id *id-max*)) :n 2) x-min-acc) ;; 時刻x-minにおける関節角加速度
          ;; (push (send bs :calc (aref v1 (- (length v1) *x-hit-id*)) (subseq v1 id (+ id *id-max*))) x-hit-pose) ;; 時刻x-hitにおける関節角度
+
          (when *use-hit-pose*
              (progn
                  (push (send bs :calc *default-x-hit* (subseq v1 id (+ id *id-max*))) x-hit-pose) ;; 時刻x-hitにおける関節角度
@@ -882,7 +884,9 @@
            (v2-3.5 (if *use-hit-ee* (v- x-hit-ee *target-hitting-ee*) nil))
            (v2-4 (if *use-final-pose* (v- x-max-pose *final-pose*) nil))
            (v2-5 x-max-vel)
-           (v2-6 x-max-acc))
+           (v2-6 x-max-acc)
+           ;; (v2-7 leg-ground-speed)
+           )
 
       (setf (aref v2 g-dim-id) (norm2 (map float-vector #'(lambda (x) (deg2rad x)) v2-0) ))  (incf g-dim-id)
       (setf (aref v2 g-dim-id) (norm2 (map float-vector #'(lambda (x) (deg2rad x)) v2-1) ))  (incf g-dim-id)
@@ -1343,7 +1347,7 @@
              (mapc
                #'(lambda (jvl bs)
                    (setq h-dim-id (round (+ id (* (+ 3 (length *collision-pair*) rjid) (+ interval-num 1)))))
-                   (setf (aref v2 h-dim-id) (- (send jvl :max-joint-torque) (abs (elt discretized-tqv (position jvl *jlist*)))))
+                   (setf (aref v2 h-dim-id) (- (abs (elt discretized-tqv (position jvl *jlist*))) (send jvl :max-joint-torque)))
                    (setq rjid (+ rjid 1)))
                *jvel-list* *bspline*))
            (incf id)))
@@ -1422,8 +1426,8 @@
      (interval-num (progn (*interval-num*) (nth 10 (list 0))))
      ;; (support-polygon-margin (list *sp-front* *sp-back* *sp-inside* *sp-outside*))
      (modify-ec t)
-     (motion-choice *motion-choice*)
 
+     (robot *robot*)
      (jlist (if use-all-joint
                 (send robot :joint-list) ;; length jlist = 33
               (send robot *limb* :joint-list)))
@@ -1483,7 +1487,6 @@
                          (return-end-coords)
                          (funcall *load-pose-func* :pose (nth 0 *key-pose-id*))
                          (send robot :angle-vector))
-                         ;; (send-all jlist :joint-angle)
                           ;; 初期姿勢(float-vector)
                      (progn
                        (nth (nth 0 *key-pose-id*) *limb-av-pose-list*))))
@@ -1517,8 +1520,8 @@
      (p nil)
      ;; これ以上新しい引数作ると引数が32個超えてバグる
      )
+     (setq motion-choice *motion-choice*)
 
-  (setq robot *robot*)
 
 
 
@@ -1736,7 +1739,7 @@
           :inequality-function (read-from-string "motion-h")
           :inequality-function-gradient (read-from-string "motion-dh")
           :equality-dimension (+ 6 (- (/ (length *contact-flag*) 2) 1) (if *use-hit-pose* 1 0) (if *use-hit-ee* 1 0) (if *use-final-pose* 1 0))
-          :inequality-dimension (round (+ (* (- id-max 1) (length jvel-list)) (* (+ interval-num 1) (+ 3 (length jvel-list) (length *collision-pair*))) (- (length *contact-flag*) 2))) ;; (* (- id-max 1) (length jvel-list) 2)
+          :inequality-dimension (round (+ (* (- id-max 1) (length jvel-list)) (* (+ interval-num 1) (+ 3 (length *collision-pair*) (length jvel-list))) (- (length *contact-flag*) 2))) ;; (* (- id-max 1) (length jvel-list) 2)
           :alg alg ;; SLSQP ;; COBYLA ;; DIRECT
           :max-time max-time ;;(* 10 60 60)
           :max-eval max-eval ;; 10000
@@ -1919,7 +1922,7 @@
 
       (let* (current-zmp-tf current-zmp-with-offset)
         ;; 支持多角形の表示 これはこの上でやってたのとほぼ同じ処理にikが入った/入らないもの
-        (calc-specific-time-force-zmp p-ret x-buf :bspline bspline :zmp-at-specific-time *current-zmp* :force-at-specific-time *current-force* :zmp-moment-at-specific-time *current-zmp-moment* :contact-flag (nth contact-tm-cnt *contact-flag*) :lfoot-ik lfoot-ik :rfoot-ik rfoot-ik :step-time x-step :fix-leg-coords fix-leg-coords)
+        (calc-specific-time-force-zmp p-ret x-buf :bspline bspline :tqv-at-specific-time *current-tqv* :zmp-at-specific-time *current-zmp* :force-at-specific-time *current-force* :zmp-moment-at-specific-time *current-zmp-moment* :contact-flag (nth contact-tm-cnt *contact-flag*) :lfoot-ik lfoot-ik :rfoot-ik rfoot-ik :step-time x-step :fix-leg-coords fix-leg-coords)
         (send *support-face* :draw-on :flush t :color #f(0.5 0.5 0) :width 2.5)
 
         (setq current-zmp-with-offset (v+ *current-zmp* zmp-offset))
@@ -2215,6 +2218,7 @@
         ;; else
         (progn
           (send *robot* :fix-leg-to-coords (nth 1 fix-leg-coords) (nth 0 fix-leg-coord))))
+    ;; torque-vectorを計算，足裏反力考えてない
     (setq tqv (send *robot* :calc-torque-from-vel-acc
                             :root-spacial-velocity root-spacial-velocity
                             :root-angular-velocity root-angular-velocity
@@ -2246,9 +2250,9 @@
     ;; 支持多角形の表示
     (make-support-face :front *sp-front* :back *sp-back* :inside *sp-inside* :outside *sp-outside* :oneleg *sp-oneleg* :contact-flag contact-flag)
     ;; calc-zmp
-    (send robot :calc-zmp (send robot :angle-vector) (send (car (send robot :links)) :copy-worldcoords)) ; :dt step-time
+    (send robot :calc-zmp (send robot :angle-vector) (send (car (send robot :links)) :copy-worldcoords) :update nil) ; :dt step-time
     ;; zmpを計算
-    (replace zmp-at-specific-time (send robot :calc-zmp (send robot :angle-vector) (send (car (send robot :links)) :copy-worldcoords))) ;; :dt time-step
+    (replace zmp-at-specific-time (send robot :calc-zmp (send robot :angle-vector) (send (car (send robot :links)) :copy-worldcoords) :update nil)) ;; :dt time-step
     (replace tqv-at-specific-time tqv) ;; :dt time-step
     ;; force, momentも計算(:calc-zmp内部でinverse-dynamicsを呼んでいるのですでに計算されている)
     (replace force-at-specific-time (send (car (send robot :links)) :force))

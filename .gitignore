@@ -3,6 +3,7 @@ config/JAXON_RED_TENNIS.cnoid
 config/JAXON_RED_FOREHAND.cnoid
 *.eps
 euslisp/alg/forehand-volley-step
+euslisp/alg/backhand-volley-step
 euslisp/*.c
 euslisp/*.h
 euslisp/*.o

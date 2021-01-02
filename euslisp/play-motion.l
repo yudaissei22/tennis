@@ -1,5 +1,7 @@
 #!/usr/bin/env roseus
 (setq *motion-choice* "forehand-volley-step")
+
+(setq *is-choreonoid* t)
 (require "package://tennis/euslisp/is-choreonoid") ;; *is-choreonoid* is defined
 (require "package://tennis/euslisp/experiment_utils.l")
 (require "package://tennis/euslisp/global-variables.l")
@@ -26,10 +28,16 @@
     (setq *exp-wc1* (make-list seq-num))
     (setq *exp-cog-wc1* (make-list seq-num))
     (make-sequence-in-advance *exp-jpos-deg1* *exp-tm-ms1* *exp-rc1* *exp-zmp-wc1* *exp-optional1* *exp-jpos-rad1* *exp-tm-s1* *exp-pos1* *exp-rpy1* *exp-zmp-rc1* *exp-wc1* *exp-cog-wc1*
-                              :step step :x-max t-max :choreonoid *is-choreonoid* :p nil :lfoot-ik t :rfoot-ik t))
+                              :step step :x-max t-max :choreonoid *is-choreonoid* :p nil :lfoot-ik nil :rfoot-ik nil))
   (setq init-av (car *exp-jpos-deg1*))
   (send *robot* :angle-vector init-av)
   (send *robot* :head :neck-y :joint-angle 0)
+  (print (car *exp-zmp-wc1*))
+  (print (car *exp-zmp-rc1*))
+  (print (make-coords :pos (car *exp-zmp-wc1*) :rpy (car *exp-zmp-rc1*)))
+;; まちがい
+  ;; (send *robot* :move-centroid-on-foot (make-coords :pos (car *exp-zmp-wc1*) :rpy (car *exp-zmp-rc1*)))
+  (send *robot* :move-centroid-on-foot :both '(:rleg :lleg))
   (setq init-av-cp (send *robot* :angle-vector))
   (show-timing-variables)
   (show-bspline-variables)
@@ -74,6 +82,11 @@
   (setq *initial-time* (if *is-choreonoid* 1000 10000))
   (format t "sleep for 1 sec~%")
   (unix::sleep 1)
+  (unless *is-choreonoid*
+    (progn (print "Press Enter key when you want to start st.")
+           (read-line)))
+  (format t "start st ~%")
+  (send *ri* :start-st)
   (experiment-angle-vector-sequence-full (list init-av-cp) (list (car *exp-tm-ms1*)) (list (car *exp-rc1*)) (list (car *exp-zmp-wc1*)) (list (car *exp-optional1*))
                                          :initial-time *initial-time* :final-time 0 :log-fname (concatenate string "/userdir/logs/" *timestamp-str* "init"))
   (unless *is-choreonoid*
@@ -81,11 +94,6 @@
            (read-line)))
   (experiment-angle-vector-sequence-full (list (car *exp-jpos-deg1*)) (list (car *exp-tm-ms1*)) (list (car *exp-rc1*)) (list (car *exp-zmp-wc1*)) (list (car *exp-optional1*))
                                          :initial-time *initial-time* :final-time 0 :log-fname (concatenate string "/userdir/logs/" *timestamp-str* "init"))
-  (unless *is-choreonoid*
-    (progn (print "Press Enter key when you want to start st.")
-           (read-line)))
-  (format t "start st ~%")
-  ;; (send *ri* :start-st)
   (unless *is-choreonoid*
     (progn (print "Press Enter key when you want to play the motion.")
            (read-line)))

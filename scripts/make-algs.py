@@ -3,6 +3,7 @@ import subprocess
 import os
 
 dry_run = False
+use_p_orig = False
 
 """
 algs = [
@@ -36,22 +37,21 @@ motions = [
 ]
 
 margins = [
+    "5.0",
+    "10.0",
+    "15.0",
+    "20.0",
+    "25.0",
+    "30.0",
+    "35.0",
+    "40.0",
+    "45.0",
     "50.0",
-    "50.1",
-    "50.2",
-    "50.3",
-    "50.4",
-    "50.5",
-    "50.6",
-    "50.7",
-    "50.8",
-    "50.9",
 ]
 
 output_dir = "/userdir/logs/motion-planning"
 os.makedirs(output_dir, exist_ok=True)
 # use config/p-orig.l or not
-config_p_value=True
 
 x_max = "2.0"
 x_hit = "1.0"
@@ -73,9 +73,9 @@ for alg in algs:
         for motion in motions:
             os.makedirs("alg/" + motion + "/" + alg, exist_ok=True)
             with open("alg/" + motion + "/" + alg + "/" + margin + ".l", "w") as f:
+                f.write("(setq *motion-choice* \"" + motion + "\")\n")
                 f.write("(comp::compile-file-if-src-newer (ros::resolve-ros-path \"package://tennis/euslisp/qp-bspline-optimization.l\") (ros::resolve-ros-path \"package://tennis/euslisp/\"))\n")
-                if config_p_value:
-                    f.write("(setq *motion-choice* \"" + motion + "\")\n")
+                if not use_p_orig:
                     f.write("(load \"package://tennis/euslisp/qp-bspline-optimization.so\")\n")
                     f.write("(qp-motion-optimize "\
                             + " :x-max " + x_max \
@@ -91,8 +91,7 @@ for alg in algs:
                             + ")\n")
                     f.write("(setq *x-max-of-p-orig* " + x_max + ")\n")
                     f.write("(setq *p-orig* (concatenate float-vector *ret* (float-vector " + x_takeoff + " " + x_land + " " + x_hit + ")))\n")
-                    f.write("(with-open-file (f \"/userdir/logs/p-orig.l\" :direction :output :if-exists :new-version) (format f \"~a\" *p-orig*))\n")
-                    f.write("(format t \"(boundp '*p-orig*) => ~A~%\" (boundp '*p-orig*))\n")
+                    f.write("(with-open-file (f \"/userdir/logs/qp-init-p-orig.l\" :direction :output :if-exists :new-version) (format f \"~a\" *p-orig*))\n")
                 f.write("(comp::compile-file-if-src-newer (ros::resolve-ros-path \"package://tennis/euslisp/nlopt_bspline_optimization.l\") (ros::resolve-ros-path \"package://tennis/euslisp/\"))\n")
                 f.write("(load \"package://tennis/euslisp/nlopt_bspline_optimization.so\")\n")
                 f.write("(nlopt-init :x-max " + x_max + " :x-hit " + x_hit + " :id-max " + id_max + " :recursive-order " + recursive_order +  " :use-all-joint t :use-append-root-joint t :interval-num " + interval_num +  " :support-polygon-margin (list " + margin + " " + margin + " 0 100 50) :epsilon-c 30 :mu 0.3 :use-final-pose nil :default-switching-list nil :use-6dof-p t)\n")

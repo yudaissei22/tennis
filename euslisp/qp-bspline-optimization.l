@@ -59,8 +59,6 @@
                                           (send robot :copy-worldcoords)))
                           (robot-pos (send pose-wc :worldpos))
                           (robot-rpy (nth 0 (rpy-angle (send pose-wc :worldrot)))))
-                    (print robot-pos)
-                    (print robot-rpy)
                     (flatten (list (send-all jlist :joint-angle) (coerce robot-pos cons) (mapcar #'rad2deg (reverse robot-rpy)))))
                    (send-all jlist :joint-angle))) ;; initial-pose = (flatten coerce *limb-av-pose1* cons)
 
@@ -71,8 +69,6 @@
                                             (send robot :copy-worldcoords)))
                             (robot-pos (send pose-wc :worldpos))
                             (robot-rpy (nth 0 (rpy-angle (send pose-wc :worldrot)))))
-                    (print robot-pos)
-                    (print robot-rpy)
                        (flatten (list (send-all jlist :joint-angle) (coerce robot-pos cons) (mapcar #'rad2deg (reverse robot-rpy)))))
                      (progn (funcall *load-pose-func* :pose (nth 1 *key-pose-id*)) (coerce (send robot :angle-vector) cons)))
                    (coerce (nth (nth 1 *key-pose-id*) *limb-av-pose-list*) cons)))
@@ -84,8 +80,6 @@
                                           (send robot :copy-worldcoords)))
                           (robot-pos (send pose-wc :worldpos))
                           (robot-rpy (nth 0 (rpy-angle (send pose-wc :worldrot)))))
-                    (print robot-pos)
-                    (print robot-rpy)
                      (flatten (list (send-all jlist :joint-angle) (coerce robot-pos cons) (mapcar #'rad2deg (reverse robot-rpy)))))
                    (progn (funcall *load-pose-func* :pose (nth 2 *key-pose-id*)) (coerce (send robot :angle-vector) cons)))
                  (coerce (nth (nth 2 *key-pose-id*) *limb-av-pose-list*) cons)))
@@ -265,7 +259,6 @@
     (/ (- x-max x-min) (* 1.0 cnt)))
 
 
-   (x-buf x-min)
    (ret (solve-eiquadprog
          ;; solve-qpoases-qp
          ;; :debug? t
@@ -295,7 +288,9 @@
           (list equality-matrix-for-start/end-pos
                 equality-matrix-for-start/end-vel
                 equality-matrix-for-start/end-acc)
-          '(1 0))))))
+          '(1 0)))))
+   ;; これ以上keyを追加するとkey数が32個を超えてコンパイル時に失敗する
+   )
   ;; }}}
 
   (format t "(qp-motion-optimize :x-max ~a :x-hit ~a :maxvel-weight ~a :minjerk-weight ~a :x-step ~a :use-all-joint ~a :use-margin ~a)~%" x-max x-hit maxvel-weight minjerk-weight x-step use-all-joint use-margin)
@@ -310,7 +305,7 @@
 
   (if (null ret) (setq ret initial-state))
   (format t "   --- ~A x ~A = ~A variables~%" id-max (length initial-pose) (length initial-state))
-  (let* ((retl (list (cons :gain ret))) p dp ddp (id) tau) ;; (cons :gain ret) ==> (:gain . ret)
+  (let* ((retl (list (cons :gain ret))) (x-buf x-min) p dp ddp (id) tau) ;; (cons :gain ret) ==> (:gain . ret)
     (setq x-buf x-min)
     (while (<= x-buf x-max)
       (setq id 0)
@@ -350,22 +345,52 @@
     (setq *bspline-av-list* (reverse *bspline-av-list*))
     (setq *bspline-tm-list* (reverse *bspline-tm-list*))
     (setq *bspline-ec-list* (reverse *bspline-ec-list*))
-    (dotimes (i (+ (if use-append-root-joint 6 0) (length jlist)))
-      (print (subseq *ret* (* id-max i) (* id-max (+ i 1)))))
-    ;; (format t "  [dif] |~A| = ~A~%"
-    ;;         (map float-vector #'- final-pose (send-all jlist :joint-angle))
-    ;;         (norm (map float-vector #'- final-pose (send-all jlist :joint-angle))))
+    ;; (dotimes (i (+ (if use-append-root-joint 6 0) (length jlist)))
+    ;;   (print (subseq *ret* (* id-max i) (* id-max (+ i 1)))))
+    (setq id 0)
+    (mapcar
+     #'(lambda (bs js)
+         (list
+          (send js :joint-angle
+                (send bs :calc x-min (subseq ret id (+ id id-max))))
+          (send js :put :p (send bs :calc x-min (subseq ret id (+ id id-max))))
+          (send js :put :dp (send bs :calc-delta x-min (subseq ret id (+ id id-max)) :n 1))
+          (send js :put :ddp (send bs :calc-delta x-min (subseq ret id (setq id (+ id id-max))) :n 2))))
+
+     (subseq bspline 0 (length jlist)) jlist)
+    (print initial-pose)
+    (format t "  [dif] |~A| = ~A~%"
+            (map float-vector #'- initial-pose (send-all jlist :joint-angle))
+            (norm (map float-vector #'- initial-pose (send-all jlist :joint-angle))))
+    (setq id 0)
+    (mapcar
+     #'(lambda (bs js)
+         (list
+          (send js :joint-angle
+                (send bs :calc x-hit (subseq ret id (+ id id-max))))
+          (send js :put :p (send bs :calc x-hit (subseq ret id (+ id id-max))))
+          (send js :put :dp (send bs :calc-delta x-hit (subseq ret id (+ id id-max)) :n 1))
+          (send js :put :ddp (send bs :calc-delta x-hit (subseq ret id (setq id (+ id id-max))) :n 2))))
+
+     (subseq bspline 0 (length jlist)) jlist)
+    (format t "  [dif] |~A| = ~A~%"
+            (map float-vector #'- hitting-pose (send-all jlist :joint-angle))
+            (norm (map float-vector #'- hitting-pose (send-all jlist :joint-angle))))
+    (setq id 0)
+    (mapcar
+     #'(lambda (bs js)
+         (list
+          (send js :joint-angle
+                (send bs :calc x-max (subseq ret id (+ id id-max))))
+          (send js :put :p (send bs :calc x-max (subseq ret id (+ id id-max))))
+          (send js :put :dp (send bs :calc-delta x-max (subseq ret id (+ id id-max)) :n 1))
+          (send js :put :ddp (send bs :calc-delta x-max (subseq ret id (setq id (+ id id-max))) :n 2))))
+
+     (subseq bspline 0 (length jlist)) jlist)
+    (format t "  [dif] |~A| = ~A~%"
+            (map float-vector #'- final-pose (send-all jlist :joint-angle))
+            (norm (map float-vector #'- final-pose (send-all jlist :joint-angle))))
     ;; retl
     nil))
-
-
-
-(defun qp-motion-optimize-util (&key (id-max 14) (recursive-order 5) (x-max 1.4) (x-takeoff 0.1) (x-land 0.5) (x-hit 0.7))
-  (qp-motion-optimize :x-max x-max :x-hit x-hit :maxvel-weight 1e2 :minjerk-weight 1e1 :x-step 0.02 :id-max id-max :recursive-order recursive-order :use-margin 1 :use-all-joint t :use-append-root-joint t)
-  (setq *x-max-of-p-orig* x-max)
-  (setq *p-orig* (concatenate float-vector *ret* (float-vector x-takeoff x-land x-hit)))
-  (with-open-file (f "/userdir/logs/p-orig.l" :direction :output :if-exists :new-version) (format f "~a" *p-orig*))
-  )
-
 
 ;; (dolist (arm (send *robot* *limb* :links)) (dolist (b (append (send *robot* :head :links) (send *robot* :torso :links))) (print (pqp-collision-distance arm b))))

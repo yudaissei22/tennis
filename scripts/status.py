@@ -6,6 +6,7 @@ import calendar
 import datetime
 import numpy as np
 in_dir = "/userdir/logs/motion-planning"
+filter_str = "2020-12-31"
 
 # Feb-22-16-37-05-2019_forehand_maximize-speed_CCSA_48.0h_M-14_N-5_x-max-1.0_x-hit-0.5_maxvel-1_minjerk-0.0005_delta-1.7e-04_eqthre-1.0e-08_ftol-1.0e-15_xtol-1.0e-10_interval-20_sp-0-0-0-100-50_root-joint_modify-ec
 def parse_dirname(dir_name):
@@ -58,43 +59,49 @@ def parse_logfiles(log_dir):
     with open(in_dir + "/" + log_dir + "/maximize-speed_obj.dat", "r") as f:
         whole_lines = f.readlines()
         obj_lines_num = len(whole_lines)
-        if whole_lines:
-            obj = np.array([float(i) for i in whole_lines[-1].rstrip('\n').split()])
-        else:
-            obj = np.zeros(1)
+        obj_list = [0.0] #  dummy
+        for line in whole_lines:
+            obj_list.append(float(line))
     with open(in_dir + "/" + log_dir + "/maximize-speed_eq.dat", "r") as f:
         whole_lines = f.readlines()
         eq_lines_num = len(whole_lines)
-        if whole_lines:
-            eq = np.array([float(i) for i in whole_lines[-1].rstrip('\n').split()])
-        else:
-            eq = np.zeros(0)
+        eq_list = [np.zeros(1)]  # dummy
+        for line in whole_lines:
+            eq = np.array([float(i) for i in line.rstrip('\n').split()])
+            eq[eq < 0] = 0.0
+            eq_list.append(eq)
     with open(in_dir + "/" + log_dir + "/maximize-speed_ieq.dat", "r") as f:
         whole_lines = f.readlines()
         ieq_lines_num = len(whole_lines)
-        if whole_lines:
-            ieq = np.array([float(i) for i in whole_lines[-1].rstrip('\n').split()])
-            ieq[ieq < 0] = 0
-        else:
-            ieq = np.zeros(0)
+        ieq_list = [np.zeros(1)]  # dummy
+        for line in whole_lines:
+            ieq = np.array([float(i) for i in line.rstrip('\n').split()])
+            ieq[ieq < 0] = 0.0
+            ieq_list.append(ieq)
     return { \
         "p_lines_num": p_lines_num, \
         "obj_lines_num": obj_lines_num, \
         "eq_lines_num": eq_lines_num, \
         "ieq_lines_num": ieq_lines_num, \
         "p": p, \
-        "obj": obj[0], \
-        "eq": eq, \
-        "ieq": ieq, \
+        "obj_list": obj_list, \
+        "eq_list": eq_list, \
+        "ieq_list": ieq_list, \
     }
 
 # os.scandir() might be better for python3.5 or upper
 dirs_sorted = sorted(os.listdir(in_dir), key=lambda s: parse_dirname(s)["dt"])
 
+def decide_read_or_not_from_attr(attr):
+    return (filter_str in "{}".format(attr["dt"]))
+
 for dirname in dirs_sorted:
     attr = parse_dirname(dirname)
+    if not decide_read_or_not_from_attr(attr):
+        continue
+
     log = parse_logfiles(dirname)
-    print_line =  \
+    print_line = \
     "{} " \
     "{} " \
     "{} " \
@@ -120,9 +127,9 @@ for dirname in dirs_sorted:
           log["obj_lines_num"], \
           log["eq_lines_num"], \
           log["ieq_lines_num"], \
-          log["obj"], \
-          np.linalg.norm(log["eq"]), \
-          np.linalg.norm(log["ieq"]), \
+          log["obj_list"][-1], \
+          np.linalg.norm(np.array(log["eq_list"][-1])), \
+          np.linalg.norm(np.array(log["ieq_list"][-1])), \
     )
     print(print_line)
     with open(in_dir + "/" + dirname + "/" + attr["motion"] + "-p-orig.l", "w") as f:
