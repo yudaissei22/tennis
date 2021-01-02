@@ -32,6 +32,7 @@
   ;; rotate robot in order to use waist
   (send robot :orient (deg2rad 10) :z :world)
   (send robot :locate (float-vector 0 200 -100) :world)
+  ;; (send robot :move-to (make-coords) :world)
   ;; (send *racket-coords* :orient (deg2rad -30) :z :world)
   ;; (send *racket-coords* :locate (float-vector 0 0 0) :world)
   ;; (send *racket-coords* :rotate (deg2rad -20) :x :world)
@@ -117,6 +118,7 @@
   ;; rotate robot in order to use waist
   (send robot :orient (deg2rad 70) :z :world)
   (send robot :locate (float-vector -100 300 -150) :world)
+  ;; (send robot :move-to (make-coords) :world)
 
   ;; (send *racket-coords* :orient (deg2rad 110) :z :world)
   ;; (send *racket-coords* :locate (float-vector 0 0 0) :world)
@@ -195,6 +197,7 @@
   ;; rotate robot in order to use waist
   (send robot :orient (deg2rad 70) :z :world)
   (send robot :locate (float-vector -100 300 -160) :world)
+  ;; (send robot :move-to (make-coords) :world)
 
   (send *racket-coords* :orient (deg2rad 30) :z :world)
   (send *racket-coords* :locate (float-vector 0 0 0) :world)
@@ -276,6 +279,7 @@
   ;; rotate robot in order to use waist
   (send robot :orient (deg2rad 90) :z :world)
   (send robot :locate (float-vector -100 300 -220) :world)
+  ;; (send robot :move-to (make-coords) :world)
 
   (send *racket-coords* :orient (deg2rad -60) :z :world)
   (send *racket-coords* :locate (float-vector 0 0 0) :world)

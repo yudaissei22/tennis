@@ -23,6 +23,8 @@
 
   ;; rotate robot in order to use waist
   (send robot :orient (deg2rad 6) :z :world)
+  (send robot :locate (float-vector 0 -10 -140) :world)
+  ;; (send robot :move-to (make-coords) :world)
 
   ;; set bat pos
   (send *bat-coords* :orient (deg2rad -80) :z :world)
@@ -32,7 +34,6 @@
   (send *bat-coords* :rotate (deg2rad 3) :z :world)
   (send *bat-coords* :locate (float-vector 420 -220 1390) :world)
 
-  (send robot :locate (float-vector 0 -10 -140) :world)
 
 
   ;; fullbody-inverse-kinematics
@@ -115,6 +116,7 @@
   (send *bat-coords* :locate (float-vector 340 -440 1390) :world)
 
   (send robot :locate (float-vector 0 -70 -160) :world)
+  ;; (send robot :move-to (make-coords) :world)
 
 
   ;; fullbody-inverse-kinematics
@@ -190,6 +192,7 @@
   ;; rotate robot in order to use waist
   (send robot :orient (deg2rad 50) :z :world)
   (send robot :rotate (deg2rad 2) :x :world)
+  ;; (send robot :move-to (make-coords) :world)
 
   ;; set bat pos
   (send *bat-coords* :orient (deg2rad -85) :z :world)
@@ -198,7 +201,6 @@
   (send *bat-coords* :rotate (deg2rad -45) :y :world)
   (send *bat-coords* :rotate (deg2rad 90) :z :world)
   (send *bat-coords* :locate (float-vector 230 540 1050) :world)
-  (send robot :locate (float-vector 0 -20 -170) :world)
 
   ;; fullbody-inverse-kinematics
   (let* ((target-coords
@@ -366,6 +368,8 @@
 
   ;; rotate robot in order to use waist
   (send robot :orient (deg2rad 6) :z :world)
+  (send robot :locate (float-vector 0 -10 -140) :world)
+  ;; (send robot :move-to (make-coords) :world)
 
   ;; set bat pos
   (send *bat-coords* :orient (deg2rad -80) :z :world)
@@ -375,7 +379,6 @@
   (send *bat-coords* :rotate (deg2rad 3) :z :world)
   (send *bat-coords* :locate (float-vector 480 -240 1390) :world)
 
-  (send robot :locate (float-vector 0 -10 -140) :world)
 
 
   ;; fullbody-inverse-kinematics

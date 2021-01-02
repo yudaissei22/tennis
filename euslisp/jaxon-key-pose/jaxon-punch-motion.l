@@ -30,6 +30,7 @@
   ;; rotate robot in order to use waist
   (send robot :orient (deg2rad 10) :z :world)
   (send robot :locate (float-vector 0 0 -210) :world)
+  ;; (send robot :move-to (make-coords) :world)
 
 
   ;; fullbody-inverse-kinematics
@@ -102,6 +103,7 @@
   ;; rotate robot in order to use waist
   (send robot :orient (deg2rad 55) :z :world)
   (send robot :locate (float-vector 0 50 -210) :world)
+  ;; (send robot :move-to (make-coords) :world)
 
   (send *punch-coords* :locate #f(0 0 0) :world)
   (send *punch-coords* :orient (deg2rad 90) :z :world)
@@ -172,6 +174,7 @@
   ;; rotate robot in order to use waist
   (send robot :orient (deg2rad 40) :z :world)
   (send robot :locate (float-vector 0 -30 -240) :world)
+  ;; (send robot :move-to (make-coords) :world)
 
   (send *punch-coords* :locate #f(0 0 0) :world)
   (send *punch-coords* :orient (deg2rad 90) :z :world)
