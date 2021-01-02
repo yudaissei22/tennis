@@ -32,9 +32,6 @@
   (setq init-av (car *exp-jpos-deg1*))
   (send *robot* :angle-vector init-av)
   (send *robot* :head :neck-y :joint-angle 0)
-  (print (car *exp-zmp-wc1*))
-  (print (car *exp-zmp-rc1*))
-  (print (make-coords :pos (car *exp-zmp-wc1*) :rpy (car *exp-zmp-rc1*)))
 ;; まちがい
   ;; (send *robot* :move-centroid-on-foot (make-coords :pos (car *exp-zmp-wc1*) :rpy (car *exp-zmp-rc1*)))
   (send *robot* :move-centroid-on-foot :both '(:rleg :lleg))
@@ -82,11 +79,6 @@
   (setq *initial-time* (if *is-choreonoid* 1000 10000))
   (format t "sleep for 1 sec~%")
   (unix::sleep 1)
-  (unless *is-choreonoid*
-    (progn (print "Press Enter key when you want to start st.")
-           (read-line)))
-  (format t "start st ~%")
-  (send *ri* :start-st)
   (experiment-angle-vector-sequence-full (list init-av-cp) (list (car *exp-tm-ms1*)) (list (car *exp-rc1*)) (list (car *exp-zmp-wc1*)) (list (car *exp-optional1*))
                                          :initial-time *initial-time* :final-time 0 :log-fname (concatenate string "/userdir/logs/" *timestamp-str* "init"))
   (unless *is-choreonoid*
@@ -94,6 +86,11 @@
            (read-line)))
   (experiment-angle-vector-sequence-full (list (car *exp-jpos-deg1*)) (list (car *exp-tm-ms1*)) (list (car *exp-rc1*)) (list (car *exp-zmp-wc1*)) (list (car *exp-optional1*))
                                          :initial-time *initial-time* :final-time 0 :log-fname (concatenate string "/userdir/logs/" *timestamp-str* "init"))
+  (unless *is-choreonoid*
+    (progn (print "Press Enter key when you want to start st.")
+           (read-line)))
+  (format t "start st ~%")
+  (send *ri* :start-st)
   (unless *is-choreonoid*
     (progn (print "Press Enter key when you want to play the motion.")
            (read-line)))

@@ -96,9 +96,6 @@
         (send *ri* :wait-interpolation)))
 
 
-  (print "pose1")
-  (print (send *robot* :angle-vector))
-
   (list :angle-vector (send robot :angle-vector)
         :root-coords (send (car (send robot :links)) :copy-worldcoords) ;; (send robot :copy-worldcoords)
         :worldcoords (send robot :copy-worldcoords)
