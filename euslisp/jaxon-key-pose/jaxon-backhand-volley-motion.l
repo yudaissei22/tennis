@@ -36,6 +36,7 @@
   ;; rotate robot in order to use waist
   ;; (send robot :orient (deg2rad -6) :z :world)
   ;; (send robot :locate (float-vector 0 -10 -130) :world)
+  (send robot :move-to (make-coords) :world)
 
   (send *racket-coords* :orient (deg2rad 0) :z :world)
   (send *racket-coords* :locate (float-vector 0 0 0) :world)
@@ -127,6 +128,7 @@
   ;; rotate robot in order to use waist
   (send robot :orient (deg2rad 2) :z :world)
   (send robot :locate (float-vector 0 -10 -260) :world)
+  ;; (send robot :move-to (make-coords) :world)
 
   (send *racket-coords* :orient (deg2rad -80) :z :world)
   (send *racket-coords* :locate (float-vector 0 0 0) :world)
@@ -205,6 +207,7 @@
   ;; rotate robot in order to use waist
   ;; (send robot :orient (deg2rad 10) :z :world)
   ;; (send robot :locate (float-vector 0 -10 -240) :world)
+  (send robot :move-to (make-coords) :world)
 
   ;; そういえばバックハンドは打面逆だけどまだ対処してない
   (send *racket-coords* :orient (deg2rad 0) :z :world)
@@ -283,6 +286,7 @@
   ;; rotate robot in order to use waist
   ;; (send robot :orient (deg2rad 10) :z :world)
   ;; (send robot :locate (float-vector 0 -10 -240) :world)
+  (send robot :move-to (make-coords) :world)
 
   (send *racket-coords* :orient (deg2rad 0) :z :world)
   (send *racket-coords* :locate (float-vector 0 0 0) :world)
@@ -366,6 +370,7 @@
   ;; rotate robot in order to use waist
   (send robot :orient (deg2rad 18) :z :world)
   (send robot :locate (float-vector 0 -10 -100) :world)
+  ;; (send robot :move-to (make-coords) :world)
 
   (send *racket-coords* :orient (deg2rad 70) :z :world)
   (send *racket-coords* :locate (float-vector 0 0 0) :world)
@@ -443,6 +448,7 @@
   ;; rotate robot in order to use waist
   ;; (send robot :orient (deg2rad -6) :z :world)
   ;; (send robot :locate (float-vector 0 -10 -130) :world)
+  (send robot :move-to (make-coords) :world)
 
   (send *racket-coords* :orient (deg2rad 0) :z :world)
   (send *racket-coords* :locate (float-vector 0 0 0) :world)
