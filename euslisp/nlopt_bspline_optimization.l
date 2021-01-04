@@ -833,7 +833,7 @@
              ;; (push (send bs :calc (aref v1 (- (length v1) *x-hit-id*)) (subseq v1 (* jid *id-max*) (* (+ jid 1) *id-max*))) x-hit-pose) ;; 時刻x-hitにおける関節角度
              )
            (when *use-final-pose*
-             (push (send bs :calc *x-max* (subseq v1 (* jid *id-max*) (* (+ jid 1) *id-max*)) x-max-pose)) ;; 時刻x-maxにおける関節角度
+             (push (send bs :calc *x-max* (subseq v1 (* jid *id-max*) (* (+ jid 1) *id-max*))) x-max-pose) ;; 時刻x-maxにおける関節角度
              )
            ;; (push (send bs :calc (aref *p* (- (length v1) 2)) (subseq v1 (* jid *id-max*) (* (+ jid 1) *id-max*))) x-max-pose) ;; 着地時刻における関節角度
 
