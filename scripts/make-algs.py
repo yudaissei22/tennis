@@ -55,8 +55,9 @@ os.makedirs(output_dir, exist_ok=True)
 
 x_max = "2.0"
 x_hit = "1.0"
-maxvel_weight = "1e-2"
-minjerk_weight = "3e0"
+maxvel_weight = "-1e-3"
+unit_matrix_weight = "1e-4"
+minjerk_weight = "1e0"
 x_step = "0.02"
 id_max = "14"
 recursive_order = "5"
@@ -81,6 +82,7 @@ for alg in algs:
                             + " :x-max " + x_max \
                             + " :x-hit " + x_hit \
                             + " :maxvel-weight " + maxvel_weight \
+                            + " :unit-matrix-weight " + unit_matrix_weight \
                             + " :minjerk-weight " + minjerk_weight \
                             + " :x-step " + x_step \
                             + " :id-max " + id_max \

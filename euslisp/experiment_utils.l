@@ -64,10 +64,9 @@
   (setq *vision-initialized* nil)
   (print "TODO: virtual jointなしの場合も作る")
   ;; タスク達成時刻のロボットの状態を再現
-  (send *robot* :reset-pose)
-  (send *robot* :move-to (make-coords) :world)
   (format t "p ~A~%" p)
   (format t "angle-vector before ~A~%" (send *robot* :angle-vector))
+  (send *robot* :move-to (make-coords) :world)
   (with-append-root-joint
     (link-list-with-robot-6dof *robot* (list (cdr (send *robot* :links)))
                             :joint-class 6dof-joint)

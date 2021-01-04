@@ -1,5 +1,6 @@
 #!/usr/bin/env roseus
 (setq *motion-choice* "forehand-volley-step")
+;; (setq *motion-choice* "backhand-volley-step")
 
 (setq *is-choreonoid* t)
 (require "package://tennis/euslisp/is-choreonoid") ;; *is-choreonoid* is defined
@@ -43,6 +44,7 @@
       ;; *bspline*がすべて同じであることを仮定
       ;; irteusgl$ (send (car (send *robot* :links)) :worldcoords)
       ;; #<coordinates #X5517540  0.0 0.0 1032.5 / 0.0 0.0 0.0>
+      ;; (send *robot* :move-to (make-coords) :world)
       ;; (with-append-root-joint (link-list-with-robot-6dof *robot* (list (cdr (send *robot* :links))) :joint-class 6dof-joint)
       ;; (send (send (car (send *robot* :links)) :joint) :joint-angle)))
       ;; #f(0.0 0.0 0.0 0.0 0.0 0.0)

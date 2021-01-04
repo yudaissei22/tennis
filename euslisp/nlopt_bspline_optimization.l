@@ -6,9 +6,10 @@
 (when (and (not (boundp '*p-orig*)) (not (boundp '*x-max-of-p-orig*)))
     (require "package://tennis/config/p-orig"))
 
-
 (comp::compile-file-if-src-newer (ros::resolve-ros-path "package://tennis/euslisp/qp-bspline-optimization.l") (ros::resolve-ros-path "package://tennis/euslisp/"))
 (require "package://tennis/euslisp/qp-bspline-optimization.so")
+
+
 
 ;; capsules are set for collision check
 (cond
@@ -18,22 +19,23 @@
  (t (require "package://tennis/euslisp/jaxon-collision-model.l")))
 
 (defun change-robot-state-specific-time (p time use-append-root-joint)
-    (let ((id 0))
+    (let ((jid 0))
         (mapc
             #'(lambda (jl bs)
                   (send jl :joint-angle
-                        (send bs :calc time (subseq p id (+ id *id-max*))))
-                  (send jl :put :dq (deg2rad (send bs :calc-delta time (subseq p id (+ id *id-max*)) :n 1))) ;; 関節速度の単位は[rad]
-                  (setq id (+ id *id-max*)))
+                        (send bs :calc time (subseq p (* jid *id-max*) (* (+ jid 1) *id-max*))))
+                  (send jl :put :dq (deg2rad (send bs :calc-delta time (subseq p (* jid *id-max*) (* (+ jid 1) *id-max*)) :n 1))) ;; 関節速度の単位は[rad]
+                  (setq jid (+ jid 1)))
          *jlist* *bspline*)
         (when use-append-root-joint
             (send (send (car (send *robot* :links)) :joint) :joint-angle
                 (coerce
                     (mapcar
                     #'(lambda (bs)
-                        (send bs :calc time (subseq p id (setq id (+ id *id-max*)))))
+                        (send bs :calc time (subseq p (* jid *id-max*) (* (setq jid (+ jid 1)) *id-max*))))
                      (subseq *bspline* (length *jlist*) (+ (length *jlist*) 6)))
-                 float-vector))))
+                 float-vector)))
+      )
     )
 
 (defun validate-p-orig-and-bspline-dim ()
@@ -129,8 +131,6 @@
                                             :id-max id-max :recursive-order recursive-order
                                             :x-min x-min :x-max x-max))
                               jlist))))
-
-
 
   (setq *mu* mu)
   (setq *interval-num* interval-num)
@@ -590,7 +590,7 @@
   (let* ((integral-minjerk 0) (hitting-maxvel 0))
     (when (not (= *minjerk-weight* 0))
       ;; 躍度の2乗の積分の和
-      (let* ((id 0)
+      (let* ((jid 0)
              (integral-objective-coeff-matrix (send (car *bspline*) :calc-integral-objective-coeff-matrix :n 3)))
         (mapc
          #'(lambda (jl bs)
@@ -598,12 +598,12 @@
                    (+ integral-minjerk
                       (deg2rad (deg2rad ;; すでに2乗されているので足す前に2回deg2rad
                                 (v.
-                                 (transform (subseq v1 id (+ id *id-max*))
+                                 (transform (subseq v1 (* jid *id-max*) (* (+ jid 1) *id-max*))
                                             ;;(send bs :calc-integral-objective-coeff-matrix :n 3)
                                             integral-objective-coeff-matrix)
-                                 (subseq v1 id (+ id *id-max*)))))))
+                                 (subseq v1 (* jid *id-max*) (* (+ jid 1) *id-max*)))))))
 
-             (setq id (+ id *id-max*)))
+             (setq jid (+ jid 1)))
 
          *jlist* *bspline*) ;; ここでは仮想ジョイントの躍度を考慮しない
         (when (send (car (send *robot* :links)) :joint) ;; virtual jointありのとき
@@ -613,11 +613,11 @@
                      (+ integral-minjerk
                         (* 1e-6 ;; すでに2乗されているので足す前に2回mm2m
                            (v.
-                            (transform (subseq v1 id (+ id *id-max*))
+                            (transform (subseq v1 (* jid *id-max*) (* (+ jid 1) *id-max*))
                                        ;;(send bs :calc-integral-objective-coeff-matrix :n 3)
                                        integral-objective-coeff-matrix)
-                            (subseq v1 id (+ id *id-max*))))))
-               (setq id (+ id *id-max*)))
+                            (subseq v1 (* jid *id-max*) (* (+ jid 1) *id-max*))))))
+               (setq jid (+ jid 1)))
 
            (subseq *bspline* (length *jlist*) (+ (length *jlist*) 3)))
           (mapc
@@ -626,32 +626,32 @@
                      (+ integral-minjerk
                         (deg2rad (deg2rad ;; すでに2乗されているので足す前に2回deg2rad
                                   (v.
-                                   (transform (subseq v1 id (+ id *id-max*))
+                                   (transform (subseq v1 (* jid *id-max*) (* (+ jid 1) *id-max*))
                                               ;;(send bs :calc-integral-objective-coeff-matrix :n 3)
                                               integral-objective-coeff-matrix)
-                                   (subseq v1 id (+ id *id-max*)))))))
-               (setq id (+ id *id-max*)))
+                                   (subseq v1 (* jid *id-max*) (* (+ jid 1) *id-max*)))))))
+               (setq jid (+ jid 1)))
 
            (subseq *bspline* (+ (length *jlist*) 3) (+ (length *jlist*) 6)))
            )))
 
     ;; hitting-poseにおける速度の最大化
     (when (not (= *maxvel-weight* 0))
-      (let* ((id 0) (root-joint-dq nil) hitting-direction hitting-sweet-spot hitting-jacobian hitting-dq hitting-dr)
+      (let* ((jid 0) (root-joint-dq nil) hitting-direction hitting-sweet-spot hitting-jacobian hitting-dq hitting-dr)
         ;; ここは最適化に含まれる時間を設定するところ
         ;; 時刻を消したかったら(aref v1 (- (length v1) *x-hit-id*))をx(定数)とすればよい
         ;; こうするとx(定数)における速度が評価関数になる
         (mapc
          #'(lambda (jl bs)
              (send jl :joint-angle ;; 関節ごと
-                   ;; (send bs :calc (aref v1 (- (length v1) *x-hit-id*)) (subseq v1 id (+ id *id-max*))) ;; subseqは関節毎にpを抜き取ってる
-                   (send bs :calc *default-x-hit* (subseq v1 id (+ id *id-max*))) ;; subseqは関節毎にpを抜き取ってる
+                   ;; (send bs :calc (aref v1 (- (length v1) *x-hit-id*)) (subseq v1 (* jid *id-max*) (* (+ jid 1) *id-max*))) ;; subseqは関節毎にpを抜き取ってる
+                   (send bs :calc *default-x-hit* (subseq v1 (* jid *id-max*) (* (+ jid 1) *id-max*))) ;; subseqは関節毎にpを抜き取ってる
                    )
              ;; send bs :calc 時刻 ベクトル(基底関数の頂点の高さ(*p*と同じなのだが))->関節角がとれる
              ;; send bs :calc-delta 時刻 ベクトル(基底関数の頂点の高さ(*p*と同じなのだが))->関節速度が取れる
-             ;; (send jl :put :dq (deg2rad (send bs :calc-delta (aref v1 (- (length v1) *x-hit-id*)) (subseq v1 id (+ id *id-max*)) :n 1))) ;; 関節速度の単位は[rad]
-             (send jl :put :dq (deg2rad (send bs :calc-delta *default-x-hit* (subseq v1 id (+ id *id-max*)) :n 1))) ;; 関節速度の単位は[rad]
-             (setq id (+ id *id-max*)))
+             ;; (send jl :put :dq (deg2rad (send bs :calc-delta (aref v1 (- (length v1) *x-hit-id*)) (subseq v1 (* jid *id-max*) (* (+ jid 1) *id-max*)) :n 1))) ;; 関節速度の単位は[rad]
+             (send jl :put :dq (deg2rad (send bs :calc-delta *default-x-hit* (subseq v1 (* jid *id-max*) (* (+ jid 1) *id-max*)) :n 1))) ;; 関節速度の単位は[rad]
+             (setq jid (+ jid 1)))
 
          *jlist* *bspline*)
         ;; virtual jointがあったら
@@ -661,11 +661,11 @@
                     (coerce
                      (mapcar
                       #'(lambda (bs)
-                          ;; (push (send bs :calc-delta (aref v1 (- (length v1) *x-hit-id*)) (subseq v1 id (+ id *id-max*)) :n 1) root-joint-dq) ;; 先にルートリンクの速度を取得
-                          (push (send bs :calc-delta *default-x-hit* (subseq v1 id (+ id *id-max*)) :n 1) root-joint-dq) ;; 先にルートリンクの速度を取得
-                          ;; (send bs :calc (aref v1 (- (length v1) *x-hit-id*)) (subseq v1 id (setq id (+ id *id-max*))))
+                          ;; (push (send bs :calc-delta (aref v1 (- (length v1) *x-hit-id*)) (subseq v1 (* jid *id-max*) (* (+ jid 1) *id-max*)) :n 1) root-joint-dq) ;; 先にルートリンクの速度を取得
+                          (push (send bs :calc-delta *default-x-hit* (subseq v1 (* jid *id-max*) (* (+ jid 1) *id-max*)) :n 1) root-joint-dq) ;; 先にルートリンクの速度を取得
+                          ;; (send bs :calc (aref v1 (- (length v1) *x-hit-id*)) (subseq v1 (* jid *id-max*) (* (setq jid (+ jid 1)) *id-max*)))
 
-                          (send bs :calc *default-x-hit* (subseq v1 id (setq id (+ id *id-max*))))
+                          (send bs :calc *default-x-hit* (subseq v1 (* jid *id-max*) (* (setq jid (+ jid 1)) *id-max*)))
                           )
                       (subseq *bspline* (length *jlist*) (+ (length *jlist*) 6))) ;; virtual joint
                      float-vector))
@@ -775,7 +775,7 @@
   ;; warning nloptがtransposeなのか調べる
   (simple-jacobian-transpose v1 v2 (read-from-string "motion-f") :delta *delta*)
   (incf *eval-cnt-f*)
-  (show-optimized-motion v1 :x-step 0.1 :real-time nil)
+  (show-optimized-motion v1 :interval-num *interval-num* :real-time nil)
   0)
 
 
@@ -792,7 +792,7 @@
       (setf (aref v1 i) (aref *tmp-p* i)))) ;; ログ用に*tmp-p*をつける
 
 
-  (let* ((id 0)
+  (let* ((jid 0)
          (x-min-pose nil) (x-min-vel nil) (x-min-acc nil)
          (x-hit-pose nil) (x-hit-ee nil)
          (x-max-pose nil) (x-max-vel nil) (x-max-acc nil)
@@ -802,42 +802,44 @@
     ;; v1(=p)に対する各時刻(x-min, x-hit, x-max)の関節角を計算
     (mapc
      #'(lambda (jl bs)
-         (push (send bs :calc *x-min* (subseq v1 id (+ id *id-max*))) x-min-pose) ;; 時刻x-minにおける関節角度
-         (push (send bs :calc-delta *x-min* (subseq v1 id (+ id *id-max*)) :n 1) x-min-vel) ;; 時刻x-minにおける関節角速度 (nは微分階数)
-         (push (send bs :calc-delta *x-min* (subseq v1 id (+ id *id-max*)) :n 2) x-min-acc) ;; 時刻x-minにおける関節角加速度
-         ;; (push (send bs :calc (aref v1 (- (length v1) *x-hit-id*)) (subseq v1 id (+ id *id-max*))) x-hit-pose) ;; 時刻x-hitにおける関節角度
+         (push (send bs :calc *x-min* (subseq v1 (* jid *id-max*) (* (+ jid 1) *id-max*))) x-min-pose) ;; 時刻x-minにおける関節角度
+         (push (send bs :calc-delta *x-min* (subseq v1 (* jid *id-max*) (* (+ jid 1) *id-max*)) :n 1) x-min-vel) ;; 時刻x-minにおける関節角速度 (nは微分階数)
+         (push (send bs :calc-delta *x-min* (subseq v1 (* jid *id-max*) (* (+ jid 1) *id-max*)) :n 2) x-min-acc) ;; 時刻x-minにおける関節角加速度
 
          (when *use-hit-pose*
              (progn
-                 (push (send bs :calc *default-x-hit* (subseq v1 id (+ id *id-max*))) x-hit-pose) ;; 時刻x-hitにおける関節角度
+                 (push (send bs :calc *default-x-hit* (subseq v1 (* jid *id-max*) (* (+ jid 1) *id-max*))) x-hit-pose) ;; 時刻x-hitにおける関節角度
+                 ;; (push (send bs :calc (aref v1 (- (length v1) *x-hit-id*)) (subseq v1 (* jid *id-max*) (* (+ jid 1) *id-max*))) x-hit-pose) ;; 時刻x-hitにおける関節角度
              ))
 
 
          (when *use-final-pose*
-           (push (send bs :calc *x-max* (subseq v1 id (+ id *id-max*))) x-max-pose)) ;; 時刻x-maxにおける関節角度
-   ;;(push (send bs :calc (aref *p* (- (length v1) 2)) (subseq v1 id (+ id *id-max*))) x-max-pose) ;; 着地時刻の関節角度
+           (push (send bs :calc *x-max* (subseq v1 (* jid *id-max*) (* (+ jid 1) *id-max*))) x-max-pose)) ;; 時刻x-maxにおける関節角度
+         ;; (push (send bs :calc (aref *p* (- (length v1) 2)) (subseq v1 (* jid *id-max*) (* (+ jid 1) *id-max*))) x-max-pose) ;; 着地時刻の関節角度
 
-         (push (send bs :calc-delta *x-max* (subseq v1 id (+ id *id-max*)) :n 1) x-max-vel) ;; 時刻x-maxにおける関節角速度
-         (push (send bs :calc-delta *x-max* (subseq v1 id (+ id *id-max*)) :n 2) x-max-acc) ;; 時刻x-maxにおける関節角加速度
-         (setq id (+ id *id-max*)))
+         (push (send bs :calc-delta *x-max* (subseq v1 (* jid *id-max*) (* (+ jid 1) *id-max*)) :n 1) x-max-vel) ;; 時刻x-maxにおける関節角速度
+         (push (send bs :calc-delta *x-max* (subseq v1 (* jid *id-max*) (* (+ jid 1) *id-max*)) :n 2) x-max-acc) ;; 時刻x-maxにおける関節角加速度
+         (setq jid (+ jid 1)))
 
      *jlist* *bspline*);; *bspline*に仮想ジョイント分追加されているので数合わせ用に*jlist*を渡す
     (when (send (car (send *robot* :links)) :joint) ;; virtual joint
       (mapc
        #'(lambda (bs)
-           (push (send bs :calc *x-min* (subseq v1 id (+ id *id-max*))) x-min-pose) ;; 時刻x-minにおける関節角度
-           (push (send bs :calc-delta *x-min* (subseq v1 id (+ id *id-max*)) :n 1) x-min-vel) ;; 時刻x-minにおける関節角速度
-           (push (send bs :calc-delta *x-min* (subseq v1 id (+ id *id-max*)) :n 2) x-min-acc) ;; 時刻x-minにおける関節角加速度
-           ;; (push (send bs :calc (aref v1 (- (length v1) *x-hit-id*)) (subseq v1 id (+ id *id-max*))) x-hit-pose) ;; 時刻x-hitにおける関節角度
+           (push (send bs :calc *x-min* (subseq v1 (* jid *id-max*) (* (+ jid 1) *id-max*))) x-min-pose) ;; 時刻x-minにおける関節角度
+           (push (send bs :calc-delta *x-min* (subseq v1 (* jid *id-max*) (* (+ jid 1) *id-max*)) :n 1) x-min-vel) ;; 時刻x-minにおける関節角速度
+           (push (send bs :calc-delta *x-min* (subseq v1 (* jid *id-max*) (* (+ jid 1) *id-max*)) :n 2) x-min-acc) ;; 時刻x-minにおける関節角加速度
            (when *use-hit-pose*
-               (push (send bs :calc *default-x-hit* (subseq v1 id (+ id *id-max*))) x-hit-pose)) ;; 時刻x-hitにおける関節角度
+             (push (send bs :calc *default-x-hit* (subseq v1 (* jid *id-max*) (* (+ jid 1) *id-max*))) x-hit-pose) ;; 時刻x-hitにおける関節角度
+             ;; (push (send bs :calc (aref v1 (- (length v1) *x-hit-id*)) (subseq v1 (* jid *id-max*) (* (+ jid 1) *id-max*))) x-hit-pose) ;; 時刻x-hitにおける関節角度
+             )
            (when *use-final-pose*
-             (push (send bs :calc *x-max* (subseq v1 id (+ id *id-max*))) x-max-pose)) ;; 時刻x-maxにおける関節角度
-     ;; (push (send bs :calc (aref *p* (- (length v1) 2)) (subseq v1 id (+ id *id-max*))) x-max-pose) ;; 着地時刻における関節角度
+             (push (send bs :calc *x-max* (subseq v1 (* jid *id-max*) (* (+ jid 1) *id-max*)) x-max-pose)) ;; 時刻x-maxにおける関節角度
+             )
+           ;; (push (send bs :calc (aref *p* (- (length v1) 2)) (subseq v1 (* jid *id-max*) (* (+ jid 1) *id-max*))) x-max-pose) ;; 着地時刻における関節角度
 
-           (push (send bs :calc-delta *x-max* (subseq v1 id (+ id *id-max*)) :n 1) x-max-vel) ;; 時刻x-maxにおける関節角速度
-           (push (send bs :calc-delta *x-max* (subseq v1 id (+ id *id-max*)) :n 2) x-max-acc) ;; 時刻x-maxにおける関節角加速度
-           (setq id (+ id *id-max*)))
+           (push (send bs :calc-delta *x-max* (subseq v1 (* jid *id-max*) (* (+ jid 1) *id-max*)) :n 1) x-max-vel) ;; 時刻x-maxにおける関節角速度
+           (push (send bs :calc-delta *x-max* (subseq v1 (* jid *id-max*) (* (+ jid 1) *id-max*)) :n 2) x-max-acc) ;; 時刻x-maxにおける関節角加速度
+           (setq jid (+ jid 1)))
 
        (subseq *bspline* (length *jlist*) (+ (length *jlist*) 6)))) ;; 最後のvirtual joint6自由度
 
@@ -902,20 +904,20 @@
       (let* (integral-endcoords discretized-endcoords (tmp-endcoords-list nil) current-av current-rc current-lfoot current-rfoot current-larm current-rarm (interval-num (float *interval-num*)))
         (mapc
          #'(lambda (rate)
-             (let* ((id 0)
+             (let* ((jid 0)
                     (x-buf (+ *x-min* (* rate (- *x-max* *x-min*))))
                     (switching-tm-list (list *x-max*)))
 
                (dotimes (i (1- (length *contact-flag*)))
-                 (push (aref *p-orig* (- (length *p-orig* #|v1|#) 1 i)) switching-tm-list))
+                 (push (aref *p-orig* (- (length *p-orig*) 1 i)) switching-tm-list))
 
 
                (setq discretized-endcoords nil)
                (mapc
                 #'(lambda (bs)
                     (push (send bs :calc x-buf
-                                (subseq v1 id (+ id *id-max*)) ) discretized-endcoords)
-                    (setq id (+ id *id-max*)))
+                                (subseq v1 (* jid *id-max*) (* (+ jid 1) *id-max*)) ) discretized-endcoords)
+                    (setq jid (+ jid 1)))
 
                 *bspline*)
                (setq discretized-endcoords (reverse discretized-endcoords))
@@ -996,13 +998,13 @@
 
 
         (when grounding-leg
-          (setq id 0)
+          (setq jid 0)
           (mapc
            #'(lambda (jl bs)
                (send jl :joint-angle
-                     (send bs :calc grounding-tm (subseq v1 id (+ id *id-max*))))
-               (send jl :put :dq (deg2rad (send bs :calc-delta grounding-tm (subseq v1 id (+ id *id-max*)) :n 1))) ;; 関節速度の単位は[rad]
-               (setq id (+ id *id-max*)))
+                     (send bs :calc grounding-tm (subseq v1 (* jid *id-max*) (* (+ jid 1) *id-max*))))
+               (send jl :put :dq (deg2rad (send bs :calc-delta grounding-tm (subseq v1 (* jid *id-max*) (* (+ jid 1) *id-max*)) :n 1))) ;; 関節速度の単位は[rad]
+               (setq jid (+ jid 1)))
 
            *jlist* *bspline*)
           (if (send (car (send *robot* :links)) :joint)
@@ -1011,8 +1013,8 @@
                       (coerce
                        (mapcar
                         #'(lambda (bs)
-                            (push (send bs :calc-delta grounding-tm (subseq v1 id (+ id *id-max*)) :n 1) root-joint-dq) ;; 先にルートリンクの速度を取得
-                            (send bs :calc grounding-tm (subseq v1 id (setq id (+ id *id-max*)))))
+                            (push (send bs :calc-delta grounding-tm (subseq v1 (* jid *id-max*) (* (+ jid 1) *id-max*)) :n 1) root-joint-dq) ;; 先にルートリンクの速度を取得
+                            (send bs :calc grounding-tm (subseq v1 (* jid *id-max*) (* (setq jid (+ jid 1)) *id-max*))))
                         (subseq *bspline* (length *jlist*) (+ (length *jlist*) 6)))
                        float-vector))
 
@@ -1161,7 +1163,7 @@
                 (switching-tm-list (list *x-max*)))
 
            (dotimes (i (1- (length *contact-flag*)))
-             (push (aref *p-orig* (- (length *p-orig* #|v1|#) 1 i)) switching-tm-list))
+             (push (aref *p-orig* (- (length *p-orig*) 1 i)) switching-tm-list))
 
 
            (calc-specific-time-force-zmp v1 x-buf :tqv-at-specific-time discretized-tqv :zmp-at-specific-time discretized-zmp :force-at-specific-time discretized-force :zmp-moment-at-specific-time discretized-zmp-moment :contact-flag (nth contact-tm-cnt *contact-flag*) :rfoot-ik nil :lfoot-ik nil :step-time (/ (- *x-max* *x-min*) interval-num))
@@ -1348,7 +1350,7 @@
     ;; 着地時間などの不等式制約
     (dotimes (i (- (length *contact-flag*) 2))
       (incf h-dim-id)
-      (setf (aref v2 h-dim-id) (- (aref #|*p-orig*|# v1 (- (length #|*p-orig*|# v1) i 2)) (aref #|*p-orig*|# v1 (- (length #|*p-orig*|# v1) i 1))))))
+      (setf (aref v2 h-dim-id) (- (aref v1 (- (length v1) i 2)) (aref v1 (- (length v1) i 1))))))
   (when *dump-nloptlog*
     (if *use-delta-func*
         (progn
@@ -1403,7 +1405,7 @@
      (use-append-root-joint *use-append-root-joint*)
      (maxvel-weight 1)
      (minjerk-weight 1e-3)
-     (interval-num (progn (*interval-num*) (nth 10 (list 0))))
+     (interval-num *interval-num*)
      ;; (support-polygon-margin (list *sp-front* *sp-back* *sp-inside* *sp-outside*))
      (modify-ec t)
 
@@ -1693,18 +1695,35 @@
 
   (if use-append-root-joint
       (progn
+        (send *robot* :move-to (make-coords) :world)
         (with-append-root-joint
          (link-list-with-robot-6dof *robot* (list (cdr (send *robot* :links)))
                                     :joint-class 6dof-joint)
          (when dry-run
            (setq v2_ (instantiate float-vector 10000))
+           (funcall (read-from-string "motion-f") *p-orig* v2_)
+           (with-open-file (f "/userdir/logs/obj.dat" :direction :output :if-exists :new-version)
+                           (format f "~A~%" (coerce (set-difference (coerce v2_ cons) (list 0.0)) float-vector)))
+           (setq v2_ (instantiate float-vector 10000))
+           (funcall (read-from-string "motion-df") *p-orig* v2_)
+           (with-open-file (f "/userdir/logs/dobj.dat" :direction :output :if-exists :new-version)
+                           (format f "~A~%" (coerce (set-difference (coerce v2_ cons) (list 0.0)) float-vector)))
+           (setq v2_ (instantiate float-vector 10000))
            (funcall (read-from-string "motion-g") *p-orig* v2_)
            (with-open-file (f "/userdir/logs/eq.dat" :direction :output :if-exists :new-version)
+                           (format f "~A~%" (coerce (set-difference (coerce v2_ cons) (list 0.0)) float-vector)))
+           (setq v2_ (instantiate float-vector 10000))
+           (funcall (read-from-string "motion-dg") *p-orig* v2_)
+           (with-open-file (f "/userdir/logs/deq.dat" :direction :output :if-exists :new-version)
                            (format f "~A~%" (coerce (set-difference (coerce v2_ cons) (list 0.0)) float-vector)))
            (setq v2_ (instantiate float-vector 10000))
            (funcall (read-from-string "motion-h") *p-orig* v2_)
            (with-open-file (f "/userdir/logs/ieq.dat" :direction :output :if-exists :new-version)
                            (format f "~A~%" (coerce (set-difference (coerce v2_ cons) (list 0.0)) float-vector)))
+           ;; (setq v2_ (instantiate float-vector 1000000))
+           ;; (funcall (read-from-string "motion-dh") *p-orig* v2_)
+           ;; (with-open-file (f "/userdir/logs/dieq.dat" :direction :output :if-exists :new-version)
+           ;;                 (format f "~A~%" (coerce (set-difference (coerce v2_ cons) (list 0.0)) float-vector)))
            )
          (when (not dry-run)
          (print (nlopt-optimize
@@ -1731,7 +1750,6 @@
          (setq *p* (copy-seq p))
          (print *p*)
          ))
-          ;; with-append-root-joint
 
     (progn
       (when (not dry-run)
@@ -1766,20 +1784,17 @@
 
   nil)
 
-
-
-
 (defun show-optimized-motion
     (p-ret
      &key
      (robot *robot*)
-     (cnt 30)
+     (interval-num (if (boundp '*interval-num*) (round *interval-num*) 20))
      (x-max *x-max*)
      (make-loadpattern nil) ;; "/userdir/logs/motion"
      (make-sequence nil)
      (choreonoid nil)
      (specific-time nil)
-     (x-step (if (or make-loadpattern specific-time) 0.002 (/ (- x-max *x-min*) (* 1.0 cnt))))
+     (x-step (if (or make-loadpattern specific-time) 0.002 (/ (- *x-max* *x-min*) (float interval-num))))
      (real-time t)
      (warning t)
      (show-pose t)
@@ -2178,17 +2193,29 @@
           (setq jid (+ jid 1))
           )
       *jlist* bspline)
+    (when (send (car (send *robot* :links)) :joint)
+      (let ((rid jid))
+         (send (send (car (send *robot* :links)) :joint) :joint-angle
+               (coerce
+                (mapcar
+                 #'(lambda (bs)
+                     (send bs :calc specific-time (subseq p-ret (* rid *id-max*) (* (setq rid (+ rid 1)) *id-max*))))
+                 (subseq *bspline* (length *jlist*) (+ (length *jlist*) 6)))
+                float-vector)
+               )
+        )
+      )
     ;; TODO ルートリンク角加速度が本当にこれでいいのか検証
     (if (send (car (send *robot* :links)) :joint)
-        (let ((rid 0)
+        (let ((rid jid)
               (root-link-pos (instantiate float-vector 6))
               (root-link-vel (instantiate float-vector 6))
               (root-link-acc (instantiate float-vector 6)))
           (map float-vector
             #'(lambda (bs)
-                (setf (aref root-link-pos rid) (send bs :calc specific-time (subseq p-ret (* rid *id-max*) (* (+ rid 1) *id-max*))))
-                (setf (aref root-link-vel rid) (send bs :calc-delta specific-time (subseq p-ret (* rid *id-max*) (* (+ rid 1) *id-max*)) :n 1))
-                (setf (aref root-link-acc rid) (send bs :calc-delta specific-time (subseq p-ret (* rid *id-max*) (* (+ rid 1) *id-max*)) :n 2))
+                (setf (aref root-link-pos (- rid jid)) (send bs :calc specific-time (subseq p-ret (* rid *id-max*) (* (+ rid 1) *id-max*))))
+                (setf (aref root-link-vel (- rid jid)) (send bs :calc-delta specific-time (subseq p-ret (* rid *id-max*) (* (+ rid 1) *id-max*)) :n 1))
+                (setf (aref root-link-acc (- rid jid)) (send bs :calc-delta specific-time (subseq p-ret (* rid *id-max*) (* (+ rid 1) *id-max*)) :n 2))
                 (setq rid (+ rid 1)))
             (subseq *bspline* (length *jlist*) (+ (length *jlist*) 6)))
           (setq root-spacial-velocity (scale 1e-3 (subseq root-link-vel 0 3)))
@@ -2291,8 +2318,9 @@
   (with-open-file
    (f file-name :direction :output :if-exists :new-version)))
 
+
 #|
-(nlopt-motion-optimize :x-max 2.6 :x-hit 1.7 :cnt 50 :id-max 14 :recursive-order 5 :max-eval 100000000 :max-time (* 24 60 60) :alg SLSQP :delta 1e-6 :eqthre 1e-2 :xtol 1e-10 :ftol 1e-10 :file-name "/userdir/logs/2016*_nlopt_SLSQP_*_M-*_N-*_delta-*_eqthre-1e-*_xtol-1e-*_ftol-1e-*_1day" :use-all-joint t :use-margin 0.5 :use-append-root-joint t)
+(nlopt-motion-optimize :x-max 2.6 :x-hit 1.7 :id-max 14 :recursive-order 5 :max-eval 100000000 :max-time (* 24 60 60) :alg SLSQP :delta 1e-6 :eqthre 1e-2 :xtol 1e-10 :ftol 1e-10 :file-name "/userdir/logs/2016*_nlopt_SLSQP_*_M-*_N-*_delta-*_eqthre-1e-*_xtol-1e-*_ftol-1e-*_1day" :use-all-joint t :use-margin 0.5 :use-append-root-joint t)
 
 (show-jvel :limb *limb*)
 
@@ -2301,7 +2329,7 @@
   (with-append-root-joint
    (link-list-with-robot-6dof *robot* (list (cdr (send *robot* :links)))
                               :joint-class 6dof-joint)))
-;;(show-optimized-motion *p* :cnt 20 :x-max *x-max-of-p-orig* :real-time t :lfoot-ik nil :rfoot-ik nil)
+;;(show-optimized-motion *p* :interval-num 20 :x-max *x-max-of-p-orig* :real-time t :lfoot-ik nil :rfoot-ik nil)
 ;;(show-optimized-motion *p* :x-max *x-max-of-p-orig* :real-time nil :make-loadpattern "/home/future731/bspline_1.5_M-14_N-5" :zmp-offset #f(0 0 0) :choreonoid nil)
 ;;(show-optimized-motion *p* :specific-time *x-max-of-p-orig*)
 ;;(show-optimized-motion *p* :x-step 0.01 :x-max *x-max-of-p-orig* :real-time nil :make-sequence t :zmp-offset #f(0 0 0) :choreonoid t)
