@@ -1,6 +1,7 @@
 #!/usr/bin/env roseus
 
 (setq *motion-choice* "forehand-volley-step")
+;; (setq *motion-choice* "backhand-volley-step")
 (require "package://tennis/euslisp/motion-choice.l")
 (cond ((equal *motion-choice* "forehand") (require "package://tennis/euslisp/jaxon-key-pose/jaxon-forehand-motion"))
       ((equal *motion-choice* "forehand-volley") (require "package://tennis/euslisp/jaxon-key-pose/jaxon-forehand-volley-motion"))
@@ -20,7 +21,6 @@
     (setq *robot0* (copy-object *robot*))
     )
   )
-(print (mapcar #'rad2deg (reverse (car (print (rpy-angle (send *robot* :worldrot)))))))
 
 (nlopt-init :x-max 2.0 :x-hit 1.0 :id-max 14 :recursive-order 5 :use-all-joint t :use-append-root-joint t :interval-num 20 :support-polygon-margin (list 50.0 50.0 0 100 50) :epsilon-c 30 :mu 0.3 :use-final-pose nil :default-switching-list nil :use-6dof-p t)
 (send *robot* :move-to (make-coords) :world)
@@ -34,10 +34,13 @@
 (objects (list *robot0* *robot1*))
 
 (dolist (i (coerce (send *robot1* :angle-vector) cons))
-  (format "~A " i)
+  (format t "~A, " (deg2rad i))
   )
-(format "~%" i)
+(format t "~%")
 (dolist (i (coerce (send *robot1* :worldpos) cons))
-  (format "~A " i)
+  (format t "~A, " (* i 0.001))
   )
+(format t "~%")
 (print (send *robot1* :worldrot))
+
+(print (send *robot* :calc-zmp))

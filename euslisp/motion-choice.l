@@ -33,7 +33,7 @@
    (setq *limb* :rarm)
    (setq *vel-positive* nil) ;; 裏拳
    (setq *load-pose-func* 'load-backhand-volley-pose)
-   (setq *key-pose-id* (list 1 3 4)))
+   (setq *key-pose-id* (list 1 3 5)))
 
   ((equal motion-choice "punch")
    (load "package://tennis/euslisp/jaxon-key-pose/jaxon-punch-motion.l")

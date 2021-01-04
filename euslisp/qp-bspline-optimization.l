@@ -362,6 +362,7 @@
     (format t "  [dif] |~A| = ~A~%"
             (map float-vector #'- initial-pose (send-all jlist :joint-angle))
             (norm (map float-vector #'- initial-pose (send-all jlist :joint-angle))))
+    (print ret)
     (setq id 0)
     (mapcar
      #'(lambda (bs js)

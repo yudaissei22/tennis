@@ -15,7 +15,7 @@
 (progn
   (experiment-init)
   (format t "experiment-init ~A~%" (send *robot* :angle-vector))
-  (let* ((t-max *x-max-of-p-orig*) (step 0.05)(seq-num (round (+ 1 (/ t-max step)))))
+  (let* ((t-max *x-max-of-p-orig*) (step 0.1)(seq-num (round (+ 1 (/ t-max step)))))
     (setq *exp-jpos-deg1* (make-list seq-num))
     (setq *exp-tm-ms1* (make-list seq-num))
     (setq *exp-rc1* (make-list seq-num))
@@ -33,9 +33,7 @@
   (setq init-av (car *exp-jpos-deg1*))
   (send *robot* :angle-vector init-av)
   (send *robot* :head :neck-y :joint-angle 0)
-;; まちがい
-  ;; (send *robot* :move-centroid-on-foot (make-coords :pos (car *exp-zmp-wc1*) :rpy (car *exp-zmp-rc1*)))
-  (send *robot* :move-centroid-on-foot :both '(:rleg :lleg))
+  ;; (send *robot* :move-centroid-on-foot :both '(:rleg :lleg))
   (setq init-av-cp (send *robot* :angle-vector))
   (show-timing-variables)
   (show-bspline-variables)
@@ -78,8 +76,11 @@
       (send *ri* :set-base-rpy
             (print (coerce (nth 0 (rpy-angle (send (car (send *robot* :links)) :worldrot))) float-vector)) 0)
       )
-  (setq *initial-time* (if *is-choreonoid* 1000 10000))
+  (setq *initial-time* (if *is-choreonoid* 4000 10000))
   (format t "sleep for 1 sec~%")
+  (pose1)
+  (format t "pose1-av: ~A~%" (send *robot* :angle-vector))
+  (format t "init-av-cp: ~A~%" init-av-cp)
   (unix::sleep 1)
   (experiment-angle-vector-sequence-full (list init-av-cp) (list (car *exp-tm-ms1*)) (list (car *exp-rc1*)) (list (car *exp-zmp-wc1*)) (list (car *exp-optional1*))
                                          :initial-time *initial-time* :final-time 0 :log-fname (concatenate string "/userdir/logs/" *timestamp-str* "init"))
@@ -92,7 +93,7 @@
     (progn (print "Press Enter key when you want to start st.")
            (read-line)))
   (format t "start st ~%")
-  (send *ri* :start-st)
+  ;; (send *ri* :start-st)
   (unless *is-choreonoid*
     (progn (print "Press Enter key when you want to play the motion.")
            (read-line)))
