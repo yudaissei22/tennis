@@ -29,7 +29,7 @@
     (setq *exp-wc1* (make-list seq-num))
     (setq *exp-cog-wc1* (make-list seq-num))
     (make-sequence-in-advance *exp-jpos-deg1* *exp-tm-ms1* *exp-rc1* *exp-zmp-wc1* *exp-optional1* *exp-jpos-rad1* *exp-tm-s1* *exp-pos1* *exp-rpy1* *exp-zmp-rc1* *exp-wc1* *exp-cog-wc1*
-                              :step step :x-max t-max :choreonoid *is-choreonoid* :p nil :lfoot-ik nil :rfoot-ik nil))
+                              :step step :x-max t-max :choreonoid *is-choreonoid* :p nil :zmp-offset #f(0 0 0) :lfoot-ik nil :rfoot-ik nil))
   (setq init-av (car *exp-jpos-deg1*))
   (send *robot* :angle-vector init-av)
   (send *robot* :head :neck-y :joint-angle 0)
@@ -76,7 +76,7 @@
       (send *ri* :set-base-rpy
             (print (coerce (nth 0 (rpy-angle (send (car (send *robot* :links)) :worldrot))) float-vector)) 0)
       )
-  (setq *initial-time* (if *is-choreonoid* 4000 10000))
+  (setq *initial-time* (if *is-choreonoid* 1000 10000))
   (format t "sleep for 1 sec~%")
   (pose1)
   (format t "pose1-av: ~A~%" (send *robot* :angle-vector))

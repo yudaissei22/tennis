@@ -1921,6 +1921,7 @@
 
       (let* (current-zmp-tf current-zmp-with-offset)
         ;; 支持多角形の表示 これはこの上でやってたのとほぼ同じ処理にikが入った/入らないもの
+        ;; (make-support-face :front *sp-front* :back *sp-back* :inside *sp-inside* :outside *sp-outside* :oneleg *sp-oneleg* :contact-flag (nth contact-tm-cnt *contact-flag*))
         (calc-specific-time-force-zmp p-ret x-buf :bspline bspline :tqv-at-specific-time *current-tqv* :zmp-at-specific-time *current-zmp* :force-at-specific-time *current-force* :zmp-moment-at-specific-time *current-zmp-moment* :contact-flag (nth contact-tm-cnt *contact-flag*) :lfoot-ik lfoot-ik :rfoot-ik rfoot-ik :step-time x-step :fix-leg-coords fix-leg-coords)
         (send *support-face* :draw-on :flush t :color #f(0.5 0.5 0) :width 2.5)
 
@@ -2017,8 +2018,7 @@
       (if real-time
           (while (< (send tm :stop) (* x-step show-loop)))
          ;; (unix:usleep 1)
-         (unix::usleep 100000)
-          (print "sleep")
+         (progn (unix::usleep 100000))
         )
 
       (setq x-buf (+ x-buf x-step))

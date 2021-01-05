@@ -8,6 +8,7 @@ import numpy as np
 in_dir = "/userdir/logs/motion-planning"
 # filter_str = ""
 filter_str = "2021-01-04"
+jlist_dof = 11
 
 # Feb-22-16-37-05-2019_forehand_maximize-speed_CCSA_48.0h_M-14_N-5_x-max-1.0_x-hit-0.5_maxvel-1_minjerk-0.0005_delta-1.7e-04_eqthre-1.0e-08_ftol-1.0e-15_xtol-1.0e-10_interval-20_sp-0-0-0-100-50_root-joint_modify-ec
 def parse_dirname(dir_name):
@@ -30,7 +31,7 @@ def parse_dirname(dir_name):
     eqthre_str = dir_name.split('_')[12].split('-')[1]
     ftol_str = dir_name.split('_')[13].split('-')[1]
     xtol_str = dir_name.split('_')[14].split('-')[1]
-    interval_str = dir_name.split('_')[15].split('-')[1]
+    interval_num_str = dir_name.split('_')[15].split('-')[1]
     sp_str = dir_name.split('_')[16].split('-')[1] # 5つあるけど最初のだけ考えている
     return { \
         "motion": motion_str, \
@@ -42,6 +43,7 @@ def parse_dirname(dir_name):
         "x_max": x_max_str, \
         "x_hit": x_hit_str, \
         "dt": dt, \
+        "interval_num": interval_num_str, \
         "sp": sp_str, \
     }
     # root_joint_str
@@ -66,7 +68,7 @@ def parse_logfiles(log_dir):
     with open(in_dir + "/" + log_dir + "/maximize-speed_eq.dat", "r") as f:
         whole_lines = f.readlines()
         eq_lines_num = len(whole_lines)
-        eq_list = [np.zeros(1)]  # dummy
+        eq_list = [np.zeros(7)]  # dummy
         for line in whole_lines:
             eq = np.array([float(i) for i in line.rstrip('\n').split()])
             eq[eq < 0] = 0.0
@@ -115,8 +117,10 @@ for dirname in dirs_sorted:
     "{:<5} " \
     "{:<5} " \
     "{:8.1f} " \
+    "{:8.2f} " \
+    "{:8.2f} " \
     "{:8.1f} " \
-    "{:8.1f} " \
+    "{:3.5f} " \
     "{:9.1f} ".format(\
           attr["motion"], \
           attr["dt"], \
@@ -131,7 +135,9 @@ for dirname in dirs_sorted:
           log["ieq_lines_num"], \
           log["obj_list"][-1], \
           log["eq_list"][-1][0], \
+          log["eq_list"][-1][3], \
           np.linalg.norm(np.array(log["eq_list"][-1])), \
+          np.linalg.norm(log["ieq_list"][-1][((int(attr["id_max"]) - 1) * jlist_dof):((int(attr["id_max"]) - 1) * jlist_dof)+int(attr["interval_num"])+1]), \
           np.linalg.norm(np.array(log["ieq_list"][-1])), \
     )
     print(print_line)
