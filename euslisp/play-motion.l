@@ -93,7 +93,7 @@
     (progn (print "Press Enter key when you want to start st.")
            (read-line)))
   (format t "start st ~%")
-  ;; (send *ri* :start-st)
+  (send *ri* :start-st)
   (unless *is-choreonoid*
     (progn (print "Press Enter key when you want to play the motion.")
            (read-line)))

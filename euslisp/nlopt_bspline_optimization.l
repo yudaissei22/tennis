@@ -66,6 +66,7 @@
      (use-final-pose nil)
      (use-hit-pose t)
      (use-hit-ee nil) ;; bug is included
+     (use-torque-limit t)
      (use-6dof-p nil)
      (default-switching-list nil)
      (support-polygon-margin (list 50 50 0 100 50))
@@ -146,6 +147,7 @@
   (setq *default-switching-list* nil)
   (setq *use-final-pose* use-final-pose)
   (setq *use-hit-pose* use-hit-pose)
+  (setq *use-torque-limit* use-torque-limit)
   (setq *use-hit-ee* use-hit-ee)
   (setq *use-6dof-p* use-6dof-p)
 
@@ -881,7 +883,8 @@
            (v2-4 (if *use-final-pose* (v- x-max-pose *final-pose*) nil))
            (v2-5 x-max-vel)
            (v2-6 x-max-acc)
-           ;; (v2-7 leg-ground-speed)
+           ;; (v2-7 leg-ground-pos)
+           ;; (v2-8 leg-ground-speed)
            )
 
       (setf (aref v2 g-dim-id) (norm2 (map float-vector #'(lambda (x) (deg2rad x)) v2-0) ))  (incf g-dim-id)
@@ -895,7 +898,7 @@
         (setf (aref v2 g-dim-id) (norm2 (map float-vector #'(lambda (x) (deg2rad x)) v2-4) ))  (incf g-dim-id))
 
       (setf (aref v2 g-dim-id) (norm2 (map float-vector #'(lambda (x) (deg2rad x)) v2-5) ))  (incf g-dim-id)
-      (setf (aref v2 g-dim-id) (norm2 (map float-vector #'(lambda (x) (deg2rad x)) v2-6) ))  (incf g-dim-id))
+      (setf (aref v2 g-dim-id) (norm2 (map float-vector #'(lambda (x) (* (deg2rad x) 0.1)) v2-6) ))  (incf g-dim-id))
 
 
     ;; 等式条件側に足の条件を追加
@@ -976,7 +979,7 @@
 
          (mapcar #'(lambda (x) (/ x interval-num)) (my-range-2 0 interval-num)))
         (setq integral-endcoords (* (apply #'+ tmp-endcoords-list) (/ (- *x-max* *x-min*) interval-num)))
-        (setf (aref v2 g-dim-id) (* integral-endcoords 10)) (incf g-dim-id))) ;; 他の等式条件のスケールに適当に合わせる
+        (setf (aref v2 g-dim-id) (* integral-endcoords 50)) (incf g-dim-id))) ;; 他の等式条件のスケールに適当に合わせる
 
 
 
@@ -1166,7 +1169,7 @@
              (push (aref *p-orig* (- (length *p-orig*) 1 i)) switching-tm-list))
 
 
-           (calc-specific-time-force-zmp v1 x-buf :tqv-at-specific-time discretized-tqv :zmp-at-specific-time discretized-zmp :force-at-specific-time discretized-force :zmp-moment-at-specific-time discretized-zmp-moment :contact-flag (nth contact-tm-cnt *contact-flag*) :rfoot-ik nil :lfoot-ik nil :step-time (/ (- *x-max* *x-min*) interval-num))
+           (calc-specific-time-force-zmp v1 x-buf :tqv-at-specific-time discretized-tqv :zmp-at-specific-time discretized-zmp :force-at-specific-time discretized-force :zmp-moment-at-specific-time discretized-zmp-moment :contact-flag (nth contact-tm-cnt *contact-flag*) :rfoot-ik t :lfoot-ik t :step-time (/ (- *x-max* *x-min*) interval-num))
            (make-support-face :front *sp-front* :back *sp-back* :inside *sp-inside* :outside *sp-outside* :oneleg *sp-oneleg* :contact-flag (nth contact-tm-cnt *contact-flag*))
            (send *arrow* :locate discretized-zmp :world)
 
@@ -1334,13 +1337,14 @@
              (incf contact-tm-cnt))
 
            ;; トルク制限
-           (let ((rjid 0))
-             (mapc
-               #'(lambda (jvl bs)
-                   (setq h-dim-id (round (+ id (* (+ 3 (length *collision-pair*) rjid) (+ interval-num 1)))))
-                   (setf (aref v2 h-dim-id) (- (abs (elt discretized-tqv (position jvl *jlist*))) (send jvl :max-joint-torque)))
-                   (setq rjid (+ rjid 1)))
-               *jvel-list* *bspline*))
+           (when *use-torque-limit*
+             (let ((rjid 0))
+               (mapc
+                 #'(lambda (jvl bs)
+                     (setq h-dim-id (round (+ id (* (+ 3 (length *collision-pair*) rjid) (+ interval-num 1)))))
+                     (setf (aref v2 h-dim-id) (- (abs (elt discretized-tqv (position jvl *jlist*))) (send jvl :max-joint-torque)))
+                     (setq rjid (+ rjid 1)))
+                 *jvel-list* *bspline*)))
            (incf id)))
 
 
@@ -1742,7 +1746,7 @@
           :inequality-function (read-from-string "motion-h")
           :inequality-function-gradient (read-from-string "motion-dh")
           :equality-dimension (+ 6 (- (/ (length *contact-flag*) 2) 1) (if *use-hit-pose* 1 0) (if *use-hit-ee* 1 0) (if *use-final-pose* 1 0))
-          :inequality-dimension (round (+ (* (- id-max 1) (length jvel-list)) (* (+ interval-num 1) (+ 3 (length *collision-pair*) (length jvel-list))) (- (length *contact-flag*) 2))) ;; (* (- id-max 1) (length jvel-list) 2)
+          :inequality-dimension (round (+ (* (- id-max 1) (length jvel-list)) (* (+ interval-num 1) (+ 3 (length *collision-pair*) (if *use-torque-limit* (length jvel-list) 0))) (- (length *contact-flag*) 2))) ;; (* (- id-max 1) (length jvel-list) 2)
           :alg alg ;; SLSQP ;; COBYLA ;; DIRECT
           :max-time max-time ;;(* 10 60 60)
           :max-eval max-eval ;; 10000
@@ -1769,7 +1773,7 @@
        :inequality-function (read-from-string "motion-h")
        :inequality-function-gradient (read-from-string "motion-dh")
        :equality-dimension (+ 5 (- (/ (length *contact-flag*) 2) 1) (if *use-hit-pose* 1 0) (if *use-hit-ee* 1 0) (if *use-final-pose* 1 0))
-       :inequality-dimension (round (+ (* (- id-max 1) (length jvel-list)) (* (+ interval-num 1) (+ 3 (length jvel-list) (length *collision-pair*))) (- (length *contact-flag*) 2)))
+       :inequality-dimension (round (+ (* (- id-max 1) (length jvel-list)) (* (+ interval-num 1) (+ 3 (if *use-torque-limit* (length jvel-list) 0) (length *collision-pair*))) (- (length *contact-flag*) 2)))
        :alg alg ;; SLSQP ;; COBYLA ;; DIRECT
        :max-time max-time ;;(* 10 60 60)
        :max-eval max-eval ;; 10000

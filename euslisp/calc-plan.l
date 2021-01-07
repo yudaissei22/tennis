@@ -7,7 +7,7 @@
 (require "package://tennis/euslisp/experiment_utils.l")
 (require "package://tennis/euslisp/global-variables.l")
 
-(nlopt-init :x-max 2.0 :x-hit 1.0 :id-max 14 :recursive-order 5 :use-all-joint t :use-append-root-joint t :interval-num 20 :support-polygon-margin (list 50.0 50.0 0 100 50) :epsilon-c 30 :mu 0.3 :use-final-pose nil :default-switching-list nil :use-6dof-p t)
+(nlopt-init :x-max 2.0 :x-hit 1.4 :id-max 14 :recursive-order 5 :use-all-joint t :use-append-root-joint t :interval-num 20 :support-polygon-margin (list 20.0 20.0 0 100 20) :epsilon-c 30 :mu 0.3 :use-final-pose nil :default-switching-list nil :use-6dof-p t)
 (validate-p-orig-and-bspline-dim)
 (send *robot* :move-to (make-coords) :world)
 (let* ((t-max *x-max-of-p-orig*) (step 0.1)(seq-num (round (+ 1 (/ t-max step)))))
