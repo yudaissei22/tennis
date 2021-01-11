@@ -2,7 +2,7 @@
 import subprocess
 import os
 
-dry_run = True
+dry_run = False
 use_p_orig = False
 
 """
@@ -52,8 +52,8 @@ output_dir = "/userdir/logs/motion-planning"
 os.makedirs(output_dir, exist_ok=True)
 # use config/p-orig.l or not
 
-x_max = "1.4"
-x_hit = "1.0"
+x_max = "1.6"
+x_hit = "1.2"
 maxvel_weight = "-1e-3"
 unit_matrix_weight = "1e-4"
 minjerk_weight = "1e0"
@@ -63,8 +63,8 @@ recursive_order = "5"
 use_margin = "30"
 use_all_joint = "t"
 use_append_root_joint = "t"
-x_takeoff = "0.4"
-x_land = "0.8"
+x_takeoff = "0.6"
+x_land = "1.0"
 interval_num = "20"
 
 
