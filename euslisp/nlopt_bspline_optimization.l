@@ -889,7 +889,7 @@
 
       (setf (aref v2 g-dim-id) (norm2 (map float-vector #'(lambda (x) (deg2rad x)) v2-0) ))  (incf g-dim-id)
       (setf (aref v2 g-dim-id) (norm2 (map float-vector #'(lambda (x) (deg2rad x)) v2-1) ))  (incf g-dim-id)
-      (setf (aref v2 g-dim-id) (norm2 (map float-vector #'(lambda (x) (deg2rad x)) v2-2) ))  (incf g-dim-id)
+      (setf (aref v2 g-dim-id) (norm2 (map float-vector #'(lambda (x) (* (deg2rad x) 0.01)) v2-2) ))  (incf g-dim-id) ;; スケールに合わせた適当な重み
       (when *use-hit-pose*
         (setf (aref v2 g-dim-id) (norm2 (map float-vector #'(lambda (x) (deg2rad x)) v2-3) ))  (incf g-dim-id))
       (when *use-hit-ee*
@@ -898,7 +898,8 @@
         (setf (aref v2 g-dim-id) (norm2 (map float-vector #'(lambda (x) (deg2rad x)) v2-4) ))  (incf g-dim-id))
 
       (setf (aref v2 g-dim-id) (norm2 (map float-vector #'(lambda (x) (deg2rad x)) v2-5) ))  (incf g-dim-id)
-      (setf (aref v2 g-dim-id) (norm2 (map float-vector #'(lambda (x) (* (deg2rad x) 0.1)) v2-6) ))  (incf g-dim-id))
+      (setf (aref v2 g-dim-id) (norm2 (map float-vector #'(lambda (x) (* (deg2rad x) 0.01)) v2-6) ))  (incf g-dim-id) ;; スケールに合わせた適当な重み
+      )
 
 
     ;; 等式条件側に足の条件を追加

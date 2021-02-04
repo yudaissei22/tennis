@@ -7,10 +7,12 @@
 (require "package://tennis/euslisp/experiment_utils.l")
 (require "package://tennis/euslisp/global-variables.l")
 
-(nlopt-init :x-max 2.0 :x-hit 1.4 :id-max 14 :recursive-order 5 :use-all-joint t :use-append-root-joint t :interval-num 20 :support-polygon-margin (list 20.0 20.0 0 100 20) :epsilon-c 30 :mu 0.3 :use-final-pose nil :default-switching-list nil :use-6dof-p t)
+(setq *id-max* 14)
+(setq *recursive-order* 5)
+(nlopt-init :x-max 2.0 :x-hit 1.4 :id-max *id-max* :recursive-order *recursive-order* :use-all-joint t :use-append-root-joint t :interval-num 20 :support-polygon-margin (list 40.0 40.0 0 40 40) :epsilon-c 30 :mu 0.3 :use-final-pose nil :default-switching-list nil :use-6dof-p t)
 (validate-p-orig-and-bspline-dim)
 (send *robot* :move-to (make-coords) :world)
-(let* ((t-max *x-max-of-p-orig*) (step 0.1)(seq-num (round (+ 1 (/ t-max step)))))
+(let* ((t-max *x-max-of-p-orig*) (step 0.05)(seq-num (round (+ 1 (/ t-max step)))))
     (setq *exp-jpos-deg1* (make-list seq-num))
     (setq *exp-tm-ms1* (make-list seq-num))
     (setq *exp-rc1* (make-list seq-num))
@@ -24,7 +26,11 @@
     (setq *exp-wc1* (make-list seq-num))
     (setq *exp-cog-wc1* (make-list seq-num))
     (make-sequence-in-advance *exp-jpos-deg1* *exp-tm-ms1* *exp-rc1* *exp-zmp-wc1* *exp-optional1* *exp-jpos-rad1* *exp-tm-s1* *exp-pos1* *exp-rpy1* *exp-zmp-rc1* *exp-wc1* *exp-cog-wc1*
-                              :step step :x-max t-max :choreonoid *is-choreonoid* :p *p* :lfoot-ik nil :rfoot-ik nil))
+                              :step step :x-max t-max :choreonoid *is-choreonoid* :p *p* :lfoot-ik t :rfoot-ik t))
+(format t "[Warn] exp zmp is overwritten~%")
+(dotimes (i (length *exp-zmp-wc1*))
+  (setf (nth i *exp-zmp-wc1*) (send *rfoot* :worldpos))
+  )
 
 (setq *joint-indices-rarm* (list 17 18 19 20 21 22 23 24))
 (setq *joint-names-rarm* (list "collar-y" "shoulder-p" "shoulder-r" "shoulder-y" "elbow-p" "wrist-y" "wrist-r" "wrist-p"))
@@ -103,6 +109,7 @@
     (push jvv-list *bspline-jvv-list-reordered*)))
 (nreverse *bspline-jvv-list-reordered*)
 
+(graph-view (list (mapcar #'(lambda (i) (elt i 1)) *exp-zmp-wc1*)) (mapcar #'(lambda (i) (elt i 0)) *exp-zmp-wc1*) :title "zmp" :keylist (list "x" "y") :dump-graph t)
 (graph-view *bspline-av-list-reordered* *bspline-tm-list* :title "angle-vector" :keylist *joint-names* :dump-graph t)
 (graph-view *bspline-hp-list-reordered* *bspline-tm-list* :title "hit-point" :dump-graph t)
 (graph-view *bspline-hp-vel-norm-list-reordered* *bspline-tm-list* :title "hit-point-vel-norm" :dump-graph t)
