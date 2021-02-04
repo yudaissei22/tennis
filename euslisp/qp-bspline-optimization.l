@@ -305,7 +305,7 @@
 
   (if (null ret) (setq ret initial-state))
   (format t "   --- ~A x ~A = ~A variables~%" id-max (length initial-pose) (length initial-state))
-  (let* ((retl (list (cons :gain ret))) (x-buf x-min) p dp ddp (id) tau) ;; (cons :gain ret) ==> (:gain . ret)
+  (let* ((retl (list (cons :gain ret))) (x-buf x-min) (out-img-id 0) p dp ddp (id) tau) ;; (cons :gain ret) ==> (:gain . ret)
     (setq x-buf x-min)
     (while (<= x-buf x-max)
       (setq id 0)
@@ -336,6 +336,8 @@
       ;; (send robot :fix-leg-to-coords *lfoot* :lleg)
       (setq x-buf (+ x-buf x-step))
       (send *irtviewer* :draw-objects)
+      (send *viewer* :viewsurface :write-to-image-file (format nil "/userdir/logs/qp-init-~d.jpg" out-img-id))
+      (setq out-img-id (+ out-img-id 1)) ;; (incf out-img-id) is also ok
       (x::window-main-one)
       (unix:usleep (round (* 0.01 1000 1000))))
     (push (cons :p (reverse p)) retl)
