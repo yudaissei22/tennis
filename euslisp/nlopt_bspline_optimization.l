@@ -187,7 +187,7 @@
 
     (format t "************* forehand **************~%")
     (format t "(nlopt-init :x-max 2.4 :x-hit nil :id-max 14 :recursive-order 5 :use-all-joint t :use-append-root-joint t :interval-num 20 :support-polygon-margin (list 50 50 0 100 50) :epsilon-c 30 :mu 0.3 :use-final-pose nil :default-switching-list nil :use-6dof-p t)~%~%")
-    (format t "(nlopt-motion-optimize :x-max ~a :x-hit ~a :id-max ~a :recursive-order ~a :max-eval 100000000 :alg SLSQP :delta (deg2rad 0.01) :eqthre 1e-8 :xtol 1e-10 :ftol 1e-15 :use-all-joint t :use-margin 0.5 :use-append-root-joint t :maxvel-weight 1 :minjerk-weight 5e-3 :modify-ec t :p *p* :interval-num ~a :title \"maximize-speed\" :max-time (* 2 24 60 60) :file-path \"/userdir/logs\")~%~%~%"
+    (format t "(nlopt-motion-optimize :x-max ~a :x-hit ~a :id-max ~a :recursive-order ~a :max-eval 100000000 :alg SLSQP :delta (deg2rad 0.01) :eqthre 1e-8 :xtol 1e-10 :ftol 1e-15 :use-all-joint t :use-margin 0.5 :use-append-root-joint t :maxvel-weight 1 :minjerk-weight 5e-3 :modify-ec t :p *p* :interval-num ~a :title \"maximize-speed\" :max-time (* 2 24 60 60) :file-path \"/tmp\")~%~%~%"
             *x-max* *default-x-hit* *id-max* *recursive-order* *interval-num*))
 
 
@@ -215,7 +215,7 @@
 
     (format t "*************** punch ***************~%")
     (format t "(nlopt-init :x-max 2.0 :x-hit nil :id-max 14 :recursive-order 5 :use-all-joint t :use-append-root-joint t :interval-num 20 :support-polygon-margin (list 50 50 0 100 50) :epsilon-c 30 :mu 0.3 :use-final-pose nil :default-switching-list nil :use-6dof-p t)~%~%")
-    (format t "(nlopt-motion-optimize :x-max ~a :x-hit ~a :id-max ~a :recursive-order ~a :max-eval 100000000 :alg SLSQP :delta (deg2rad 0.01) :eqthre 1e-8 :xtol 1e-10 :ftol 1e-15 :use-all-joint t :use-margin 0.5 :use-append-root-joint t :maxvel-weight 1 :minjerk-weight 5e-3 :modify-ec nil :p *p* :interval-num ~a :title \"maximize-speed\" :max-time (* 2 24 60 60) :file-path \"/userdir/logs\")~%~%~%"
+    (format t "(nlopt-motion-optimize :x-max ~a :x-hit ~a :id-max ~a :recursive-order ~a :max-eval 100000000 :alg SLSQP :delta (deg2rad 0.01) :eqthre 1e-8 :xtol 1e-10 :ftol 1e-15 :use-all-joint t :use-margin 0.5 :use-append-root-joint t :maxvel-weight 1 :minjerk-weight 5e-3 :modify-ec nil :p *p* :interval-num ~a :title \"maximize-speed\" :max-time (* 2 24 60 60) :file-path \"/tmp\")~%~%~%"
             *x-max* *default-x-hit* *id-max* *recursive-order* *interval-num*))
 
 
@@ -245,7 +245,7 @@
 
     (format t "*************** kick ****************~%")
     (format t "(nlopt-init :x-max 2.0 :x-hit nil :id-max 14 :recursive-order 5 :use-all-joint t :use-append-root-joint t :interval-num 20 :support-polygon-margin (list 50 50 0 100 50) :epsilon-c 30 :mu 0.3 :use-final-pose nil :default-switching-list nil :use-6dof-p t)~%~%")
-    (format t "(nlopt-motion-optimize :x-max ~a :x-hit ~a :id-max ~a :recursive-order ~a :max-eval 100000000 :alg SLSQP :delta (deg2rad 0.01) :eqthre 1e-8 :xtol 1e-10 :ftol 1e-15 :use-all-joint t :use-margin 0.5 :use-append-root-joint t :maxvel-weight 1 :minjerk-weight 5e-3 :modify-ec nil :p *p* :interval-num ~a :title \"maximize-speed\" :max-time (* 2 24 60 60) :file-path \"/userdir/logs\")~%~%~%"
+    (format t "(nlopt-motion-optimize :x-max ~a :x-hit ~a :id-max ~a :recursive-order ~a :max-eval 100000000 :alg SLSQP :delta (deg2rad 0.01) :eqthre 1e-8 :xtol 1e-10 :ftol 1e-15 :use-all-joint t :use-margin 0.5 :use-append-root-joint t :maxvel-weight 1 :minjerk-weight 5e-3 :modify-ec nil :p *p* :interval-num ~a :title \"maximize-speed\" :max-time (* 2 24 60 60) :file-path \"/tmp\")~%~%~%"
             *x-max* *default-x-hit* *id-max* *recursive-order* *interval-num*))
 
 
@@ -275,7 +275,7 @@
 
     (format t "*************** smash ***************~%")
     (format t "(nlopt-init :x-max 2.4 :x-hit nil :id-max 14 :recursive-order 5 :use-all-joint t :use-append-root-joint t :interval-num 20 :support-polygon-margin (list 50 50 0 100 50) :epsilon-c 30 :mu 0.3 :use-final-pose nil :default-switching-list nil :use-6dof-p t)~%~%")
-    (format t "(nlopt-motion-optimize :x-max ~a :x-hit ~a :id-max ~a :recursive-order ~a :max-eval 100000000 :alg SLSQP :delta (deg2rad 0.01) :eqthre 1e-8 :xtol 1e-10 :ftol 1e-15 :use-all-joint t :use-margin 0.5 :use-append-root-joint t :maxvel-weight 1 :minjerk-weight 5e-3 :modify-ec t :p *p* :interval-num ~a :title \"maximize-speed\" :max-time (* 2 24 60 60) :file-path \"/userdir/logs\")~%~%"
+    (format t "(nlopt-motion-optimize :x-max ~a :x-hit ~a :id-max ~a :recursive-order ~a :max-eval 100000000 :alg SLSQP :delta (deg2rad 0.01) :eqthre 1e-8 :xtol 1e-10 :ftol 1e-15 :use-all-joint t :use-margin 0.5 :use-append-root-joint t :maxvel-weight 1 :minjerk-weight 5e-3 :modify-ec t :p *p* :interval-num ~a :title \"maximize-speed\" :max-time (* 2 24 60 60) :file-path \"/tmp\")~%~%"
             *x-max* *default-x-hit* *id-max* *recursive-order* *interval-num*))
 
 
@@ -305,7 +305,7 @@
 
     (format t "************** batting **************~%")
     (format t "(nlopt-init :x-max 1.9 :x-hit nil :id-max 14 :recursive-order 5 :use-all-joint t :use-append-root-joint t :interval-num 20 :support-polygon-margin (list 50 50 0 100 50) :epsilon-c 30 :mu 0.3 :use-final-pose nil :default-switching-list nil :use-6dof-p t)~%~%")
-    (format t "(nlopt-motion-optimize :x-max ~a :x-hit ~a :id-max ~a :recursive-order ~a :max-eval 100000000 :alg SLSQP :delta (deg2rad 0.01) :eqthre 1e-8 :xtol 1e-10 :ftol 1e-15 :use-all-joint t :use-margin 0.5 :use-append-root-joint t :maxvel-weight 1 :minjerk-weight 5e-3 :modify-ec t :p *p* :interval-num ~a :title \"maximize-speed\" :max-time (* 2 24 60 60) :file-path \"/userdir/logs\")~%~%"
+    (format t "(nlopt-motion-optimize :x-max ~a :x-hit ~a :id-max ~a :recursive-order ~a :max-eval 100000000 :alg SLSQP :delta (deg2rad 0.01) :eqthre 1e-8 :xtol 1e-10 :ftol 1e-15 :use-all-joint t :use-margin 0.5 :use-append-root-joint t :maxvel-weight 1 :minjerk-weight 5e-3 :modify-ec t :p *p* :interval-num ~a :title \"maximize-speed\" :max-time (* 2 24 60 60) :file-path \"/tmp\")~%~%"
             *x-max* *default-x-hit* *id-max* *recursive-order* *interval-num*))
 
 
@@ -339,7 +339,7 @@
 
     (format t "*********** forehand-step ***********~%")
     (format t "(nlopt-init :x-max 3.0 :x-hit nil :id-max 16 :recursive-order 5 :use-all-joint t :use-append-root-joint t :interval-num 20 :support-polygon-margin (list 50 50 0 100 50) :epsilon-c 30 :mu 0.3 :use-final-pose nil :default-switching-list nil :use-6dof-p t)~%~%")
-    (format t "(nlopt-motion-optimize :x-max ~a :x-hit ~a :id-max ~a :recursive-order ~a :max-eval 100000000 :alg SLSQP :delta (deg2rad 0.01) :eqthre 1e-8 :xtol 1e-10 :ftol 1e-15 :use-all-joint t :use-margin 0.5 :use-append-root-joint t :maxvel-weight 1 :minjerk-weight 5e-3 :modify-ec t :p *p* :interval-num ~a :title \"maximize-speed\" :max-time (* 2 24 60 60) :file-path \"/userdir/logs\")~%~%~%"
+    (format t "(nlopt-motion-optimize :x-max ~a :x-hit ~a :id-max ~a :recursive-order ~a :max-eval 100000000 :alg SLSQP :delta (deg2rad 0.01) :eqthre 1e-8 :xtol 1e-10 :ftol 1e-15 :use-all-joint t :use-margin 0.5 :use-append-root-joint t :maxvel-weight 1 :minjerk-weight 5e-3 :modify-ec t :p *p* :interval-num ~a :title \"maximize-speed\" :max-time (* 2 24 60 60) :file-path \"/tmp\")~%~%~%"
             *x-max* *default-x-hit* *id-max* *recursive-order* *interval-num*))
 
    ((equal motion-choice "forehand-volley-step")
@@ -373,7 +373,7 @@
 
     (format t "*********** forehand-volley-step ***********~%")
     (format t "(nlopt-init :x-max 1.4 :x-hit nil :id-max 10 :recursive-order 5 :use-all-joint t :use-append-root-joint t :interval-num 20 :support-polygon-margin (list 50 50 0 100 50) :epsilon-c 30 :mu 0.3 :use-final-pose nil :default-switching-list nil :use-6dof-p t)~%~%")
-    (format t "(nlopt-motion-optimize :x-max ~a :x-hit ~a :id-max ~a :recursive-order ~a :max-eval 100000000 :alg SLSQP :delta (deg2rad 0.01) :eqthre 1e-8 :xtol 1e-10 :ftol 1e-15 :use-all-joint t :use-margin 0.5 :use-append-root-joint t :maxvel-weight 1 :minjerk-weight 5e-3 :modify-ec t :p *p* :interval-num ~a :title \"maximize-speed\" :max-time (* 2 24 60 60) :file-path \"/userdir/logs\")~%~%~%"
+    (format t "(nlopt-motion-optimize :x-max ~a :x-hit ~a :id-max ~a :recursive-order ~a :max-eval 100000000 :alg SLSQP :delta (deg2rad 0.01) :eqthre 1e-8 :xtol 1e-10 :ftol 1e-15 :use-all-joint t :use-margin 0.5 :use-append-root-joint t :maxvel-weight 1 :minjerk-weight 5e-3 :modify-ec t :p *p* :interval-num ~a :title \"maximize-speed\" :max-time (* 2 24 60 60) :file-path \"/tmp\")~%~%~%"
             *x-max* *default-x-hit* *id-max* *recursive-order* *interval-num*))
 
    ((equal motion-choice "backhand-volley-step")
@@ -407,7 +407,7 @@
 
     (format t "*********** backhand-volley-step ***********~%")
     (format t "(nlopt-init :x-max 1.4 :x-hit nil :id-max 10 :recursive-order 5 :use-all-joint t :use-append-root-joint t :interval-num 20 :support-polygon-margin (list 50 50 0 100 50) :epsilon-c 30 :mu 0.3 :use-final-pose nil :default-switching-list nil :use-6dof-p t)~%~%")
-    (format t "(nlopt-motion-optimize :x-max ~a :x-hit ~a :id-max ~a :recursive-order ~a :max-eval 100000000 :alg SLSQP :delta (deg2rad 0.01) :eqthre 1e-8 :xtol 1e-10 :ftol 1e-15 :use-all-joint t :use-margin 0.5 :use-append-root-joint t :maxvel-weight 1 :minjerk-weight 5e-3 :modify-ec t :p *p* :interval-num ~a :title \"maximize-speed\" :max-time (* 2 24 60 60) :file-path \"/userdir/logs\")~%~%~%"
+    (format t "(nlopt-motion-optimize :x-max ~a :x-hit ~a :id-max ~a :recursive-order ~a :max-eval 100000000 :alg SLSQP :delta (deg2rad 0.01) :eqthre 1e-8 :xtol 1e-10 :ftol 1e-15 :use-all-joint t :use-margin 0.5 :use-append-root-joint t :maxvel-weight 1 :minjerk-weight 5e-3 :modify-ec t :p *p* :interval-num ~a :title \"maximize-speed\" :max-time (* 2 24 60 60) :file-path \"/tmp\")~%~%~%"
             *x-max* *default-x-hit* *id-max* *recursive-order* *interval-num*))
    ((equal motion-choice "kick-step")
     (setq *x-hit-id* 2)
@@ -436,7 +436,7 @@
 
     (format t "************* kick-step ************~%")
     (format t "(nlopt-init :x-max 2.6 :x-hit nil :id-max 14 :recursive-order 5 :use-all-joint t :use-append-root-joint t :interval-num 20 :support-polygon-margin (list 50 50 0 100 50) :epsilon-c 30 :mu 0.3 :use-final-pose nil :default-switching-list nil :use-6dof-p t)~%~%")
-    (format t "(nlopt-motion-optimize :x-max ~a :x-hit ~a :id-max ~a :recursive-order ~a :max-eval 100000000 :alg SLSQP :delta (deg2rad 0.01) :eqthre 1e-8 :xtol 1e-10 :ftol 1e-15 :use-all-joint t :use-margin 0.5 :use-append-root-joint t :maxvel-weight 1 :minjerk-weight 5e-3 :modify-ec nil :p *p* :interval-num ~a :title \"maximize-speed\" :max-time (* 2 24 60 60) :file-path \"/userdir/logs\")~%~%~%"
+    (format t "(nlopt-motion-optimize :x-max ~a :x-hit ~a :id-max ~a :recursive-order ~a :max-eval 100000000 :alg SLSQP :delta (deg2rad 0.01) :eqthre 1e-8 :xtol 1e-10 :ftol 1e-15 :use-all-joint t :use-margin 0.5 :use-append-root-joint t :maxvel-weight 1 :minjerk-weight 5e-3 :modify-ec nil :p *p* :interval-num ~a :title \"maximize-speed\" :max-time (* 2 24 60 60) :file-path \"/tmp\")~%~%~%"
             *x-max* *default-x-hit* *id-max* *recursive-order* *interval-num*))
 
 
@@ -468,7 +468,7 @@
 
     (format t "************ batting-step ***********~%")
     (format t "(nlopt-init :x-max 2.2 :x-hit nil :id-max 14 :recursive-order 5 :use-all-joint t :use-append-root-joint t :support-polygon-margin (list 50 50 0 100 50) :epsilon-c 30 :mu 0.3 :use-final-pose nil :default-switching-list nil :use-6dof-p t)~%~%")
-    (format t "(nlopt-motion-optimize :x-max ~a :x-hit ~a :id-max ~a :recursive-order ~a :max-eval 100000000 :alg SLSQP :delta (deg2rad 0.01) :eqthre 1e-8 :xtol 1e-10 :ftol 1e-15 :use-all-joint t :use-margin 0.5 :use-append-root-joint t :maxvel-weight 1 :minjerk-weight 5e-3 :modify-ec t :p *p* :interval-num ~a :title \"maximize-speed\" :max-time (* 2 24 60 60) :file-path \"/userdir/logs\")~%~%~%"
+    (format t "(nlopt-motion-optimize :x-max ~a :x-hit ~a :id-max ~a :recursive-order ~a :max-eval 100000000 :alg SLSQP :delta (deg2rad 0.01) :eqthre 1e-8 :xtol 1e-10 :ftol 1e-15 :use-all-joint t :use-margin 0.5 :use-append-root-joint t :maxvel-weight 1 :minjerk-weight 5e-3 :modify-ec t :p *p* :interval-num ~a :title \"maximize-speed\" :max-time (* 2 24 60 60) :file-path \"/tmp\")~%~%~%"
             *x-max* *default-x-hit* *id-max* *recursive-order* *interval-num*)))
 
 
@@ -1396,7 +1396,7 @@
      (dry-run nil) ;; global variables such as *initial-pose* can only be created by dry-run
      ;; q_k(t)=\bm{p}_k^{T} \bm{b}(t)
      ;; B-splineの重みベクトル\bm{p}=[\bm{p}_1 ... \bm{p}_K]（ (*id-max (length bspline))個の要素を持つベクトル）
-     (file-path "/userdir/logs")
+     (file-path "/tmp")
      (title "nlopt-maximize-velocity")
      (alg SLSQP)
      (max-time (* 10 60 60))
@@ -1711,27 +1711,27 @@
          (when dry-run
            (setq v2_ (instantiate float-vector 10000))
            (funcall (read-from-string "motion-f") p v2_)
-           (with-open-file (f "/userdir/logs/dry_run_obj.dat" :direction :output :if-exists :new-version)
+           (with-open-file (f "/tmp/dry_run_obj.dat" :direction :output :if-exists :new-version)
                            (format f "~A~%" (coerce (set-difference (coerce v2_ cons) (list 0.0)) float-vector)))
            (setq v2_ (instantiate float-vector 10000))
            (funcall (read-from-string "motion-df") p v2_)
-           (with-open-file (f "/userdir/logs/dry_run_dobj.dat" :direction :output :if-exists :new-version)
+           (with-open-file (f "/tmp/dry_run_dobj.dat" :direction :output :if-exists :new-version)
                            (format f "~A~%" (coerce (set-difference (coerce v2_ cons) (list 0.0)) float-vector)))
            (setq v2_ (instantiate float-vector 10000))
            (funcall (read-from-string "motion-g") p v2_)
-           (with-open-file (f "/userdir/logs/dry_run_eq.dat" :direction :output :if-exists :new-version)
+           (with-open-file (f "/tmp/dry_run_eq.dat" :direction :output :if-exists :new-version)
                            (format f "~A~%" (coerce (set-difference (coerce v2_ cons) (list 0.0)) float-vector)))
            (setq v2_ (instantiate float-vector 10000))
            (funcall (read-from-string "motion-dg") p v2_)
-           (with-open-file (f "/userdir/logs/dry_run_deq.dat" :direction :output :if-exists :new-version)
+           (with-open-file (f "/tmp/dry_run_deq.dat" :direction :output :if-exists :new-version)
                            (format f "~A~%" (coerce (set-difference (coerce v2_ cons) (list 0.0)) float-vector)))
            (setq v2_ (instantiate float-vector 10000))
            (funcall (read-from-string "motion-h") p v2_)
-           (with-open-file (f "/userdir/logs/dry_run_ieq.dat" :direction :output :if-exists :new-version)
+           (with-open-file (f "/tmp/dry_run_ieq.dat" :direction :output :if-exists :new-version)
                            (format f "~A~%" (coerce (set-difference (coerce v2_ cons) (list 0.0)) float-vector)))
            ;; (setq v2_ (instantiate float-vector 1000000))
            ;; (funcall (read-from-string "motion-dh") p v2_)
-           ;; (with-open-file (f "/userdir/logs/dry_run_dieq.dat" :direction :output :if-exists :new-version)
+           ;; (with-open-file (f "/tmp/dry_run_dieq.dat" :direction :output :if-exists :new-version)
            ;;                 (format f "~A~%" (coerce (set-difference (coerce v2_ cons) (list 0.0)) float-vector)))
            )
          (when (not dry-run)
@@ -1799,7 +1799,7 @@
      (robot *robot*)
      (interval-num (if (boundp '*interval-num*) (round *interval-num*) 20))
      (x-max *x-max*)
-     (make-loadpattern nil) ;; "/userdir/logs/motion"
+     (make-loadpattern nil) ;; "/tmp/motion"
      (make-sequence nil)
      (choreonoid nil)
      (specific-time nil)
@@ -2016,7 +2016,7 @@
       (push (send (send robot *limb* :end-coords) :copy-worldcoords) *bspline-ec-list*)
       (push (send *hit-point* :copy-worldcoords) *bspline-hp-list*)
       (send *irtviewer* :draw-objects)
-      (send *viewer* :viewsurface :write-to-image-file (format nil "/userdir/logs/~A.jpg" image-idx))
+      (send *viewer* :viewsurface :write-to-image-file (format nil "/tmp/~A.jpg" image-idx))
       (incf image-idx)
       (x::window-main-one)
 
@@ -2329,7 +2329,7 @@
 
 
 #|
-(nlopt-motion-optimize :x-max 2.6 :x-hit 1.7 :id-max 14 :recursive-order 5 :max-eval 100000000 :max-time (* 24 60 60) :alg SLSQP :delta 1e-6 :eqthre 1e-2 :xtol 1e-10 :ftol 1e-10 :file-name "/userdir/logs/2016*_nlopt_SLSQP_*_M-*_N-*_delta-*_eqthre-1e-*_xtol-1e-*_ftol-1e-*_1day" :use-all-joint t :use-margin 0.5 :use-append-root-joint t)
+(nlopt-motion-optimize :x-max 2.6 :x-hit 1.7 :id-max 14 :recursive-order 5 :max-eval 100000000 :max-time (* 24 60 60) :alg SLSQP :delta 1e-6 :eqthre 1e-2 :xtol 1e-10 :ftol 1e-10 :file-name "/tmp/2016*_nlopt_SLSQP_*_M-*_N-*_delta-*_eqthre-1e-*_xtol-1e-*_ftol-1e-*_1day" :use-all-joint t :use-margin 0.5 :use-append-root-joint t)
 
 (show-jvel :limb *limb*)
 
