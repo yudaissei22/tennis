@@ -24,7 +24,7 @@ $ (load "nlopt_bspline_optimization.so")
 ```
 3. loadしたらコメントとして表示される例をもとに関数nlopt-initを実行する．
 ```
-$ (nlopt-init :x-max 2.4 :x-hit nil :id-max 14 :recursive-order 5 :use-all-joint t :use-append-root-joint t :support-polygon-margin (list 50 50 0 100 50) :epsilon-c 30 :mu 0.3 :use-final-pose nil :default-switching-list nil :use-6dof-p t)
+(nlopt-init :x-max 2.4 :x-hit nil :id-max 14 :recursive-order 5 :use-all-joint t :use-append-root-joint t :support-polygon-margin (list 50 50 0 100 50) :epsilon-c 30 :mu 0.3 :use-final-pose nil :default-switching-list nil :use-6dof-p t)
 ```
 記号は2016年度卒のterasawaの修論を参照
 * x-max: 動作全体の時間(終端時刻)t_f [s]
@@ -65,7 +65,7 @@ $ (nlopt-init :x-max 2.4 :x-hit nil :id-max 14 :recursive-order 5 :use-all-joint
 
 5.最適化計算の結果をeusのirtviewerで確認する場合は関数show-optimized-motionを用いる．
 * nlopt_bspline_optimization.lの一番最後のコメントにある４つのshow-optimized-motionのどれかをコメントインして実行するとよい．
-```
+
 ;; 通しでみたい場合は４つのうち一番最初のコメントを外す
 
 * もとのversionのだが、エラーが出てくる。
@@ -81,6 +81,7 @@ $ (nlopt-init :x-max 2.4 :x-hit nil :id-max 14 :recursive-order 5 :use-all-joint
    ;;(show-optimized-motion *p* :x-step 0.01 :x-max *x-max-of-p-orig* :real-time nil :make-sequence t :zmp-offset #f(0 0 0) :choreonoid t)                                 
    ))
 
+```
 * こっちだと再生できる。
 ```
 (progn  ;; このブロックはnlopt_bspline_optimization.lの一番下のコメント部分にある(progn〜と一緒で，ここでは 4つの;;(show-optimized-motion 〜)については一番下をコメントインしたものと同じです）
