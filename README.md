@@ -69,6 +69,7 @@ $ (nlopt-init :x-max 2.4 :x-hit nil :id-max 14 :recursive-order 5 :use-all-joint
 ;; 通しでみたい場合は４つのうち一番最初のコメントを外す
 
 * もとのversionのだが、エラーが出てくる。
+```
 (progn
   (send *robot* :move-to (make-coords) :world)
   (with-append-root-joint
@@ -81,6 +82,7 @@ $ (nlopt-init :x-max 2.4 :x-hit nil :id-max 14 :recursive-order 5 :use-all-joint
    ))
 
 * こっちだと再生できる。
+```
 (progn  ;; このブロックはnlopt_bspline_optimization.lの一番下のコメント部分にある(progn〜と一緒で，ここでは 4つの;;(show-optimized-motion 〜)については一番下をコメントインしたものと同じです）
   (send *robot* :move-to (make-coords) :world)
   (with-append-root-joint
