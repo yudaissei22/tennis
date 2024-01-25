@@ -1,0 +1,6 @@
+(setq i 0)
+
+
+(dotimes (id 5)
+  (format nil "/yuda/home/~A.l" id)
+  )
