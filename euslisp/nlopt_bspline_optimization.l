@@ -635,11 +635,20 @@
                (setq jid (+ jid 1)))
 
            (subseq *bspline* (+ (length *jlist*) 3) (+ (length *jlist*) 6)))
-           )))
+	  ))
+
+      ) ;;躍度最小化のwhenの締め
 
     ;; hitting-poseにおける速度の最大化
     (when (not (= *maxvel-weight* 0))
       (let* ((jid 0) (root-joint-dq nil) hitting-direction hitting-sweet-spot hitting-jacobian hitting-dq hitting-dr)
+
+      (setq *jvel* '())
+      (setq *jtau* '())
+      (setq *jacc* '())
+      (setq a '())
+      (setq i 0) ;; i for increment
+	
         ;; ここは最適化に含まれる時間を設定するところ
         ;; 時刻を消したかったら(aref v1 (- (length v1) *x-hit-id*))をx(定数)とすればよい
         ;; こうするとx(定数)における速度が評価関数になる
@@ -720,14 +729,39 @@
           (setq hitting-maxvel (* -1e3 (v. hitting-dr hitting-direction)))  ;; 面の正方向の速度を最大化するため面の反対方向の速度の最小化問題にする、スケール合わせのために1000倍する
           (setq hitting-maxvel (* 1e3 (v. hitting-dr hitting-direction)))  ;; バックハンドの場合は面の正方向の速度を最小化して、スケール合わせのために1000倍する
           )
-          ))
+	)
+
+      ;; エネルギー効率の計算
+      (send *robot* :calc-torque-from-vel-acc
+            :jvv (map float-vector
+                      #'(lambda (*jlist*) (deg2rad (or (send *jlist* :get :dp) 0)))
+                      (cdr (send *robot* :links)))
+            :jav (map float-vector
+                      #'(lambda (*jlist*) (deg2rad (or (send *jlist* :get :ddp) 0)))
+                      (cdr (send *robot* :links))))
+    
+      (push (coerce (send-all *jlist* :joint-torque) float-vector) *jtau*)
+
+      ;; jtauと同じ方法で,jvelをgetできないかな？
+      (push (coerce (send-all *jlist* :get :dq) float-vector) *jvel*)
+
+      (format t "joint torque is: ~s~%" *jtau*)
+      (print "========================================torque is done=========================================")
+      (format t "joint jvel is: ~s~%" *jvel*)
+      (print "----------------------------------------jvel is done-------------------------------------------")
+
+
+      ) ;; 速度最大化のwhenの締め
 
 
 
     ;; 各値の重み付けによって評価関数を定める
     (setf (aref v2 0)
           (+ (* *minjerk-weight* integral-minjerk)
-             (* *maxvel-weight* hitting-maxvel))))
+             (* *maxvel-weight* hitting-maxvel)))
+
+
+    ) ;;letの締め
 
 
 
