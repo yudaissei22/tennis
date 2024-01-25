@@ -67,16 +67,28 @@ $ (nlopt-init :x-max 2.4 :x-hit nil :id-max 14 :recursive-order 5 :use-all-joint
 * nlopt_bspline_optimization.lの一番最後のコメントにある４つのshow-optimized-motionのどれかをコメントインして実行するとよい．
 ```
 ;; 通しでみたい場合は４つのうち一番最初のコメントを外す
+
+* もとのversionのだが、エラーが出てくる。
 (progn
   (send *robot* :move-to (make-coords) :world)
   (with-append-root-joint
    (link-list-with-robot-6dof *robot* (list (cdr (send *robot* :links)))
                               :joint-class 6dof-joint)
-   (show-optimized-motion *p* :cnt 20 :x-max *x-max-of-p-orig* :real-time t :lfoot-ik nil :rfoot-ik nil)
+   (show-optimized-motion *p* :x-max *x-max-of-p-orig* :real-time t :lfoot-ik nil :rfoot-ik nil)
    ;;(show-optimized-motion *p* :x-max *x-max-of-p-orig* :real-time nil :make-loadpattern "/home/terasawa/bspline_1.5_M-14_N-5" :zmp-offset #f(0 0 0) :choreonoid nil)
    ;;(show-optimized-motion *p* :specific-time *x-max-of-p-orig*)
    ;;(show-optimized-motion *p* :x-step 0.01 :x-max *x-max-of-p-orig* :real-time nil :make-sequence t :zmp-offset #f(0 0 0) :choreonoid t)                                 
-   )) 
+   ))
+
+* こっちだと再生できる。
+(progn  ;; このブロックはnlopt_bspline_optimization.lの一番下のコメント部分にある(progn〜と一緒で，ここでは 4つの;;(show-optimized-motion 〜)については一番下をコメントインしたものと同じです）
+  (send *robot* :move-to (make-coords) :world)
+  (with-append-root-joint
+   (link-list-with-robot-6dof *robot* (list (cdr (send *robot* :links)))
+                              :joint-class 6dof-joint)
+   (show-optimized-motion *p* :x-step 0.01 :x-max *x-max-of-p-orig* :real-time nil :make-sequence t :zmp-offset #f(0 0 0) :choreonoid nil)  ;; x-stepのオプションでavlistの時間間隔を設定できます．それ以外は多分パラメータは変えなくてよいです
+   ))
+
 ```
 
 
