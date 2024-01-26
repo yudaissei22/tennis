@@ -122,8 +122,10 @@
   (setq *jtau* '())
   (setq *jacc* '())
   (setq a '())
+  (setq cp 0)
   (setq i 0) ;; i for increment 
   (setq energy 0)
+  (setq *energy* 0)
 
   (setq *jlist* jlist) ;; length jlist = 33
   (setq *jvel-list* (flatten (send robot :torso :joint-list) (send robot *limb* :joint-list)))
@@ -597,6 +599,13 @@
   ;; 躍度最小
   (setf (aref v2 0) 0)
 
+  ;; 制御周期の把握
+  (setq cp
+	(+ cp 1)
+	)
+
+  (format t "制御周期のカウント = ~s" cp)
+
   (let* ((integral-minjerk 0) (hitting-maxvel 0))
     (when (not (= *minjerk-weight* 0))
       ;; 躍度の2乗の積分の和
@@ -753,14 +762,19 @@
       (format t "joint jvel is: ~s~%" *jvel*)
       (print "----------------------------------------jvel is done-------------------------------------------")
 
+      ;; これトルクと角速度を正しく取れているのか？
+      ;; なんか(#f() #f() ...)となっている。
+      ;; つまり、毎回同じ値をとっているのではないかと思うのだが...
+      ;; 逆にとるべき理想的な値は？というと。
+      ;; その時刻での、トルク・角速度である。
+
       ;; エネルギーの計算 トルク*角速度
 
       ;; いまの制御周期での*jtau*をもってくる、
       ;; しかし、carでとってくるのはおかしくないか？だって、後ろに追加されるのでは？
-      ;; (setq *jtau-vector* (car *jtau*))
-      ;; (setq *jvel-vector* (car *jvel*))
-      (setq *jtau-vector* *jtau*)
-      (setq *jvel-vector* *jvel*)
+      ;; いや、*jtau* = (#f())なので、car *jtau* = #f()となる。
+      (setq *jtau-vector* (car *jtau*))
+      (setq *jvel-vector* (car *jvel*))
 
       ;; jtauは33個要素があるので、一つずつとっていく
       
@@ -778,23 +792,23 @@
         (setf (aref *jvel-vector* i) (* -1 tmp))
 	))
             
-      (setq *energy* (+ *energy*
-       (v. *jvel-vector* *jtau-vector*)
-       ))
-      (format t "joint energy is: ~s~%" *energy*)
-   
+      (setq *energy*
+	    (+ *energy*
+	       (v. *jvel-vector* *jtau-vector*)
+	    )
+      )
       
+      (format t "joint energy is: ~s~%" *energy*)
+      ;; ~sで、数値を出力
+      ;; ~%で、改行
 
 
       ) ;; 速度最大化のwhenの締め
-
-
 
     ;; 各値の重み付けによって評価関数を定める
     (setf (aref v2 0)
           (+ (* *minjerk-weight* integral-minjerk)
              (* *maxvel-weight* hitting-maxvel)))
-
 
     ) ;;letの締め
 

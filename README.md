@@ -1,3 +1,7 @@
+# 最適化のプログラム
+寺澤さんのプログラム(euslibにある)を、服部さん(https://github.com/MiraiHattori/tennis)が改良したらしい。
+自分はそれをいじってます。
+
 # 初期軌道生成
 1.
 ```
@@ -17,10 +21,12 @@ $ (setq *motion-choice* "forehand") ;; forehandで最適化をするときの例
 ```
 2. nlopt_bspline_optimization.lをloadする．そのままloadしても良いが，nlopt_bspline_optimization.lをコンパイルしてから.soをloadする方が計算速度が速くなる．
 ```
-$ (load "nlopt_bspline_optimization.l")
+(load "nlopt_bspline_optimization.l")
+```
    or
-$ (compile-file "nlopt_bspline_optimization.l")
-$ (load "nlopt_bspline_optimization.so")
+```
+(compile-file "nlopt_bspline_optimization.l")
+(load "nlopt_bspline_optimization.so")
 ```
 3. loadしたらコメントとして表示される例をもとに関数nlopt-initを実行する．
 ```
@@ -66,7 +72,7 @@ $ (load "nlopt_bspline_optimization.so")
 5.最適化計算の結果をeusのirtviewerで確認する場合は関数show-optimized-motionを用いる．
 * nlopt_bspline_optimization.lの一番最後のコメントにある４つのshow-optimized-motionのどれかをコメントインして実行するとよい．
 
-;; 通しでみたい場合は４つのうち一番最初のコメントを外す
+* 通しでみたい場合は４つのうち一番最初のコメントを外す
 
 * もとのversionのだが、エラーが出てくる。
 ```
