@@ -1,0 +1,4 @@
+SOURCE_SCRIPT="tennis"
+
+new-window choreonoid "rtmlaunch hrpsys_choreonoid_tutorials jaxon_red_choreonoid.launch TASK:=FOREHAND"
+new-window 

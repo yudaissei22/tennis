@@ -117,6 +117,14 @@
   (when x-hit
     (setq *default-x-hit* x-hit))
 
+  ;; エネルギー計算用の変数
+  (setq *jvel* '())
+  (setq *jtau* '())
+  (setq *jacc* '())
+  (setq a '())
+  (setq i 0) ;; i for increment 
+  (setq energy 0)
+
   (setq *jlist* jlist) ;; length jlist = 33
   (setq *jvel-list* (flatten (send robot :torso :joint-list) (send robot *limb* :joint-list)))
   (setq *bspline* (if use-append-root-joint
@@ -643,11 +651,6 @@
     (when (not (= *maxvel-weight* 0))
       (let* ((jid 0) (root-joint-dq nil) hitting-direction hitting-sweet-spot hitting-jacobian hitting-dq hitting-dr)
 
-      (setq *jvel* '())
-      (setq *jtau* '())
-      (setq *jacc* '())
-      (setq a '())
-      (setq i 0) ;; i for increment
 	
         ;; ここは最適化に含まれる時間を設定するところ
         ;; 時刻を消したかったら(aref v1 (- (length v1) *x-hit-id*))をx(定数)とすればよい
@@ -749,6 +752,38 @@
       (print "========================================torque is done=========================================")
       (format t "joint jvel is: ~s~%" *jvel*)
       (print "----------------------------------------jvel is done-------------------------------------------")
+
+      ;; エネルギーの計算 トルク*角速度
+
+      ;; いまの制御周期での*jtau*をもってくる、
+      ;; しかし、carでとってくるのはおかしくないか？だって、後ろに追加されるのでは？
+      ;; (setq *jtau-vector* (car *jtau*))
+      ;; (setq *jvel-vector* (car *jvel*))
+      (setq *jtau-vector* *jtau*)
+      (setq *jvel-vector* *jvel*)
+
+      ;; jtauは33個要素があるので、一つずつとっていく
+      
+      (dotimes (i 33)
+	(when (<= (aref *jtau-vector* i) 0)  ;;値が負をどうかけばいいのか？
+	(setq tmp (aref *jtau-vector* i))
+	;; (setq new (* -1 tmp))
+        (setf (aref *jtau-vector* i) (* -1 tmp))
+	))
+
+      (dotimes (i 33)
+	(when (<= (aref *jvel-vector* i) 0)  ;;値が負をどうかけばいいのか？
+	(setq tmp (aref *jvel-vector* i))
+	;; (setq new (* -1 tmp))
+        (setf (aref *jvel-vector* i) (* -1 tmp))
+	))
+            
+      (setq *energy* (+ *energy*
+       (v. *jvel-vector* *jtau-vector*)
+       ))
+      (format t "joint energy is: ~s~%" *energy*)
+   
+      
 
 
       ) ;; 速度最大化のwhenの締め
