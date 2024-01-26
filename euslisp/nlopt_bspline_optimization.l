@@ -604,7 +604,7 @@
 	(+ cp 1)
 	)
 
-  (format t "制御周期のカウント = ~s" cp)
+  (format t "!!!!!!!!!!!!!!!制御周期のカウント!!!!!!!!!!!!!!! = ~s~%" cp)
 
   (let* ((integral-minjerk 0) (hitting-maxvel 0))
     (when (not (= *minjerk-weight* 0))
@@ -743,6 +743,12 @@
           )
 	)
 
+      ;; そもそも、jvel,jaccをどこでどう計算しているのか？
+      ;; 今の*jlist*からとってくるのでは不足している。
+      ;; 何故なら、show-optimized-motionの実装をコピーしてきただけであり、これはすでに計算が終わっているものであるからである。
+      ;; 原理的に考えるなら、bspline関連のどっかに微分して速度を得る箇所があるはずである。
+      ;; bsplineにおいて、何の何回微分がjvel,jaccに対応するかを理解しておくべきだろう。
+
       ;; エネルギー効率の計算
       (send *robot* :calc-torque-from-vel-acc
             :jvv (map float-vector
@@ -751,22 +757,42 @@
             :jav (map float-vector
                       #'(lambda (*jlist*) (deg2rad (or (send *jlist* :get :ddp) 0)))
                       (cdr (send *robot* :links))))
-    
+      
+      ;; この逆動力学の計算結果は、どこにどう格納されるのか？
+      ;; → send-all *jlist* :joint-torqueだ
+      ;; てか、なぜ今までうまくできてたのか？なんかいい感じにケツだけ得られたのに、それができなくなっている...
+      
       (push (coerce (send-all *jlist* :joint-torque) float-vector) *jtau*)
+      ;; (print "before")
+      ;; (setq *jtau*
+      ;; 	    (coerce (send-all *jlist* :joint-torque) float-vector) ;;ここまでで正しい値が取れている。
+      ;; 	    )
+      ;; (format t "right joint torque is: ~s~%" *jtau*)      
+      ;; (print "after")
 
       ;; jtauと同じ方法で,jvelをgetできないかな？
       (push (coerce (send-all *jlist* :get :dq) float-vector) *jvel*)
+      ;; pushだとなんかどっかに保存されて溜まっていくのか？setqが正しいのでは？
+      ;; このpushだけだと、ケツだけとってくイメージ。上に溜まっていくのに、ずっと下の同じのを取っている感じ。
 
-      (format t "joint torque is: ~s~%" *jtau*)
+      ;; (setq *jvel*
+      ;; 	    (coerce (send-all *jlist* :get :dq) float-vector)
+      ;; 	    )
+      ;; そもそも、このsend-allでとってこれるのが、ケツのとこなんだよな。2
+      ;; いや、これ計算自体がうまく言っていない。ずっと同じ値を格納し続けている。
+
+      ;; ここでの表示される値が明らかに間違っている。
       (print "========================================torque is done=========================================")
+      (format t "joint torque is: ~s~%" *jtau*)
+      (print "----------------------------------------jvel is done-------------------------------------------")     
       (format t "joint jvel is: ~s~%" *jvel*)
-      (print "----------------------------------------jvel is done-------------------------------------------")
 
       ;; これトルクと角速度を正しく取れているのか？
       ;; なんか(#f() #f() ...)となっている。
       ;; つまり、毎回同じ値をとっているのではないかと思うのだが...
       ;; 逆にとるべき理想的な値は？というと。
-      ;; その時刻での、トルク・角速度である。
+      ;; その時刻での、トルク・角速度である。0.01のとき、0.02のとき...のような感じ。
+      ;; これ、pushしてるから、とる方法があるはず。pushは、データを積み上げる行為だから、どっかに値があるはず。
 
       ;; エネルギーの計算 トルク*角速度
 
@@ -775,33 +801,35 @@
       ;; いや、*jtau* = (#f())なので、car *jtau* = #f()となる。
       (setq *jtau-vector* (car *jtau*))
       (setq *jvel-vector* (car *jvel*))
+      
+      ;; (setq *jtau-vector* *jtau*)
+      ;; (setq *jvel-vector* *jvel*)
 
       ;; jtauは33個要素があるので、一つずつとっていく
       
       (dotimes (i 33)
-	(when (<= (aref *jtau-vector* i) 0)  ;;値が負をどうかけばいいのか？
-	(setq tmp (aref *jtau-vector* i))
-	;; (setq new (* -1 tmp))
+      	(when (<= (aref *jtau-vector* i) 0)  ;;値が負をどうかけばいいのか？
+      	(setq tmp (aref *jtau-vector* i))
+      	;; (setq new (* -1 tmp))
         (setf (aref *jtau-vector* i) (* -1 tmp))
-	))
+      	))
 
       (dotimes (i 33)
-	(when (<= (aref *jvel-vector* i) 0)  ;;値が負をどうかけばいいのか？
-	(setq tmp (aref *jvel-vector* i))
-	;; (setq new (* -1 tmp))
+      	(when (<= (aref *jvel-vector* i) 0)  ;;値が負をどうかけばいいのか？
+      	(setq tmp (aref *jvel-vector* i))
+      	;; (setq new (* -1 tmp))
         (setf (aref *jvel-vector* i) (* -1 tmp))
-	))
+      	))
             
       (setq *energy*
-	    (+ *energy*
-	       (v. *jvel-vector* *jtau-vector*)
-	    )
+      	    (+ *energy*
+      	       (v. *jvel-vector* *jtau-vector*)
+      	    )
       )
       
       (format t "joint energy is: ~s~%" *energy*)
       ;; ~sで、数値を出力
       ;; ~%で、改行
-
 
       ) ;; 速度最大化のwhenの締め
 
