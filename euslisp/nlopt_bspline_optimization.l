@@ -628,18 +628,18 @@
 	  ;; scale number float-vectorで、float-vectorの各要素をnumber倍する。
 	  ))
   ;; (format t "====================jpos-list is=================~a~%" jpos-list)
-  (setq tmp
-	(send-all *jlist* :joint-angle)
-	)
-  (format t "====================jlist is=================~a~%" tmp)
-  (setq tmpa
-	(send-all *jlist* :joint-velocity)
-	)
-  (format t "====================jlist is=================~a~%" tmpa)
-  (setq tmpb
-	(send-all *jlist* :joint-acceleration)
-	)
-  (format t "====================jlist is=================~a~%" tmpb)
+  ;; (setq tmp
+  ;; 	(send-all *jlist* :joint-angle)
+  ;; 	)
+  ;; (format t "====================jlist is=================~a~%" tmp)
+  ;; (setq tmpa
+  ;; 	(send-all *jlist* :joint-velocity)
+  ;; 	)
+  ;; (format t "====================jlist is=================~a~%" tmpa)
+  ;; (setq tmpb
+  ;; 	(send-all *jlist* :joint-acceleration)
+  ;; 	)
+  ;; (format t "====================jlist is=================~a~%" tmpb)
 
 
   ;; だめだ、値が変わらない...
@@ -726,6 +726,10 @@
              ;; send bs :calc-delta 時刻 ベクトル(基底関数の頂点の高さ(*p*と同じなのだが))->関節速度が取れる
              ;; (send jl :put :dq (deg2rad (send bs :calc-delta (aref v1 (- (length v1) *x-hit-id*)) (subseq v1 (* jid *id-max*) (* (+ jid 1) *id-max*)) :n 1))) ;; 関節速度の単位は[rad]
              (send jl :put :dq (deg2rad (send bs :calc-delta *default-x-hit* (subseq v1 (* jid *id-max*) (* (+ jid 1) *id-max*)) :n 1))) ;; 関節速度の単位は[rad]
+	     ;; (setq aaa
+	     ;; 	   (subseq v1 (* jid *id-max*) (* (+ jid 1) *id-max*))
+	     ;; 	   )
+	     ;; (format t "vector is ~s~%" aaa)
              (setq jid (+ jid 1)))
 
          *jlist* *bspline*)
@@ -823,7 +827,37 @@
 
       ;;  *jlist* *bspline*)
       ;; )
+      (let* ((jid 0))
+       (mapc
+         #'(lambda (jl bs)
+             (send jl :joint-angle ;; 関節ごと
+                   ;; (send bs :calc (aref v1 (- (length v1) *x-hit-id*)) (subseq v1 (* jid *id-max*) (* (+ jid 1) *id-max*))) ;; subseqは関節毎にpを抜き取ってる
+                   (send bs :calc time (subseq v1 (* jid *id-max*) (* (+ jid 1) *id-max*))) ;; subseqは関節毎にpを抜き取ってる
+                   )
+             ;; send bs :calc 時刻 ベクトル(基底関数の頂点の高さ(*p*と同じなのだが))->関節角がとれる
+             ;; send bs :calc-delta 時刻 ベクトル(基底関数の頂点の高さ(*p*と同じなのだが))->関節速度が取れる
+             ;; (send jl :put :dq (deg2rad (send bs :calc-delta (aref v1 (- (length v1) *x-hit-id*)) (subseq v1 (* jid *id-max*) (* (+ jid 1) *id-max*)) :n 1))) ;; 関節速度の単位は[rad]
+             (send jl :put :dq (deg2rad (send bs :calc-delta time (subseq v1 (* jid *id-max*) (* (+ jid 1) *id-max*)) :n 1))) ;; 関節速度の単位は[rad]
+             (send jl :put :ddq (deg2rad (deg2rad (send bs :calc-delta time (subseq v1 (* jid *id-max*) (* (+ jid 1) *id-max*)) :n 2)))) ;; 関節角速度、[m^2/rad]
+	     (setq aaa
+		   (subseq v1 (* jid *id-max*) (* (+ jid 1) *id-max*))
+		   )
+	     ;; (format t "vector at ~a~% is ~s~%" time aaa)
       
+	     ;; (format t "jvel at ~a~% is ~a~%" time jvel-tmp)
+             (setq jid (+ jid 1)))
+
+         *jlist* *bspline*)
+       )
+      
+      (setq *jvel*
+		   (send-all *jlist* :get :dq)
+		   )
+      (setq *jacc*
+		   (send-all *jlist* :get :ddq)
+		   )
+      (format t "jvel at ~s is ~s~%" time *jvel*)
+      (format t "jacc at ~s is ~s~%" time *jacc*)      
       
       ;; エネルギー効率の計算
       (send *robot* :calc-torque-from-vel-acc
@@ -841,6 +875,9 @@
       ;; そんで、そこをみるとインパクト時の値のみ計算している臭い？
       
       (push (coerce (send-all *jlist* :joint-torque) float-vector) *jtau*)
+      (setq *jtau*
+	    (send-all *jlist* :joint-torque))
+      
       ;; (print "before")
       ;; (setq *jtau*
       ;; 	    (coerce (send-all *jlist* :joint-torque) float-vector) ;;ここまでで正しい値が取れている。
@@ -849,7 +886,9 @@
       ;; (print "after")
 
       ;; jtauと同じ方法で,jvelをgetできないかな？
-      (push (coerce (send-all *jlist* :get :dq) float-vector) *jvel*)
+      ;; (push (coerce (send-all *jlist* :get :dq) float-vector) *jvel*)
+      (format t "jtau at ~s is ~s~%" time *jtau*)      
+      
       ;; pushだとなんかどっかに保存されて溜まっていくのか？setqが正しいのでは？
       ;; このpushだけだと、ケツだけとってくイメージ。上に溜まっていくのに、ずっと下の同じのを取っている感じ。
 
@@ -878,8 +917,12 @@
       ;; いまの制御周期での*jtau*をもってくる、
       ;; しかし、carでとってくるのはおかしくないか？だって、後ろに追加されるのでは？
       ;; いや、*jtau* = (#f())なので、car *jtau* = #f()となる。
-      (setq *jtau-vector* (car *jtau*))
-      (setq *jvel-vector* (car *jvel*))
+      (setq *jvel* (coerce *jvel* float-vector))
+      (setq *jacc* (coerce *jacc* float-vector))
+      (setq *jtau* (coerce *jtau* float-vector))
+
+      ;; (setq *jtau-vector* (car *jtau*))
+      ;; (setq *jvel-vector* (car *jvel*))
       
       ;; (setq *jtau-vector* *jtau*)
       ;; (setq *jvel-vector* *jvel*)
@@ -887,22 +930,22 @@
       ;; jtauは33個要素があるので、一つずつとっていく
       
       (dotimes (i 33)
-      	(when (<= (aref *jtau-vector* i) 0)  ;;値が負をどうかけばいいのか？
-      	(setq tmp (aref *jtau-vector* i))
+      	(when (<= (aref *jtau* i) 0)  ;;値が負をどうかけばいいのか？
+      	(setq tmp (aref *jtau* i))
       	;; (setq new (* -1 tmp))
-        (setf (aref *jtau-vector* i) (* -1 tmp))
+        (setf (aref *jtau* i) (* -1 tmp))
       	))
 
       (dotimes (i 33)
-      	(when (<= (aref *jvel-vector* i) 0)  ;;値が負をどうかけばいいのか？
-      	(setq tmp (aref *jvel-vector* i))
+      	(when (<= (aref *jvel* i) 0)  ;;値が負をどうかけばいいのか？
+      	(setq tmp (aref *jvel* i))
       	;; (setq new (* -1 tmp))
-        (setf (aref *jvel-vector* i) (* -1 tmp))
+        (setf (aref *jvel* i) (* -1 tmp))
       	))
             
       (setq *energy*
       	    (+ *energy*
-      	       (v. *jvel-vector* *jtau-vector*)
+      	       (v. *jvel* *jtau*)
       	    )
       )
       
