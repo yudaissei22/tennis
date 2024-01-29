@@ -126,6 +126,7 @@
   (setq i 0) ;; i for increment 
   (setq energy 0)
   (setq *energy* 0)
+  (setq vq-tmp '())
 
   (setq *jlist* jlist) ;; length jlist = 33
   (setq *jvel-list* (flatten (send robot :torso :joint-list) (send robot *limb* :joint-list)))
@@ -619,8 +620,12 @@
                                 (v.
                                  (transform (subseq v1 (* jid *id-max*) (* (+ jid 1) *id-max*))
                                             ;;(send bs :calc-integral-objective-coeff-matrix :n 3)
+					    ;; jidは0で、*id-max*は14である。このsubseqあたりは何をしているのか？
+					    ;; integral-minjerkのインクリメントになっていることから、v.以下ではこの制御周期でのjerkを計算しているはず。					    
                                             integral-objective-coeff-matrix)
                                  (subseq v1 (* jid *id-max*) (* (+ jid 1) *id-max*)))))))
+	     (format t "v1 is ~a~%" (length v1))
+	     (setq v1-tmp v1)
 
              (setq jid (+ jid 1)))
 
@@ -749,6 +754,9 @@
       ;; 原理的に考えるなら、bspline関連のどっかに微分して速度を得る箇所があるはずである。
       ;; bsplineにおいて、何の何回微分がjvel,jaccに対応するかを理解しておくべきだろう。
 
+      ;; 現在時刻における関節角度，速度，加速度
+      ;; (send *bspline* :calc-delta time )
+      
       ;; エネルギー効率の計算
       (send *robot* :calc-torque-from-vel-acc
             :jvv (map float-vector
@@ -761,6 +769,8 @@
       ;; この逆動力学の計算結果は、どこにどう格納されるのか？
       ;; → send-all *jlist* :joint-torqueだ
       ;; てか、なぜ今までうまくできてたのか？なんかいい感じにケツだけ得られたのに、それができなくなっている...
+      ;; これ実装を見た感じ、なんかbsplineからdqをとってきて、つっこんでいる。
+      ;; そんで、そこをみるとインパクト時の値のみ計算している臭い？
       
       (push (coerce (send-all *jlist* :joint-torque) float-vector) *jtau*)
       ;; (print "before")
@@ -793,6 +803,7 @@
       ;; 逆にとるべき理想的な値は？というと。
       ;; その時刻での、トルク・角速度である。0.01のとき、0.02のとき...のような感じ。
       ;; これ、pushしてるから、とる方法があるはず。pushは、データを積み上げる行為だから、どっかに値があるはず。
+      ;; 
 
       ;; エネルギーの計算 トルク*角速度
 
