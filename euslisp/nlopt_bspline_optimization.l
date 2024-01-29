@@ -588,13 +588,6 @@
       (dotimes (j h)
         (setf (aref v2 (+ j (* i h))) (aref tmp-jacobian (+ i (* j w))))))))
 
-
-
-
-
-
-
-
 ;; {{{ 目的関数 min f(x)
 ;; v1: 設計変数p ((33+4) * *id-max* + timing vars)
 ;; v2: 1次元
@@ -633,7 +626,24 @@
     (setq jvel-list (scale (/ 1 dt) (v- jpos-list pre-jpos-list))
 	  ;; scale number float-vectorで、float-vectorの各要素をnumber倍する。
 	  ))
-  (format t "====================jpos-list is=================~a~%" jpos-list)
+  ;; (format t "====================jpos-list is=================~a~%" jpos-list)
+  (setq tmp
+	(send-all *jlist* :joint-angle)
+	)
+  (format t "====================jlist is=================~a~%" tmp)
+  (setq tmpa
+	(send-all *jlist* :joint-velocity)
+	)
+  (format t "====================jlist is=================~a~%" tmpa)
+  (setq tmpb
+	(send-all *jlist* :joint-acceleration)
+	)
+  (format t "====================jlist is=================~a~%" tmpb)
+
+
+  ;; だめだ、値が変わらない...
+  ;; これbsplineを使わないとダメなんじゃね？しんど〜〜
+  
   ;; (format t "====================jvel-list is=================~a~%" jvel-list)
   ;; (format t "letの前 ~%")
   ;; (if (= cp 1)
@@ -769,7 +779,7 @@
                           (setq hitting-dq (coerce (flatten root-joint-dq (send-all *jvel-list* :get :dq)) float-vector)) ;; ここで打つ姿勢での関節速度を先に計算
                           (flatten (list (car (send *robot* :links)) (send *robot* :torso :links) (send *robot* *limb* :links)))) ;; BODY + CHEST_LINK0~2 + RARM_LINK0~7
 
-                      (progn
+                      (prognnnnn
                         (setq hitting-dq (coerce (send-all *jvel-list* :get :dq) float-vector)) ;; ここで打つ姿勢での関節速度を先に計算
                         (flatten (send *robot* :torso :links) (send *robot* *limb* :links)))) ;; CHEST_LINK0~2 + RARM_LINK0~7
 
@@ -796,6 +806,23 @@
 
       ;; 現在時刻における関節角度，速度，加速度
       ;; (send *bspline* :calc-delta time )
+
+      (let (jidnew 0)
+      (mapc
+       #'(lambda (jl bs)
+           (send jl :joint-angle ;; 関節ごと
+                 ;; (send bs :calc (aref v1 (- (length v1) *x-hit-id*)) (subseq v1 (* jid *id-max*) (* (+ jid 1) *id-max*))) ;; subseqは関節毎にpを抜き取ってる
+                 (send bs :calc time (subseq v1 (* jidnew *id-max*) (* (+ jidnew 1) *id-max*))) ;; subseqは関節毎にpを抜き取ってる
+           )
+             ;; send bs :calc 時刻 ベクトル(基底関数の頂点の高さ(*p*と同じなのだが))->関節角がとれる
+             ;; send bs :calc-delta 時刻 ベクトル(基底関数の頂点の高さ(*p*と同じなのだが))->関節速度が取れる
+             ;; (send jl :put :dq (deg2rad (send bs :calc-delta (aref v1 (- (length v1) *x-hit-id*)) (subseq v1 (* jid *id-max*) (* (+ jid 1) *id-max*)) :n 1))) ;; 関節速度の単位は[rad]
+          (send jl :put :dq (deg2rad (send bs :calc-delta time (subseq v1 (* jidnew *id-max*) (* (+ jidnew 1) *id-max*)) :n 1))) ;; 関節速度の単位は[rad]
+          (setq jidnew (+ jidnew 1)))
+
+       *jlist* *bspline*)
+      )
+      
       
       ;; エネルギー効率の計算
       (send *robot* :calc-torque-from-vel-acc
@@ -883,11 +910,18 @@
       ;; ~%で、改行
 
       (setq jpos-list (send *robot* :angle-vector))
-      (format t "========letの後の=========jpos-list is=================~a~%" jpos-list)
+      ;; (format t "========letの後の=========jpos-list is=================~a~%" jpos-list)
 
       ;; (setq pre-jvel-list ())
       
 
+      (mapc
+       #'(lambda (jl bs)
+	   (send jl :joint-anble
+          (send *bspline* :calc-delta time (subseq v1 (* jid *id-max*) (* (+ jid 1) *id-max*))))
+      (setq jid (+ jid 1))
+         )
+      )
       ) ;; 速度最大化のwhenの締め
 
     ;; 各値の重み付けによって評価関数を定める
