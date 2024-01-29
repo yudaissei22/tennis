@@ -969,10 +969,15 @@
       ) ;; 速度最大化のwhenの締め
 
     ;; 各値の重み付けによって評価関数を定める
-    (setf (aref v2 0)
-          (+ (* *minjerk-weight* integral-minjerk)
-             (* *maxvel-weight* hitting-maxvel)))
+    ;; original version
+    ;; (setf (aref v2 0)
+    ;;       (+ (* *minjerk-weight* integral-minjerk)
+    ;;          (* *maxvel-weight* hitting-maxvel)))
 
+    (setf (aref v2 0)
+          (+ (* *energy* integral-minjerk)
+             (* *maxvel-weight* hitting-maxvel)))
+    
     ) ;;letの締め
 
 
