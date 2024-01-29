@@ -594,6 +594,7 @@
 ;; 返り値: 成功なら0?
 (defun-c-callable motion-f ((v1 :string) (v2 :string)) :integer
   (format t "~%")
+  ;; nice
   (format t "defun-c-callable motion-f is done! ~%")
   ;; 549回実行された。これか。つまり、どっかで549回、defun-c-callableを読んでるのか。
   (when (equal (aref v1 0) (aref #f(nan) 0)) ;; (aref #f(nan) 0)はnanを取り出している
@@ -807,21 +808,21 @@
       ;; 現在時刻における関節角度，速度，加速度
       ;; (send *bspline* :calc-delta time )
 
-      (let (jidnew 0)
-      (mapc
-       #'(lambda (jl bs)
-           (send jl :joint-angle ;; 関節ごと
-                 ;; (send bs :calc (aref v1 (- (length v1) *x-hit-id*)) (subseq v1 (* jid *id-max*) (* (+ jid 1) *id-max*))) ;; subseqは関節毎にpを抜き取ってる
-                 (send bs :calc time (subseq v1 (* jidnew *id-max*) (* (+ jidnew 1) *id-max*))) ;; subseqは関節毎にpを抜き取ってる
-           )
-             ;; send bs :calc 時刻 ベクトル(基底関数の頂点の高さ(*p*と同じなのだが))->関節角がとれる
-             ;; send bs :calc-delta 時刻 ベクトル(基底関数の頂点の高さ(*p*と同じなのだが))->関節速度が取れる
-             ;; (send jl :put :dq (deg2rad (send bs :calc-delta (aref v1 (- (length v1) *x-hit-id*)) (subseq v1 (* jid *id-max*) (* (+ jid 1) *id-max*)) :n 1))) ;; 関節速度の単位は[rad]
-          (send jl :put :dq (deg2rad (send bs :calc-delta time (subseq v1 (* jidnew *id-max*) (* (+ jidnew 1) *id-max*)) :n 1))) ;; 関節速度の単位は[rad]
-          (setq jidnew (+ jidnew 1)))
+      ;; (let (jidnew 0)
+      ;; (mapc
+      ;;  #'(lambda (jl bs)
+      ;;      (send jl :joint-angle ;; 関節ごと
+      ;;            ;; (send bs :calc (aref v1 (- (length v1) *x-hit-id*)) (subseq v1 (* jid *id-max*) (* (+ jid 1) *id-max*))) ;; subseqは関節毎にpを抜き取ってる
+      ;;            (send bs :calc time (subseq v1 (* jidnew *id-max*) (* (+ jidnew 1) *id-max*))) ;; subseqは関節毎にpを抜き取ってる
+      ;;      )
+      ;;        ;; send bs :calc 時刻 ベクトル(基底関数の頂点の高さ(*p*と同じなのだが))->関節角がとれる
+      ;;        ;; send bs :calc-delta 時刻 ベクトル(基底関数の頂点の高さ(*p*と同じなのだが))->関節速度が取れる
+      ;;        ;; (send jl :put :dq (deg2rad (send bs :calc-delta (aref v1 (- (length v1) *x-hit-id*)) (subseq v1 (* jid *id-max*) (* (+ jid 1) *id-max*)) :n 1))) ;; 関節速度の単位は[rad]
+      ;;     (send jl :put :dq (deg2rad (send bs :calc-delta time (subseq v1 (* jidnew *id-max*) (* (+ jidnew 1) *id-max*)) :n 1))) ;; 関節速度の単位は[rad]
+      ;;     (setq jidnew (+ jidnew 1)))
 
-       *jlist* *bspline*)
-      )
+      ;;  *jlist* *bspline*)
+      ;; )
       
       
       ;; エネルギー効率の計算
@@ -915,13 +916,13 @@
       ;; (setq pre-jvel-list ())
       
 
-      (mapc
-       #'(lambda (jl bs)
-	   (send jl :joint-anble
-          (send *bspline* :calc-delta time (subseq v1 (* jid *id-max*) (* (+ jid 1) *id-max*))))
-      (setq jid (+ jid 1))
-         )
-      )
+      ;; (mapc
+      ;;  #'(lambda (jl bs)
+      ;; 	   (send jl :joint-anble
+      ;;     (send *bspline* :calc-delta time (subseq v1 (* jid *id-max*) (* (+ jid 1) *id-max*))))
+      ;; (setq jid (+ jid 1))
+      ;;    )
+      ;; )
       ) ;; 速度最大化のwhenの締め
 
     ;; 各値の重み付けによって評価関数を定める
