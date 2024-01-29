@@ -127,6 +127,8 @@
   (setq energy 0)
   (setq *energy* 0)
   (setq vq-tmp '())
+  (setq dt '())
+  (setq time 0)
 
   (setq *jlist* jlist) ;; length jlist = 33
   (setq *jvel-list* (flatten (send robot :torso :joint-list) (send robot *limb* :joint-list)))
@@ -592,10 +594,16 @@
 ;; v2: 1次元
 ;; 返り値: 成功なら0?
 (defun-c-callable motion-f ((v1 :string) (v2 :string)) :integer
+  (format t "ここが実行されるか田舎")
+  ;; 549回実行された。これか。つまり、どっかで549回、defun-c-callableを読んでるのか。
   (when (equal (aref v1 0) (aref #f(nan) 0)) ;; (aref #f(nan) 0)はnanを取り出している
     (dotimes (i (length v1))
       (setf (aref v1 i) (aref *tmp-p* i)))) ;; tmp-pに入力を保存している
-
+  (setq dt
+	(/ *x-max* 549)
+	)
+  (setq time (+ time dt))
+  
 
   ;; 躍度最小
   (setf (aref v2 0) 0)
@@ -607,6 +615,25 @@
 
   (format t "!!!!!!!!!!!!!!!制御周期のカウント!!!!!!!!!!!!!!! = ~s~%" cp)
 
+
+  ;; いや、これもう計算トルク法で実装したときのように、まえの制御で使ったjpos,jvel,jaccを覚えておいて、再度計算すればいいじゃん笑
+  ;; ほんとは、*bspline*のcalc-deltaで賢くやりたかったけど、引数がよくわからないし、calc-deltaが微分なのかも保証ないし、一旦この邪道でやるしかないか。
+
+  (setq jpos-list (send *robot* :angle-vector)
+  ;; これeusは複雑な制御式をかけないらしい、、ゆうて今回のは複雑でもないしprognでいけるか？
+  (if (= cp 1)
+    (setq jvel-list '())
+
+    (setq jvel-list (/ (- jpos-list pre-jpos-list) dt)
+	  )
+  (format t "====================jvel-list is=================" jvel-list)
+    
+  ;; (if (= cp 1)
+  ;;   (setq jacc-list '())
+
+  ;;   (setq jvel-list (/ (- jpos-list pre-jpos-list) dt)
+  ;; 	  )
+  
   (let* ((integral-minjerk 0) (hitting-maxvel 0))
     (when (not (= *minjerk-weight* 0))
       ;; 躍度の2乗の積分の和
@@ -682,6 +709,10 @@
              (setq jid (+ jid 1)))
 
          *jlist* *bspline*)
+	;; ここみる感じ、*bspline*に:calc-deltaというメソッドがありそうだけど、無いのか？どうなってんだ？
+	;; ちなみに、car *bspline*とすると、methodsに、calc-deltaがある。
+
+	
         ;; virtual jointがあったら
         (if (send (car (send *robot* :links)) :joint)
             (progn
@@ -792,10 +823,10 @@
       ;; いや、これ計算自体がうまく言っていない。ずっと同じ値を格納し続けている。
 
       ;; ここでの表示される値が明らかに間違っている。
-      (print "========================================torque is done=========================================")
-      (format t "joint torque is: ~s~%" *jtau*)
-      (print "----------------------------------------jvel is done-------------------------------------------")     
-      (format t "joint jvel is: ~s~%" *jvel*)
+      ;; (print "========================================torque is done=========================================")
+      ;; (format t "joint torque is: ~s~%" *jtau*)
+      ;; (print "----------------------------------------jvel is done-------------------------------------------")     
+      ;; (format t "joint jvel is: ~s~%" *jvel*)
 
       ;; これトルクと角速度を正しく取れているのか？
       ;; なんか(#f() #f() ...)となっている。
@@ -841,6 +872,10 @@
       (format t "joint energy is: ~s~%" *energy*)
       ;; ~sで、数値を出力
       ;; ~%で、改行
+
+      (setq pre-jpos-list (send *robot* :angle-vector))
+      ;; (setq pre-jvel-list ())
+      
 
       ) ;; 速度最大化のwhenの締め
 
