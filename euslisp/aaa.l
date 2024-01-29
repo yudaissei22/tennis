@@ -1,4 +1,5 @@
-(defun do()
+(defun do-nlopt()
+  ;;　引数が必要な関数をprintされるように、するとよい
     (setq *motion-choice* "forehand")
     (unix:sleep 2)
     (load "nlopt_bspline_optimization.l")
