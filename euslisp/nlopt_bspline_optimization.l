@@ -1129,9 +1129,9 @@
     (setf (aref v2 0)
           (+ (* *minjerk-weight* integral-minjerk)
              (* *maxvel-weight* hitting-maxvel)))
-    ;; (format t "energy is ~s~%" *energy*)
-    ;; (format t "integral-minjerk is ~s~%" integral-minjerk)
-    ;; (format t "maxvel is ~s~%" hitting-maxvel)
+    (format t "energy -> ~s~%" *energy*)
+    (format t "integral-minjerk -> ~s~%" integral-minjerk)
+    (format t "maxvel -> ~s~%" hitting-maxvel)
     
     ) ;;letの締め
 
@@ -2474,8 +2474,8 @@
     ;; これでzmpの一通りの表示がおわったはず
 
     ;; (setq cpp (+ cpp 1))
-      (format t "----------------------------------------------new swing-----------------------------------------------------------~a~%" cp )
       (setq cp 0)
+      (format t "----------------------------------------------new swing-----------------------------------------------------------~a~%" cp )
       ;;
       ;; (dump-lists)
 
