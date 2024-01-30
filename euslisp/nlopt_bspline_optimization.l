@@ -1,5 +1,5 @@
 ;; $ roseus
-;; $ (compile-file "nlopt_bspline_optimization.l")
+1;5202;0c;; $ (compile-file "nlopt_bspline_optimization.l")
 ;; $ (setq *motion-choice* "forehand") ;; "punch", "kick", "smash"
 ;; $ (load "nlopt_bspline_optimization.so")
 (require "package://eus_nlopt/euslisp/nlopt")
@@ -795,58 +795,58 @@
 
   ;;このletから、色々進み出すはず。
   (let* ((integral-minjerk 0) (hitting-maxvel 0))
-    (when (not (= *minjerk-weight* 0))
-      ;; 躍度の2乗の積分の和
-      (let* ((jid 0)
-             (integral-objective-coeff-matrix (send (car *bspline*) :calc-integral-objective-coeff-matrix :n 3)))
-        (mapc
-         #'(lambda (jl bs)
-             (setq integral-minjerk
-                   (+ integral-minjerk
-                      (deg2rad (deg2rad ;; すでに2乗されているので足す前に2回deg2rad
-                                (v.
-                                 (transform (subseq v1 (* jid *id-max*) (* (+ jid 1) *id-max*))
-                                            ;;(send bs :calc-integral-objective-coeff-matrix :n 3)
-    					    ;; jidは0で、*id-max*は14である。このsubseqあたりは何をしているのか？
-    					    ;; integral-minjerkのインクリメントになっていることから、v.以下ではこの制御周期でのjerkを計算しているはず。					    
-                                            integral-objective-coeff-matrix)
-                                 (subseq v1 (* jid *id-max*) (* (+ jid 1) *id-max*)))))))
-    	     ;; (format t "v1 is ~a~%" (length v1))
-    	     (setq v1-tmp v1)
+    ;; (when (not (= *minjerk-weight* 0))
+    ;;   ;; 躍度の2乗の積分の和
+    ;;   (let* ((jid 0)
+    ;;          (integral-objective-coeff-matrix (send (car *bspline*) :calc-integral-objective-coeff-matrix :n 3)))
+    ;;     (mapc
+    ;;      #'(lambda (jl bs)
+    ;;          (setq integral-minjerk
+    ;;                (+ integral-minjerk
+    ;;                   (deg2rad (deg2rad ;; すでに2乗されているので足す前に2回deg2rad
+    ;;                             (v.
+    ;;                              (transform (subseq v1 (* jid *id-max*) (* (+ jid 1) *id-max*))
+    ;;                                         ;;(send bs :calc-integral-objective-coeff-matrix :n 3)
+    ;; 					    ;; jidは0で、*id-max*は14である。このsubseqあたりは何をしているのか？
+    ;; 					    ;; integral-minjerkのインクリメントになっていることから、v.以下ではこの制御周期でのjerkを計算しているはず。					    
+    ;;                                         integral-objective-coeff-matrix)
+    ;;                              (subseq v1 (* jid *id-max*) (* (+ jid 1) *id-max*)))))))
+    ;; 	     ;; (format t "v1 is ~a~%" (length v1))
+    ;; 	     (setq v1-tmp v1)
 
-             (setq jid (+ jid 1)))
+    ;;          (setq jid (+ jid 1)))
 
-         *jlist* *bspline*) ;; ここでは仮想ジョイントの躍度を考慮しない
-        (when (send (car (send *robot* :links)) :joint) ;; virtual jointありのとき
-          (mapc
-           #'(lambda (bs)
-               (setq integral-minjerk
-                     (+ integral-minjerk
-                        (* 1e-6 ;; すでに2乗されているので足す前に2回mm2m
-                           (v.
-                            (transform (subseq v1 (* jid *id-max*) (* (+ jid 1) *id-max*))
-                                       ;;(send bs :calc-integral-objective-coeff-matrix :n 3)
-                                       integral-objective-coeff-matrix)
-                            (subseq v1 (* jid *id-max*) (* (+ jid 1) *id-max*))))))
-               (setq jid (+ jid 1)))
+    ;;      *jlist* *bspline*) ;; ここでは仮想ジョイントの躍度を考慮しない
+    ;;     (when (send (car (send *robot* :links)) :joint) ;; virtual jointありのとき
+    ;;       (mapc
+    ;;        #'(lambda (bs)
+    ;;            (setq integral-minjerk
+    ;;                  (+ integral-minjerk
+    ;;                     (* 1e-6 ;; すでに2乗されているので足す前に2回mm2m
+    ;;                        (v.
+    ;;                         (transform (subseq v1 (* jid *id-max*) (* (+ jid 1) *id-max*))
+    ;;                                    ;;(send bs :calc-integral-objective-coeff-matrix :n 3)
+    ;;                                    integral-objective-coeff-matrix)
+    ;;                         (subseq v1 (* jid *id-max*) (* (+ jid 1) *id-max*))))))
+    ;;            (setq jid (+ jid 1)))
 
-           (subseq *bspline* (length *jlist*) (+ (length *jlist*) 3)))
-          (mapc
-           #'(lambda (bs)
-               (setq integral-minjerk
-                     (+ integral-minjerk
-                        (deg2rad (deg2rad ;; すでに2乗されているので足す前に2回deg2rad
-                                  (v.
-                                   (transform (subseq v1 (* jid *id-max*) (* (+ jid 1) *id-max*))
-                                              ;;(send bs :calc-integral-objective-coeff-matrix :n 3)
-                                              integral-objective-coeff-matrix)
-                                   (subseq v1 (* jid *id-max*) (* (+ jid 1) *id-max*)))))))
-               (setq jid (+ jid 1)))
+    ;;        (subseq *bspline* (length *jlist*) (+ (length *jlist*) 3)))
+    ;;       (mapc
+    ;;        #'(lambda (bs)
+    ;;            (setq integral-minjerk
+    ;;                  (+ integral-minjerk
+    ;;                     (deg2rad (deg2rad ;; すでに2乗されているので足す前に2回deg2rad
+    ;;                               (v.
+    ;;                                (transform (subseq v1 (* jid *id-max*) (* (+ jid 1) *id-max*))
+    ;;                                           ;;(send bs :calc-integral-objective-coeff-matrix :n 3)
+    ;;                                           integral-objective-coeff-matrix)
+    ;;                                (subseq v1 (* jid *id-max*) (* (+ jid 1) *id-max*)))))))
+    ;;            (setq jid (+ jid 1)))
 
-           (subseq *bspline* (+ (length *jlist*) 3) (+ (length *jlist*) 6)))
-    	  ))
+    ;;        (subseq *bspline* (+ (length *jlist*) 3) (+ (length *jlist*) 6)))
+    ;; 	  ))
 
-      )
+    ;;   )
     ;;躍度最小化のwhenの締め
 
     ;; hitting-poseにおける速度の最大化
