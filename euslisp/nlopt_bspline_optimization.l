@@ -1139,48 +1139,50 @@
 
 
   (setq *tmp-p* (copy-seq v1))
-  (when *dump-nloptlog*
-    ;; motion-dfを使うか
-    (if *use-delta-func*
-        (progn
-          (when (null (eq *eval-cnt-f* *eval-cnt-f-old*))
-            (format t "objective function: ~a~%" v2)
-            (with-open-file
-             (f (concatenate string *file-name* "_obj.dat") :direction :output :if-exists :append)
-             (dolist (obj-data (coerce v2 cons))
-               (format f "~a   " obj-data))
+;;;;;;;;;;;;;;;;;;;;  
+  ;; (when *dump-nloptlog*
+  ;;   ;; motion-dfを使うか
+  ;;   (if *use-delta-func*
+  ;;       (progn
+  ;;         (when (null (eq *eval-cnt-f* *eval-cnt-f-old*))
+  ;;           (format t "objective function: ~a~%" v2)
+  ;;           (with-open-file
+  ;;            (f (concatenate string *file-name* "_obj.dat") :direction :output :if-exists :append)
+  ;;            (dolist (obj-data (coerce v2 cons))
+  ;;              (format f "~a   " obj-data))
 
-             (format f "~%"))
+  ;;            (format f "~%"))
 
-            (with-open-file
-             (f (concatenate string *file-name* "_p.dat") :direction :output :if-exists :append)
-             (format f "~a~%" *tmp-p*))
+  ;;           (with-open-file
+  ;;            (f (concatenate string *file-name* "_p.dat") :direction :output :if-exists :append)
+  ;;            (format f "~a~%" *tmp-p*))
 
-            (setq *eval-cnt-f-old* *eval-cnt-f*)))
+  ;;           (setq *eval-cnt-f-old* *eval-cnt-f*)))
 
 
-      (progn
-        (format t "objective function: ~a~%" v2)
-        (with-open-file
-         (f (concatenate string *file-name* "_obj.dat") :direction :output :if-exists :append)
-         (dolist (obj-data (coerce v2 cons))
-           (format f "~a   " obj-data))
+  ;;     (progn
+  ;;       (format t "objective function: ~a~%" v2)
+  ;;       (with-open-file
+  ;;        (f (concatenate string *file-name* "_obj.dat") :direction :output :if-exists :append)
+  ;;        (dolist (obj-data (coerce v2 cons))
+  ;;          (format f "~a   " obj-data))
 
-         (format f "~%"))
+  ;;        (format f "~%"))
 
-        (with-open-file
-         (f (concatenate string *file-name* "_p.dat") :direction :output :if-exists :append)
-         (format f "~a~%" *tmp-p*)))
-    ;; letが549回行われ、このequationやfunctionあたりが実行されるので、ここれsetq cp 0をすれば解決では？
-    ;; 次のスイングが行われるので、制御周期をコントロールするcp (control なんでp?)が0になる。      
-    ;; もしくは、show-optimized-motionでZMPを表示し終わったあとにやるのでもよいが...
-    ;; (format t "----------------------------------------------new swing-----------------------------------------------------------~%")
-    ;; (setq cp 0)
+  ;;       (with-open-file
+  ;;        (f (concatenate string *file-name* "_p.dat") :direction :output :if-exists :append)
+  ;;        (format f "~a~%" *tmp-p*)))
+  ;;   ;; letが549回行われ、このequationやfunctionあたりが実行されるので、ここれsetq cp 0をすれば解決では？
+  ;;   ;; 次のスイングが行われるので、制御周期をコントロールするcp (control なんでp?)が0になる。      
+  ;;   ;; もしくは、show-optimized-motionでZMPを表示し終わったあとにやるのでもよいが...
+  ;;   ;; (format t "----------------------------------------------new swing-----------------------------------------------------------~%")
+  ;;   ;; (setq cp 0)
 
-      )
+  ;;     )
 
     
-    )
+  ;;   )
+;;;;;;;;;;;;;;;;;;;;;
 
 
 
@@ -2475,7 +2477,7 @@
       (format t "----------------------------------------------new swing-----------------------------------------------------------~a~%" cp )
       (setq cp 0)
       ;;
-      (dump-lists)
+      ;; (dump-lists)
 
 
 
