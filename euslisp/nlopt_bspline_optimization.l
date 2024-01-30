@@ -124,8 +124,8 @@
   (setq a '())
   (setq cp 0)
   (setq i 0) ;; i for increment 
-  (setq energy 0)
-  (setq *energy* 0)
+  ;; (setq energy 0)
+  ;; (setq *energy* 0)
   (setq vq-tmp '())
   (setq dt '())
   (setq time 0)
@@ -755,14 +755,14 @@
   ;; いや、これもう計算トルク法で実装したときのように、まえの制御で使ったjpos,jvel,jaccを覚えておいて、再度計算すればいいじゃん笑
   ;; ほんとは、*bspline*のcalc-deltaで賢くやりたかったけど、引数がよくわからないし、calc-deltaが微分なのかも保証ないし、一旦この邪道でやるしかないか。
 
-  (setq pre-jpos-list (send *robot* :angle-vector))
+  ;; (setq pre-jpos-list (send *robot* :angle-vector))
   ;; これeusは複雑な制御式をかけないらしい、、ゆうて今回のは複雑でもないしprognでいけるか？
-  (if (= cp 1)
-    (setq jvel-list '())
+  ;; (if (= cp 1)
+  ;;   (setq jvel-list '())
 
-    (setq jvel-list (scale (/ 1 dt) (v- jpos-list pre-jpos-list))
-	  ;; scale number float-vectorで、float-vectorの各要素をnumber倍する。
-	  ))
+  ;;   (setq jvel-list (scale (/ 1 dt) (v- jpos-list pre-jpos-list))
+  ;; 	  ;; scale number float-vectorで、float-vectorの各要素をnumber倍する。
+  ;; 	  ))
   ;; (format t "====================jpos-list is=================~a~%" jpos-list)
   ;; (setq tmp
   ;; 	(send-all *jlist* :joint-angle)
@@ -790,7 +790,7 @@
   ;; 	  )
 
   ;;このletから、色々進み出すはず。
-  (let* ((integral-minjerk 0) (hitting-maxvel 0))
+  (let* ((integral-minjerk 0) (hitting-maxvel 0)(*energy* 0))
     (when (not (= *minjerk-weight* 0))
       ;; 躍度の2乗の積分の和
       (let* ((jid 0)
@@ -803,12 +803,12 @@
                                 (v.
                                  (transform (subseq v1 (* jid *id-max*) (* (+ jid 1) *id-max*))
                                             ;;(send bs :calc-integral-objective-coeff-matrix :n 3)
-					    ;; jidは0で、*id-max*は14である。このsubseqあたりは何をしているのか？
-					    ;; integral-minjerkのインクリメントになっていることから、v.以下ではこの制御周期でのjerkを計算しているはず。					    
+    					    ;; jidは0で、*id-max*は14である。このsubseqあたりは何をしているのか？
+    					    ;; integral-minjerkのインクリメントになっていることから、v.以下ではこの制御周期でのjerkを計算しているはず。					    
                                             integral-objective-coeff-matrix)
                                  (subseq v1 (* jid *id-max*) (* (+ jid 1) *id-max*)))))))
-	     ;; (format t "v1 is ~a~%" (length v1))
-	     (setq v1-tmp v1)
+    	     ;; (format t "v1 is ~a~%" (length v1))
+    	     (setq v1-tmp v1)
 
              (setq jid (+ jid 1)))
 
@@ -840,9 +840,10 @@
                (setq jid (+ jid 1)))
 
            (subseq *bspline* (+ (length *jlist*) 3) (+ (length *jlist*) 6)))
-	  ))
+    	  ))
 
-      ) ;;躍度最小化のwhenの締め
+      )
+    ;;躍度最小化のwhenの締め
 
     ;; hitting-poseにおける速度の最大化
     (when (not (= *maxvel-weight* 0))
@@ -1111,8 +1112,11 @@
     ;;          (* *maxvel-weight* hitting-maxvel)))
 
     (setf (aref v2 0)
-          (+ (* *energy* integral-minjerk)
+          (+ (* *minjerk-weight* integral-minjerk)
              (* *maxvel-weight* hitting-maxvel)))
+    ;; (format t "energy is ~s~%" *energy*)
+    (format t "integral-minjerk is ~s~%" integral-minjerk)
+    (format t "maxvel is ~s~%" hitting-maxvel)
     
     ) ;;letの締め
 
