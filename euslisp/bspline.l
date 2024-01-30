@@ -481,7 +481,8 @@
    (cond
     ((or (< id 0) (>= id row-max))
      (if (> (max (- x-min x) (- x x-max)) 1e-3)
-         (format t "[basic-spline-element-coeff] invalid x=~A /E [~A,~A]~%" x x-min x-max))
+         ;; (format t "[basic-spline-element-coeff] invalid x=~A /E [~A,~A]~%" x x-min x-max)
+       )
      (setq id (max 0 (min (- row-max 1) id)))))
    (matrix-row coeff-matrix id))
   (:calc

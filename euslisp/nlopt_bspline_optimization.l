@@ -740,8 +740,6 @@
   (setq dt
 	(/ *x-max* 549)
 	)
-  (setq time (+ time dt))
-  (format t "time is ~a~%" time)
 
   ;; 躍度最小
   (setf (aref v2 0) 0)
@@ -750,10 +748,20 @@
   (setq cp
 	(+ cp 1)
 	)
+  ;; 2回目以降の初期化のために、549を超える、つまり550以上なら549を引く
+  (when (> cp 549)
+    (setq cp (- cp 549)
+    ))
 
   (when (= cp 1)
     (setq *energy* 0)
     )
+  (when (= cp 1)
+    (setq time 0)
+    )
+  (setq time (+ time dt))
+  (format t "time is ~a~%" time)
+  
   (format t "*energy* is initialized")
   (format t "!!!!!!!!!!!!!!!制御周期のカウント!!!!!!!!!!!!!!! = ~s~%" cp)
   ;; いや、これもう計算トルク法で実装したときのように、まえの制御で使ったjpos,jvel,jaccを覚えておいて、再度計算すればいいじゃん笑
@@ -1905,7 +1913,8 @@
      )
      (setq motion-choice *motion-choice*)
 
-
+  ;; 確認用     
+  (format t "defun show-optimized-motion is done ~%")
 
 
   ;; initial process
@@ -2331,6 +2340,22 @@
 
         (when (and (eq (send *support-face* :insidep current-zmp-with-offset) :outside) warning)
           (format t "ZMP is on the outside of support polygon at ~a!!~%" x-buf))
+
+	;; 各値を保存するhere.完璧だ.
+	;; (dump-lists)
+	;; (dump-loadable-structure "dump-loadable-structure/hoge.l"
+	;; 			 *bspline-av-list*
+	;; 			 *bspline-tm-list*
+	;; 			 *bspline-zmp-rc-list*
+	;; 			 *bspline-zmp-wc-list*
+	;; 			 *bspline-cog-wc-list*
+	;; 			 *bspline-rc-list*
+	;; 			 *bspline-wc-list**bspline-optional-list*
+	;; 			 *bspline-ec-list*
+	;; 			 *bspline-tau-list*
+	;; 			 *bspline-sweet-spot-list*
+	;; 			 *bspline-hp-list*
+	;; 			 *bspline-jvv-list*)				 
 
         (when specific-time
           (when show-pose
