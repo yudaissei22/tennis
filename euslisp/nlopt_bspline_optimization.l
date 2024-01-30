@@ -749,10 +749,10 @@
 	(+ cp 1)
 	)
   ;; 2回目以降の初期化のために、549を超える、つまり550以上なら549を引く
-  (when (> cp 549)
-    (setq cp (- cp 549)
-	  )
-    )
+  ;; (when (> cp 549)
+  ;;   (setq cp (- cp 549)
+  ;; 	  )
+  ;;   )
 
   (when (= cp 1)
     (setq *energy* 0)
@@ -896,7 +896,7 @@
                     (coerce
                      (mapcar
                       #'(lambda (bs)
-                          ;; (push (send bs :calc-delta (aref v1 (- (length v1) *x-hit-id*)) (subseq v1 (* jid *id-max*) (* (+ jid 1) *id-max*)) :n 1) root-joint-dq) ;; 先にルートリンクの速度を取得
+                          ;; (push (send bs :calc-delta (aref v1 (- (length v1) *x-hit-id*)) (subseq v1 (* jid *id-max*) (* (+ jid 1) *id-max*)) :n 1) root-joint-dq) ;; 先にルートリンクの速度を取得っｐ
                           (push (send bs :calc-delta *default-x-hit* (subseq v1 (* jid *id-max*) (* (+ jid 1) *id-max*)) :n 1) root-joint-dq) ;; 先にルートリンクの速度を取得
                           ;; (send bs :calc (aref v1 (- (length v1) *x-hit-id*)) (subseq v1 (* jid *id-max*) (* (setq jid (+ jid 1)) *id-max*)))
 
@@ -1170,7 +1170,17 @@
 
         (with-open-file
          (f (concatenate string *file-name* "_p.dat") :direction :output :if-exists :append)
-         (format f "~a~%" *tmp-p*)))))
+         (format f "~a~%" *tmp-p*)))
+    ;; letが549回行われ、このequationやfunctionあたりが実行されるので、ここれsetq cp 0をすれば解決では？
+    ;; 次のスイングが行われるので、制御周期をコントロールするcp (control なんでp?)が0になる。      
+    ;; もしくは、show-optimized-motionでZMPを表示し終わったあとにやるのでもよいが...
+    ;; (format t "----------------------------------------------new swing-----------------------------------------------------------~%")
+    ;; (setq cp 0)
+
+      )
+
+    
+    )
 
 
 
@@ -2344,6 +2354,8 @@
         (when (and (eq (send *support-face* :insidep current-zmp-with-offset) :outside) warning)
           (format t "ZMP is on the outside of support polygon at ~a!!~%" x-buf))
 
+
+	
 	;; 各値を保存するhere.完璧だ.
 	;; (dump-lists)
 	;; (dump-loadable-structure "dump-loadable-structure/hoge.l"
@@ -2456,7 +2468,15 @@
         (incf contact-tm-cnt))
 
       (incf show-loop))
-       ;; end while loop
+    ;; end while loop
+    ;; これでzmpの一通りの表示がおわったはず
+
+    ;; (setq cpp (+ cpp 1))
+      (format t "----------------------------------------------new swing-----------------------------------------------------------~a~%" cp )
+      (setq cp 0)
+      ;;
+      (dump-lists)
+
 
 
     (when (not specific-time)

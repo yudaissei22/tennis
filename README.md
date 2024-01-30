@@ -178,4 +178,8 @@ rtmlaunch tennis tennis.launch
 * nlopt-motion-optimizeで、一回スイングしたら、そのときのjoint-angle,torqueの時系列データを.avlistや.taulistで保存すること。
 主に動作が洗練されていく過程でシナジーが発現することを示したいので、素振り初期のデータ
 
-* 
+* 計算速度遅いのは、equataly conditionとかが計算されているからでは？これコメントアウトするべきか？
+* dump-listsで、エラーでるの、なんとかしたい
+```
+/opt/ros/melodic/share/euslisp/jskeus/eus/Linux64/bin/irteusgl 0 error: cannot open /userdir/logs/Jan-31-03-50-25-2024-motion.avlist in (open (concatenate string final-fname extension) :direction :output)
+```
