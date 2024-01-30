@@ -751,14 +751,17 @@
   ;; 2回目以降の初期化のために、549を超える、つまり550以上なら549を引く
   (when (> cp 549)
     (setq cp (- cp 549)
-    ))
+	  )
+    )
 
   (when (= cp 1)
     (setq *energy* 0)
     )
+  
   (when (= cp 1)
     (setq time 0)
     )
+  
   (setq time (+ time dt))
   (format t "time is ~a~%" time)
   
@@ -1005,8 +1008,8 @@
       (setq *jacc*
 		   (send-all *jlist* :get :ddq)
 		   )
-      (format t "jvel at ~s is ~s~%" time *jvel*)
-      (format t "jacc at ~s is ~s~%" time *jacc*)      
+      ;; (format t "jvel at ~s is ~s~%" time *jvel*)
+      ;; (format t "jacc at ~s is ~s~%" time *jacc*)      
       
       ;; エネルギー効率の計算
       (send *robot* :calc-torque-from-vel-acc
@@ -1036,7 +1039,7 @@
 
       ;; jtauと同じ方法で,jvelをgetできないかな？
       ;; (push (coerce (send-all *jlist* :get :dq) float-vector) *jvel*)
-      (format t "jtau at ~s is ~s~%" time *jtau*)      
+      ;; (format t "jtau at ~s is ~s~%" time *jtau*)      
       
       ;; pushだとなんかどっかに保存されて溜まっていくのか？setqが正しいのでは？
       ;; このpushだけだと、ケツだけとってくイメージ。上に溜まっていくのに、ずっと下の同じのを取っている感じ。
@@ -1098,7 +1101,7 @@
       	    )
       )
       
-      (format t "joint energy is: ~s~%" *energy*)
+      ;; (format t "joint energy is: ~s~%" *energy*)
       ;; ~sで、数値を出力
       ;; ~%で、改行
 
@@ -1127,8 +1130,8 @@
           (+ (* *minjerk-weight* integral-minjerk)
              (* *maxvel-weight* hitting-maxvel)))
     ;; (format t "energy is ~s~%" *energy*)
-    (format t "integral-minjerk is ~s~%" integral-minjerk)
-    (format t "maxvel is ~s~%" hitting-maxvel)
+    ;; (format t "integral-minjerk is ~s~%" integral-minjerk)
+    ;; (format t "maxvel is ~s~%" hitting-maxvel)
     
     ) ;;letの締め
 
