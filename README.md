@@ -1,5 +1,6 @@
 # 最適化のプログラム
-寺澤さんのプログラム(euslibにある)を、服部さん(https://github.com/MiraiHattori/tennis)が改良したらしい。
+寺澤さんのプログラム(euslibにある)を、服部さん()が改良したらしい。
+https://github.com/MiraiHattori/tennis
 自分はそれをいじってます。
 
 # 初期軌道生成
@@ -13,6 +14,15 @@ $ (print *ret*) ;; 最後にx-hitを入れると最適化変数初期値*p-orig*
 ```
 
 # 最適化計算
+```
+roseus aaa.l
+```
+```
+do-nlopt
+```
+これで計算が全て回ってくれる。
+
+# 最適化計算 (original version)
 1. euslispディレクトリにおいてroseusを立ち上げ，変数\*motion-choice\*に"forehand"， "batting"， "punch"， "smash"， "forehand-step" などのいずれかの文字列を設定して最適化の動作を選択する．
 ```
 $ roscd tennis/euslisp ;; tennisをビルドしておく
@@ -163,3 +173,9 @@ $ (experiment-init)
 ```bash
 rtmlaunch tennis tennis.launch
 ```
+
+# TO DO
+* nlopt-motion-optimizeで、一回スイングしたら、そのときのjoint-angle,torqueの時系列データを.avlistや.taulistで保存すること。
+主に動作が洗練されていく過程でシナジーが発現することを示したいので、素振り初期のデータ
+
+* 
