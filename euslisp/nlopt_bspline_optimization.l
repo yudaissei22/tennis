@@ -751,6 +751,10 @@
 	(+ cp 1)
 	)
 
+  (when (= cp 1)
+    (setq *energy* 0)
+    )
+  (format t "*energy* is initialized")
   (format t "!!!!!!!!!!!!!!!制御周期のカウント!!!!!!!!!!!!!!! = ~s~%" cp)
   ;; いや、これもう計算トルク法で実装したときのように、まえの制御で使ったjpos,jvel,jaccを覚えておいて、再度計算すればいいじゃん笑
   ;; ほんとは、*bspline*のcalc-deltaで賢くやりたかったけど、引数がよくわからないし、calc-deltaが微分なのかも保証ないし、一旦この邪道でやるしかないか。
@@ -790,7 +794,7 @@
   ;; 	  )
 
   ;;このletから、色々進み出すはず。
-  (let* ((integral-minjerk 0) (hitting-maxvel 0)(*energy* 0))
+  (let* ((integral-minjerk 0) (hitting-maxvel 0))
     (when (not (= *minjerk-weight* 0))
       ;; 躍度の2乗の積分の和
       (let* ((jid 0)
