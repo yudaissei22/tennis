@@ -1,3 +1,15 @@
+# 環境構築
+```
+mkdir tennis_ws/src -p
+cd tennis_ws/src
+git clone https://github.com/yudaissei22/tennis
+git clone https://github.com/MiraiHattori/ball_state_msgs
+rosdep update
+rosdep install --from-paths . --ignore-src -y -r
+cd ..
+catkin build tennis ball_state_msgs
+```
+
 # 最適化のプログラム
 寺澤さんのプログラム(euslibにある)を、服部さん()が改良したらしい。
 https://github.com/MiraiHattori/tennis
