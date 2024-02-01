@@ -1199,7 +1199,7 @@
   (show-optimized-motion v1 :interval-num *interval-num* :real-time nil)
 
   (setq cp 0)
-  (format t "df--------------------------------------------new swing----------------------------------------------------------- ~s~%" cp)  
+  (format t "df")  
   0)
 
 
@@ -1512,7 +1512,7 @@
 
 
   (setq cp 0)
-  (format t "g---------------------------------------------new swing-----------------------------------------------------------~s~%" cp)
+  (format t "g")
 
 
   0)
@@ -1522,7 +1522,7 @@
   (simple-jacobian-transpose v1 v2 (read-from-string "motion-g") :delta *delta*)
   (incf *eval-cnt-g*)
   (setq cp 0)
-  (format t "dg--------------------------------------------new swing-----------------------------------------------------------~s~%" cp)
+  (format t "dg")
   
   0)
 
@@ -1807,7 +1807,7 @@
 
          (format f "~%")))))
   (setq cp 0)
-  (format t "h---------------------------------------------new swing-----------------------------------------------------------~s~%" cp)
+  (format t "h")
   
   0)
 ;; }}}
@@ -1816,8 +1816,7 @@
   (simple-jacobian-transpose v1 v2 (read-from-string "motion-h") :delta *delta*)
   (incf *eval-cnt-h*)
   (setq cp 0)
-  (format t "dh----------------------------------------new swing-----------------------------------------------------------~s~%" cp)
-  
+  (format t "dh")
   0)
 
 
