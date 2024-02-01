@@ -1197,6 +1197,9 @@
   (simple-jacobian-transpose v1 v2 (read-from-string "motion-f") :delta *delta*)
   (incf *eval-cnt-f*)
   (show-optimized-motion v1 :interval-num *interval-num* :real-time nil)
+
+  (setq cp 0)
+  (format t "df--------------------------------------------new swing----------------------------------------------------------- ~s~%" cp)  
   0)
 
 
@@ -1508,6 +1511,8 @@
          (format f "~%")))))
 
 
+  (setq cp 0)
+  (format t "g---------------------------------------------new swing-----------------------------------------------------------~s~%" cp)
 
 
   0)
@@ -1516,6 +1521,9 @@
 (defun-c-callable motion-dg ((v1 :string) (v2 :string)) :integer
   (simple-jacobian-transpose v1 v2 (read-from-string "motion-g") :delta *delta*)
   (incf *eval-cnt-g*)
+  (setq cp 0)
+  (format t "dg--------------------------------------------new swing-----------------------------------------------------------~s~%" cp)
+  
   0)
 
 ;; {{{ 不等式制約 h(x) <= 0
@@ -1798,12 +1806,18 @@
            (format f "~a   " ieq-data))
 
          (format f "~%")))))
+  (setq cp 0)
+  (format t "h---------------------------------------------new swing-----------------------------------------------------------~s~%" cp)
+  
   0)
 ;; }}}
 
 (defun-c-callable motion-dh ((v1 :string) (v2 :string)) :integer
   (simple-jacobian-transpose v1 v2 (read-from-string "motion-h") :delta *delta*)
   (incf *eval-cnt-h*)
+  (setq cp 0)
+  (format t "dh----------------------------------------new swing-----------------------------------------------------------~s~%" cp)
+  
   0)
 
 
@@ -1929,7 +1943,7 @@
      (setq motion-choice *motion-choice*)
 
   ;; 確認用     
-  (format t "defun show-optimized-motion is done ~%")
+  (format t "==================1defun nlopt-motion-optimize is done===================- ~%")
 
 
   ;; initial process
@@ -2376,7 +2390,12 @@
 
         (when specific-time
           (when show-pose
-            (send *irtviewer* :draw-objects)
+	    (send *irtviewer* :logging :clear)
+	    (send *irtviewer* :logging :start)
+	   
+            (send *irtviewer* :draw-objects) ;;ここがzmpだしながらスイングしてるのを表示するとこなのか？
+            (send *irtviewer* :save-animgif :fname "2020-okada-robot-demo.gif")
+	    (send *irtviewer* :logging :stop)
             (x::window-main-one))
 
           (return-from nil 1))
@@ -2474,8 +2493,6 @@
     ;; これでzmpの一通りの表示がおわったはず
 
     ;; (setq cpp (+ cpp 1))
-      (setq cp 0)
-      (format t "----------------------------------------------new swing-----------------------------------------------------------~a~%" cp )
       ;;
       ;; (dump-lists)
 
@@ -2608,7 +2625,12 @@
 
 
 
-    nil))
+    nil)
+  
+      (setq cp 0)
+      (format t "----------------------------------------------new swing-----------------------------------------------------------~a~%" cp )
+
+  )
 
 
 
