@@ -1126,12 +1126,26 @@
     ;;       (+ (* *minjerk-weight* integral-minjerk)
     ;;          (* *maxvel-weight* hitting-maxvel)))
 
+    ;; (setf (aref v2 0)
+    ;;       (+ (* *minjerk-weight* integral-minjerk)
+    ;;          (* *maxvel-weight* hitting-maxvel)))
+
     (setf (aref v2 0)
-          (+ (* *minjerk-weight* integral-minjerk)
-             (* *maxvel-weight* hitting-maxvel)))
+          (/
+	   (* *maxvel-weight* hitting-maxvel)
+           (* *minjerk-weight* *energy*)
+	   ))
+
+    (setq a
+	  (/
+	   (* (* *maxvel-weight* hitting-maxvel) -1)
+           (* *minjerk-weight* *energy*)
+	   )
+	  )
     (format t "energy -> ~s~%" *energy*)
     (format t "integral-minjerk -> ~s~%" integral-minjerk)
     (format t "maxvel -> ~s~%" hitting-maxvel)
+    (format t "energy effieciency -> ~s~%" a)
     
     ) ;;letの締め
 
