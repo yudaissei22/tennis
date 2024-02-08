@@ -1,5 +1,5 @@
 ;; $ roseus
-1;5202;0c;; $ (compile-file "nlopt_bspline_optimization.l")
+;; 5202;0c1;5202;0c;; $ (compile-file "nlopt_bspline_optimization.l")
 ;; $ (setq *motion-choice* "forehand") ;; "punch", "kick", "smash"
 ;; $ (load "nlopt_bspline_optimization.so")
 (require "package://eus_nlopt/euslisp/nlopt")
@@ -1311,6 +1311,9 @@
     (setq x-max-acc (coerce (reverse x-max-acc) float-vector))
 
     ;; 各姿勢の２乗誤差を計算してv2に格納
+    ;; もしかしたら、ここのuse-hit-poseを使わないことにより、インパクトのあれをけせる?
+    (setq *use-hit-pose* nil) ;;ここでnilにして強制的に使わなければよいので？
+    
     (let* ((v2-0 (v- x-min-pose *initial-pose*))
            (v2-1 x-min-vel)
            (v2-2 x-min-acc)
