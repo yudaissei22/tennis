@@ -23,16 +23,16 @@
   (send *ri* :angle-vector (send *robot* :angle-vector) tm)
   )
 
-(if (probe-file "/userdir/logs/timestamp.txt")
+(if (probe-file "/home/yuda/logs/timestamp.txt")
     (let (l)
-        (with-open-file (f "/userdir/logs/timestamp.txt" :direction :input)
+        (with-open-file (f "/home/yuda/logs/timestamp.txt" :direction :input)
             (while (setq l (read-line f nil nil))
                 (setq *timestamp-str* l))))
     (setq *timestamp-str* ""))
 (format t "*timestamp-str* is ~A~%" *timestamp-str*)
 
 (defun experiment-loadpattern
-  (sequence-fname &key (log-fname (concatenate string "/userdir/logs/" *timestamp-str* "loadpattern")) (reverse-fname nil #|"/userdir/logs/reverse"|#))
+  (sequence-fname &key (log-fname (concatenate string "/home/yuda/logs/" *timestamp-str* "loadpattern")) (reverse-fname nil #|"/home/yuda/logs/reverse"|#))
   "Sequence files consist of ***.pos, ***.zmp, ***.waist, ***.optionaldata.
    sequence-fname (***) should be full path.
    revese is the sequence file for returning to the initial pose."
@@ -47,7 +47,7 @@
   )
 
 (defun swing-with-online-adjustment (jpos tm bsorder id-max x-min x-hit x-max p rc zmp optional
-                                          &key (initial-time 10000) (final-time 5000) (log-fname (concatenate string "/userdir/logs/" *timestamp-str* "swing-with-online-adjustment")))
+                                          &key (initial-time 10000) (final-time 5000) (log-fname (concatenate string "/home/yuda/logs/" *timestamp-str* "swing-with-online-adjustment")))
   (format t "set base pos; start sec~%")
   (send *ri* :set-base-pos (send (car *exp-rc1*) :worldpos) initial-time)
   (send *ri* :set-base-rpy (coerce (reverse (nth 0 (rpy-angle (send (car *exp-rc1*) :worldrot)))) float-vector) initial-time)
@@ -179,7 +179,7 @@
 
 (defun experiment-angle-vector-sequence-full
   (jpos tm rc zmp optional
-   &key (initial-time 10000) (final-time 5000) (log-fname (concatenate string "/userdir/logs/" *timestamp-str* "angle-vector-sequence-full")))
+   &key (initial-time 10000) (final-time 5000) (log-fname (concatenate string "/home/yuda/logs/" *timestamp-str* "angle-vector-sequence-full")))
 
   ;;(send *ri* :set-interpolation-mode :linear)
   (send *ri* :start-log)
@@ -192,7 +192,7 @@
 
 (defun experiment-angle-vector-sequence-full-with-bspline
   (jpos tm bsorder id-max x-min x-hit x-max p rc zmp optional
-   &key (initial-time 10000) (final-time 5000) (log-fname (concatenate string "/userdir/logs/" *timestamp-str* "angle-vector-sequence-full-with-bspline")))
+   &key (initial-time 10000) (final-time 5000) (log-fname (concatenate string "/home/yuda/logs/" *timestamp-str* "angle-vector-sequence-full-with-bspline")))
 
   ;;(send *ri* :set-interpolation-mode :linear)
   (send *ri* :start-log)

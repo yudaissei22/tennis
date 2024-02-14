@@ -1,8 +1,9 @@
 ;; $ roseus
-;; 5202;0c1;5202;0c;; $ (compile-file "nlopt_bspline_optimization.l")
+;; ;5202;0c;; $ (compile-file "nlopt_bspline_optimization.l")
 ;; $ (setq *motion-choice* "forehand") ;; "punch", "kick", "smash"
 ;; $ (load "nlopt_bspline_optimization.so")
 (require "package://eus_nlopt/euslisp/nlopt")
+(require "package://tennis/euslisp/plot-utils.l")
 (when (and (not (boundp '*p-orig*)) (not (boundp '*x-max-of-p-orig*)))
     (require "package://tennis/config/p-orig"))
 
@@ -129,6 +130,7 @@
   (setq vq-tmp '())
   (setq dt '())
   (setq time 0)
+  (setq epoch 0)
   (setq jpos-list '())
   (setq jvel-list '())
   (setq jacc-list '())  
@@ -498,144 +500,38 @@
   nil)
 
 
-
-(defun dump-list
-  (&key
-   (robot *robot*)
-   (type "av")
-   (fpath "/userdir/logs")
-   (fname-auto (concatenate string
-                            "/"
-                            (subseq (substitute #\- #\: (substitute #\- #\ (unix:asctime (unix:localtime)))) 4 (1- (length (unix:asctime (unix:localtime)))) )
-                            "-"))
-   (fname "motion")
-   (extension (cond
-           ((equal type "av") ".avlist")
-           ((equal type "tau") ".taulist")
-           ((equal type "xyz") ".xyzlist")
-           (t "raw.rawlist")
-           )
-          )
-   (tm-list *bspline-tm-list*) (limb nil)
-   (final-fname (concatenate string fpath fname-auto fname))
-   (xyz-offset #f(0 0 0))
-   (plot-list
-    (cond
-     ((equal type "av") *bspline-av-list*)
-     ((equal type "tau") *bspline-tau-list*)
-     ((equal type "xyz") ;; (progn (show-vel-from-coords-list :plot nil :fname (concatenate string final-fname ".vellist"))
-                         ;;        (format t "dump ~a~%" (concatenate string final-fname ".vellist"))
-                         ;;        *bspline-hp-list*))
-      *bspline-hp-list*)
-     )
-    )
-   )
-  (when (equal type "xyz")
-    (show-vel-from-coords-list :plot nil :fname (concatenate string final-fname ".vellist"))
-    (format t "dump ~a~%" (concatenate string final-fname ".vellist"))
-    )
-  "The function dumps the plot-list."
-
-  ;; for xyz list
-  (when (consp (car plot-list))
-    (print xyz-offset)
-    (let* ((newlist nil) newfv (xyz-flag nil))
-      (dotimes (i (length (car plot-list)))
-        (setq newfv nil)
-        (dolist (pl plot-list)
-          (if (vectorp (nth i pl))
-              (setq newfv (concatenate float-vector newfv (nth i pl)))
-            (progn
-              (setq newfv (concatenate float-vector newfv (v- (send (nth i pl) :worldpos) xyz-offset))) ;; xyz
-              (setq xyz-flag t)
-              )
-            )
-          )
-        (when xyz-flag
-          (let* (
-                 (x-act (aref newfv 0))
-                 (y-act (aref newfv 1))
-                 (z-act (aref newfv 2))
-                 (x-ref (aref newfv 3))
-                 (y-ref (aref newfv 4))
-                 (z-ref (aref newfv 5))
-                 ;; (x-act (- (aref newfv 0) (aref xyz-offset 0)))
-                 ;; (y-act (- (aref newfv 1) (aref xyz-offset 1)))
-                 ;; (z-act (- (aref newfv 2) (aref xyz-offset 2)))
-                 ;; (x-ref (- (aref newfv 3) (aref xyz-offset 0)))
-                 ;; (y-ref (- (aref newfv 4) (aref xyz-offset 1)))
-                 ;; (z-ref (- (aref newfv 5) (aref xyz-offset 2)))
-                 )
-            (setq newfv (concatenate float-vector
-                                     newfv
-                                     (list
-                                      (sqrt (+ (* (- x-ref x-act) (- x-ref x-act)) (* (- z-ref z-act) (- z-ref z-act))))
-                                      (sqrt (+ (* (- x-ref x-act) (- x-ref x-act)) (* (- y-ref y-act) (- y-ref y-act)) (* (- z-ref z-act) (- z-ref z-act))))
-                                      )
-                                     ))
-            ;;(when (= i 1) (print newfv))
-            )
-          )
-        (push newfv newlist)
-        )
-      (setq newlist (reverse newlist))
-      (setq plot-list newlist)
-      )
-    )
-
-  (with-open-file
-   (f (concatenate string final-fname extension) :direction :output)
-   (dotimes (i (length tm-list))
-     ;;(print (nth i plot-list))
-     (format f "~a " (nth i tm-list))
-     (let* ((y
-             (cond
-              ((equal type "av")
-               (if limb
-                   (progn
-                     (send *robot* :angle-vector (nth i plot-list))
-                     (send *robot* limb :angle-vector)
-                     )
-                 (nth i plot-list)))
-              ((equal type "xyz")
-               ;;(print (nth i plot-list))
-               (if (vectorp (nth i plot-list))
-                   (scale 1e-3 (nth i plot-list))
-                 (scale 1e-3 (send (nth i plot-list) :worldpos))
-                 )
-               )
-              (t (nth i plot-list))
-              )
-             ))
-       (dotimes (j (length y))
-         (format f "~a " (aref y j))
-         )
-       )
-     (format f "~%")
-     )
-   )
-  (format t "dump ~a~%" (concatenate string final-fname extension))
-  nil
+;; ==========================Yuda add =============================
+(defun resave ()
+  (setq *bspline-av-list* (reverse *bspline-av-list*))
+  (setq *bspline-tm-list* (reverse *bspline-tm-list*))
+  (setq *bspline-zmp-rc-list* (reverse *bspline-zmp-rc-list*))
+  (setq *bspline-zmp-wc-list* (reverse *bspline-zmp-wc-list*))
+  (setq *bspline-cog-wc-list* (reverse *bspline-cog-wc-list*))
+  (setq *bspline-rc-list* (reverse *bspline-rc-list*))
+  (setq *bspline-wc-list* (reverse *bspline-wc-list*))
+  (setq *bspline-optional-list* (reverse *bspline-optional-list*))
+  (setq *bspline-ec-list* (reverse *bspline-ec-list*))
+  (setq *bspline-tau-list* (reverse *bspline-tau-list*))
+  (setq *bspline-hp-list* (reverse *bspline-hp-list*))
+  (dump-loadable-structure
+   ;; "/home/yuda/energy5e-1withoutv2-3.l"
+			   "~/euslib/demo/terasawa/catkin_ws/src/baseball/euslisp/energy5e-1.l"
+			   *bspline-av-list*
+			   *bspline-tm-list*
+			   *bspline-zmp-rc-list*
+			   *bspline-cog-wc-list*
+			   *bspline-rc-list*
+			   *bspline-wc-list*
+			   *bspline-optional-list*
+			   *bspline-ec-list*
+			   *bspline-tau-list*
+			   *bspline-hp-list*
+			   *p*
+			   *x-max-of-p-orig*			  
+			   )
   )
 
 
-(defun dump-lists
-  (&key
-   (robot *robot*)
-   (type-list (list "av" "xyz" "tau"))
-   (fpath "/userdir/logs")
-   (fname-auto (concatenate string
-                            "/"
-                            (subseq (substitute #\- #\: (substitute #\- #\ (unix:asctime (unix:localtime)))) 4 (1- (length (unix:asctime (unix:localtime)))) )
-                            "-"))
-   (fname "motion")
-   (tm-list *bspline-tm-list*) (limb nil)
-   )
-  (dolist (tl type-list)
-    (dump-list :fpath fpath :fname-auto fname-auto :type tl)
-    )
-  nil
-  )
 
 ;; end-coordsをラケットの*hit-point*に変更
 (defun modify-end-coords (&key (robot *robot*))
@@ -663,12 +559,6 @@
       (send (send robot *limb* :end-coords) :assoc *target-coords*)
       (send robot :move-to robot-coords :world)
       (send robot :angle-vector robot-angle-vector))))
-
-
-
-
-
-
 
 ;; making root-joint initial state and upper or lower limit
 (defun make-concatenate-rootjoint (rootcoords-list &key (concatenate-root-joint *concatenate-root-joint*))
@@ -765,7 +655,7 @@
   (setq time (+ time dt))
   (format t "time is ~a~%" time)
   
-  (format t "*energy* is initialized")
+  ;; (format t "*energy* is initialized")
   (format t "!!!!!!!!!!!!!!!制御周期のカウント!!!!!!!!!!!!!!! = ~s~%" cp)
   ;; いや、これもう計算トルク法で実装したときのように、まえの制御で使ったjpos,jvel,jaccを覚えておいて、再度計算すればいいじゃん笑
   ;; ほんとは、*bspline*のcalc-deltaで賢くやりたかったけど、引数がよくわからないし、calc-deltaが微分なのかも保証ないし、一旦この邪道でやるしかないか。
@@ -1211,6 +1101,8 @@
   (simple-jacobian-transpose v1 v2 (read-from-string "motion-f") :delta *delta*)
   (incf *eval-cnt-f*)
   (show-optimized-motion v1 :interval-num *interval-num* :real-time nil)
+  (dump-lists)
+  (setq epoch (+ epoch 1))
 
   (setq cp 0)
   (format t "df")  
@@ -2810,6 +2702,9 @@
 (defun file-init (file-name)
   (with-open-file
    (f file-name :direction :output :if-exists :new-version)))
+
+
+;; plot-utils.lのコピペ
 
 
 #|

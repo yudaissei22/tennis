@@ -1,5 +1,10 @@
-(require "package://tennis/../../../../../irteus_proposals/motion-lib-proposal.l")
-(require "package://tennis/../../../../../jsk/gnuplotlib.l")
+(require "package://tennis/euslib_cp/irteus_proposals/motion-lib-proposal.l")
+(require "package://tennis/euslib_cp/jsk/gnuplotlib.l")
+
+;; ;; (require "package://tennis/../../../../../euslib/irteus_proposals/motion-lib-proposal.l")
+;; ;; これが呼べなくて困っている。euslibにパスを繋げばいける？
+;; baseballのwsのを使用する。
+
 (require "package://tennis/euslisp/my-range.l")
 (require "package://tennis/euslisp/robot-interface.l")
 
@@ -26,7 +31,7 @@
 
 
 (defun show-vel-from-coords-list
-  (&key (direction (list t #f(0 0 1))) (tm-list *bspline-tm-list*) (coords-list *bspline-hp-list*) (fname "/userdir/logs/show-vel-from-coords-list.txt")
+  (&key (direction (list t #f(0 0 1))) (tm-list *bspline-tm-list*) (coords-list *bspline-hp-list*) (fname "/home/yuda/logs/show-vel-from-coords-list.txt")
         (plot t) (title "Linear Velocity") (xlabel "Time [s]") (ylabel "Linear Velocity [m/s]") (keylist (list "linear velocity")))
   "If :direction is (list t float-vector), the linear velocity in a normal dirction of float-vector.
    If :direction is float-vector (dim=3), the velocity in direction axis is output.
@@ -81,7 +86,7 @@
 
 
 (defun dump-coords-worldpos-xyz
-  (&key (xyz 2) (fname (concatenate string "/userdir/logs/coords-world-" (cond ((= xyz 0) "x.txt") ((= xyz 1) "y.txt") ((= xyz 2) "z.txt")))) (tm-list *bspline-tm-list*) (coords-list *bspline-ss-list*))
+  (&key (xyz 2) (fname (concatenate string "/home/yuda/logs/coords-world-" (cond ((= xyz 0) "x.txt") ((= xyz 1) "y.txt") ((= xyz 2) "z.txt")))) (tm-list *bspline-tm-list*) (coords-list *bspline-ss-list*))
   "The function dumps the x-, y-, or z-coordinates of the coords-list."
   (with-open-file
    (f fname :direction :output)
@@ -238,11 +243,12 @@
   (&key
    (robot *robot*)
    (type "av")
-   (fpath "/userdir/logs")
-   (fname-auto (concatenate string
-                            "/"
-                            (subseq (substitute #\- #\: (substitute #\- #\ (unix:asctime (unix:localtime)))) 4 (1- (length (unix:asctime (unix:localtime)))) )
-                            "-"))
+   (fpath "/home/yuda/logs/")
+   (fname-auto (concatenate string "maxvel-weight" (string *maxvel-weight*) "-energy-weight" (string *minjerk-weight*) "-"))   
+   ;; (fname-auto (concatenate string
+   ;;                          "/"
+   ;;                          (subseq (substitute #\- #\: (substitute #\- #\ (unix:asctime (unix:localtime)))) 4 (1- (length (unix:asctime (unix:localtime)))) )
+   ;;                          "-"))
    (fname "motion")
    (extension (cond
            ((equal type "av") ".avlist")
@@ -358,11 +364,12 @@
   (&key
    (robot *robot*)
    (type-list (list "av" "xyz" "tau"))
-   (fpath "/userdir/logs")
-   (fname-auto (concatenate string
-                            "/"
-                            (subseq (substitute #\- #\: (substitute #\- #\ (unix:asctime (unix:localtime)))) 4 (1- (length (unix:asctime (unix:localtime)))) )
-                            "-"))
+   (fpath "/home/yuda/logs/")
+   (fname-auto (concatenate string "maxvel-weight" (string *maxvel-weight*) "-energy-weight" (string *minjerk-weight*) "-"))
+   ;; (fname-auto (concatenate string
+   ;;                          "/"
+   ;;                          (subseq (substitute #\- #\: (substitute #\- #\ (unix:asctime (unix:localtime)))) 4 (1- (length (unix:asctime (unix:localtime)))) )
+   ;;                          "-"))
    (fname "motion")
    (tm-list *bspline-tm-list*) (limb nil)
    )
@@ -383,7 +390,8 @@
    (show-pose t)
    (fix-leg-coords (list :lleg *lfoot*))
    (dump t)
-   (fpath "/userdir/logs")
+   (fpath "/home/yuda/logs")
+   
    (fname-auto (concatenate string
                             "/"
                             (subseq (substitute #\- #\: (substitute #\- #\ (unix:asctime (unix:localtime)))) 4 (1- (length (unix:asctime (unix:localtime)))) )
@@ -495,7 +503,7 @@
    (show-pose t)
    (fix-leg-coords (list :lleg *lfoot*))
    (dump t)
-   (fpath "/userdir/logs")
+   (fpath "/home/yuda/logs/")
    (fname-auto (concatenate string
                             "/"
                             (subseq (substitute #\- #\: (substitute #\- #\ (unix:asctime (unix:localtime)))) 4 (1- (length (unix:asctime (unix:localtime)))) )
@@ -686,8 +694,8 @@
 ;; python jaxon_avlist_from_logref.py ~(log) avlist.l
 ;; load "avlist.l"
 
-;;(replay-real-motion *real-avlist* :fpath "/home/future731/userdir/logs/" :make-list nil :start-time 0.0 :xyz-offset (progn (show-optimized-motion *p* :specific-time (eval *x-hit*) :fix-leg-coords (list :rleg *rfoot*)) (send *hit-point* :worldpos)))
-(replay-real-motion *real-avlist* :fpath "/home/future731/userdir/logs/" :make-list nil :start-time 0.0 :xyz-offset (progn (show-optimized-motion *p* :specific-time (eval *x-hit*) :fix-leg-coords (list :lleg *lfoot*)) (send *hit-point* :worldpos)))
+;;(replay-real-motion *real-avlist* :fpath "/home/future731/home/yuda/logs/" :make-list nil :start-time 0.0 :xyz-offset (progn (show-optimized-motion *p* :specific-time (eval *x-hit*) :fix-leg-coords (list :rleg *rfoot*)) (send *hit-point* :worldpos)))
+(replay-real-motion *real-avlist* :fpath "/home/future731/home/yuda/logs/" :make-list nil :start-time 0.0 :xyz-offset (progn (show-optimized-motion *p* :specific-time (eval *x-hit*) :fix-leg-coords (list :lleg *lfoot*)) (send *hit-point* :worldpos)))
 
-(replay-real-motion2 *real-avlist-sh_q* *real-avlist-st_q* :fpath "/home/future731/userdir/logs/"  :start-time 0.0 :xyz-offset (progn (send *robot* :angle-vector (nth (round (/ (eval *x-hit*) 0.002)) *real-avlist-sh_q*) ) (send *robot* :fix-leg-to-coords *lfoot* :lleg ) (send *hit-point* :worldpos)) :fix-leg-coords (list :lleg *lfoot*))
+(replay-real-motion2 *real-avlist-sh_q* *real-avlist-st_q* :fpath "/home/future731/home/yuda/logs/"  :start-time 0.0 :xyz-offset (progn (send *robot* :angle-vector (nth (round (/ (eval *x-hit*) 0.002)) *real-avlist-sh_q*) ) (send *robot* :fix-leg-to-coords *lfoot* :lleg ) (send *hit-point* :worldpos)) :fix-leg-coords (list :lleg *lfoot*))
 |#

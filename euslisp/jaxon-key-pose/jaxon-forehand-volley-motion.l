@@ -112,7 +112,7 @@
 
   (joint-limit-without-margin :robot robot)
 
-  (send *viewer* :viewsurface :write-to-image-file "/userdir/logs/pose1.jpg")
+  ;; (send *viewer* :viewsurface :write-to-image-file "/yuda/home/logs/pose1.jpg")
   (list :angle-vector (send robot :angle-vector)
         :root-coords (send (car (send robot :links)) :copy-worldcoords) ;; (send robot :copy-worldcoords)
         :worldcoords (send robot :copy-worldcoords)
@@ -196,7 +196,7 @@
 
 
   (joint-limit-without-margin :robot robot)
-  (send *viewer* :viewsurface :write-to-image-file "/userdir/logs/pose2.jpg")
+  ;; (send *viewer* :viewsurface :write-to-image-file "/yuda/home/logs/pose2.jpg")
   (list :angle-vector (send robot :angle-vector)
         :root-coords (send (car (send robot :links)) :copy-worldcoords) ;; (send robot :copy-worldcoords)
         :worldcoords (send robot :copy-worldcoords)
@@ -280,7 +280,7 @@
 
   (joint-limit-without-margin :robot robot)
 
-  (send *viewer* :viewsurface :write-to-image-file "/userdir/logs/pose3.jpg")
+  ;; (send *viewer* :viewsurface :write-to-image-file "/yuda/home/logs/pose3.jpg")
   (list :angle-vector (send robot :angle-vector)
         :root-coords (send (car (send robot :links)) :copy-worldcoords) ;; (send robot :copy-worldcoords)
         :worldcoords (send robot :copy-worldcoords)
@@ -446,7 +446,7 @@
 
   (joint-limit-without-margin :robot robot)
 
-  (send *viewer* :viewsurface :write-to-image-file "/userdir/logs/pose4.jpg")
+  ;; (send *viewer* :viewsurface :write-to-image-file "/yuda/home/logs/pose4.jpg")
   (list :angle-vector (send robot :angle-vector)
         :root-coords (send (car (send robot :links)) :copy-worldcoords) ;; (send robot :copy-worldcoords)
         :worldcoords (send robot :copy-worldcoords)
@@ -537,7 +537,7 @@
 
   (joint-limit-without-margin :robot robot)
 
-  (send *viewer* :viewsurface :write-to-image-file "/userdir/logs/pose5.jpg")
+  ;; (send *viewer* :viewsurface :write-to-image-file "/yuda/home/logs/pose5.jpg")
   (list :angle-vector (send robot :angle-vector)
         :root-coords (send (car (send robot :links)) :copy-worldcoords) ;; (send robot :copy-worldcoords)
         :worldcoords (send robot :copy-worldcoords)
