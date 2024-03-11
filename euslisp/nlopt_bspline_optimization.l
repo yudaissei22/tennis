@@ -51,8 +51,13 @@
     (&key
      (robot *robot*)
      (motion-choice *motion-choice*)
-     (init (qp-init))
+     ;; original version
+     ;; (init (qp-init))
 
+     ;; terasawa version     
+
+     (init (load "package://tennis/config/p-orig.l") ;; for setq *p-orig* and *x-max-of-p-orig*
+         )
      (use-all-joint t)
      (use-append-root-joint t)
      (jlist (if use-all-joint
@@ -134,9 +139,6 @@
   (setq jpos-list '())
   (setq jvel-list '())
   (setq jacc-list '())  
-  (setq pre-jpos-list '())
-  (setq pre-jvel-list '())
-  (setq pre-jacc-list '())
 
   (setq *jlist* jlist) ;; length jlist = 33
   (setq *jvel-list* (flatten (send robot :torso :joint-list) (send robot *limb* :joint-list)))
@@ -515,7 +517,7 @@
   (setq *bspline-hp-list* (reverse *bspline-hp-list*))
   (dump-loadable-structure
    ;; "/home/yuda/energy5e-1withoutv2-3.l"
-			   "~/euslib/demo/terasawa/catkin_ws/src/baseball/euslisp/energy5e-1.l"
+   "hozon_tmp.l"
 			   *bspline-av-list*
 			   *bspline-tm-list*
 			   *bspline-zmp-rc-list*
@@ -614,12 +616,11 @@
       (dotimes (j h)
         (setf (aref v2 (+ j (* i h))) (aref tmp-jacobian (+ i (* j w))))))))
 
-;; {{{ 目的関数 min f(x)
+;; 目的関数 min f(x)
 ;; v1: 設計変数p ((33+4) * *id-max* + timing vars)
 ;; v2: 1次元
 ;; 返り値: 成功なら0?
 (defun-c-callable motion-f ((v1 :string) (v2 :string)) :integer
-  (format t "~%")
   ;; nice
   (format t "defun-c-callable motion-f is done! ~%")
   ;; 549回実行された。これか。つまり、どっかで549回、defun-c-callableを読んでるのか。
@@ -635,19 +636,10 @@
   (setf (aref v2 0) 0)
 
   ;; 制御周期の把握
-  (setq cp
-	(+ cp 1)
-	)
-  ;; 2回目以降の初期化のために、549を超える、つまり550以上なら549を引く
-  ;; (when (> cp 549)
-  ;;   (setq cp (- cp 549)
-  ;; 	  )
-  ;;   )
-
+  
   (when (= cp 1)
     (setq *energy* 0)
     )
-  
   (when (= cp 1)
     (setq time 0)
     )
@@ -659,12 +651,10 @@
   (format t "!!!!!!!!!!!!!!!制御周期のカウント!!!!!!!!!!!!!!! = ~s~%" cp)
   ;; いや、これもう計算トルク法で実装したときのように、まえの制御で使ったjpos,jvel,jaccを覚えておいて、再度計算すればいいじゃん笑
   ;; ほんとは、*bspline*のcalc-deltaで賢くやりたかったけど、引数がよくわからないし、calc-deltaが微分なのかも保証ないし、一旦この邪道でやるしかないか。
-
   ;; (setq pre-jpos-list (send *robot* :angle-vector))
   ;; これeusは複雑な制御式をかけないらしい、、ゆうて今回のは複雑でもないしprognでいけるか？
   ;; (if (= cp 1)
   ;;   (setq jvel-list '())
-
   ;;   (setq jvel-list (scale (/ 1 dt) (v- jpos-list pre-jpos-list))
   ;; 	  ;; scale number float-vectorで、float-vectorの各要素をnumber倍する。
   ;; 	  ))
@@ -682,15 +672,12 @@
   ;; 	)
   ;; (format t "====================jlist is=================~a~%" tmpb)
 
-
   ;; だめだ、値が変わらない...
-  ;; これbsplineを使わないとダメなんじゃね？しんど〜〜
-  
+  ;; これbsplineを使わないとダメなんじゃね？しんど〜〜 
   ;; (format t "====================jvel-list is=================~a~%" jvel-list)
   ;; (format t "letの前 ~%")
   ;; (if (= cp 1)
   ;;   (setq jacc-list '())
-
   ;;   (setq jvel-list (/ (- jpos-list pre-jpos-list) dt)
   ;; 	  )
 
@@ -1020,18 +1007,22 @@
     ;;       (+ (* *minjerk-weight* integral-minjerk)
     ;;          (* *maxvel-weight* hitting-maxvel)))
 
+    ;; 評価関数の最小化。よって、min(v/w)でよいはず。
+    ;; 本当に最小化か？最大化ではないのか？これどこで確認できるんだ？
     (setf (aref v2 0)
           (/
 	   (* *maxvel-weight* hitting-maxvel)
            (* *minjerk-weight* *energy*)
-	   ))
-
-    (setq a
-	  (/
-	   (* (* *maxvel-weight* hitting-maxvel) -1)
-           (* *minjerk-weight* *energy*)
 	   )
 	  )
+
+    (setq a
+          (/
+	   (* *maxvel-weight* hitting-maxvel)
+           (* *minjerk-weight* *energy*)
+	   )	
+	  )
+    
     (format t "energy -> ~s~%" *energy*)
     (format t "integral-minjerk -> ~s~%" integral-minjerk)
     (format t "maxvel -> ~s~%" hitting-maxvel)
@@ -1087,9 +1078,7 @@
     
   ;;   )
 ;;;;;;;;;;;;;;;;;;;;;
-
-
-
+  (setq cp (+ cp 1))
 
   0)
 ;; }}}
@@ -1104,7 +1093,7 @@
   (dump-lists)
   (setq epoch (+ epoch 1))
 
-  (setq cp 0)
+  (setq cp 1)
   (format t "df")  
   0)
 
@@ -1420,7 +1409,7 @@
          (format f "~%")))))
 
 
-  (setq cp 0)
+  (setq cp 1)
   (format t "g")
 
 
@@ -1430,7 +1419,7 @@
 (defun-c-callable motion-dg ((v1 :string) (v2 :string)) :integer
   (simple-jacobian-transpose v1 v2 (read-from-string "motion-g") :delta *delta*)
   (incf *eval-cnt-g*)
-  (setq cp 0)
+  (setq cp 1)
   (format t "dg")
   
   0)
@@ -1715,7 +1704,7 @@
            (format f "~a   " ieq-data))
 
          (format f "~%")))))
-  (setq cp 0)
+  (setq cp 1)
   (format t "h")
   
   0)
@@ -1724,7 +1713,7 @@
 (defun-c-callable motion-dh ((v1 :string) (v2 :string)) :integer
   (simple-jacobian-transpose v1 v2 (read-from-string "motion-h") :delta *delta*)
   (incf *eval-cnt-h*)
-  (setq cp 0)
+  (setq cp 1)
   (format t "dh")
   0)
 

@@ -1,13 +1,17 @@
 (defun do-nlopt()
-					;5202;0c  ;;　引数が必要な関数をprintされるように、するとよい
-  (load "qp-bspline-optimization.l")
-  (qp-init)
-  (qp-motion-optimize :use-all-joint t :use-append-root-joint t :use-margin 30 :id-max 14 :recursive-order 5 :x-min 0.0 :x-max 1.0 :x-hit 0.5)
-  (print *ret*)
+  
+  ;; (setq *motion-choice* (string motion))
+
+  ;; 初期軌道生成
+  ;; (load "qp-bspline-optimization.l")
+  ;; (qp-init)
+  ;; (qp-motion-optimize :use-all-joint t :use-append-root-joint t :use-margin 30 :id-max 14 :recursive-order 5 :x-min 0.0 :x-max 1.0 :x-hit 0.5)
+  ;; (print *ret*)
+  
   (setq *motion-choice* "forehand")
   (unix:sleep 2)
   (load "nlopt_bspline_optimization.l")
   (nlopt-init :x-max 2.4 :x-hit nil :id-max 14 :recursive-order 5 :use-all-joint t :use-append-root-joint t :support-polygon-margin (list 50 50 0 100 50) :epsilon-c 30 :mu 0.3 :use-final-pose nil :default-switching-list nil :use-6dof-p t)
   (unix:sleep 3)
   (nlopt-motion-optimize :x-max 2.4 :x-hit 1.46104 :id-max 14 :recursive-order 5 :max-eval 100000000 :alg SLSQP :delta (deg2rad 0.01) :eqthre 1e-8 :xtol 1e-10 :ftol 1e-15 :use-all-joint t :use-margin 0.5 :use-append-root-joint t :maxvel-weight 1 :minjerk-weight 1e-1 :modify-ec t :p *p* :interval-num 48 :title "maximize-speed" :max-time (* 2 24 60 60) :file-path "/tmp")
-    )
+  )
