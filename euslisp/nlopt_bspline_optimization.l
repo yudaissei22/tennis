@@ -128,10 +128,10 @@
   (setq *jtau* '())
   (setq *jacc* '())
   (setq a '())
-  (setq cp 0)
+  (setq cp 1)
   (setq i 0) ;; i for increment 
-  ;; (setq energy 0)
-  ;; (setq *energy* 0)
+  (setq energy 0)
+  (setq *energy* 0)
   (setq vq-tmp '())
   (setq dt '())
   (setq time 0)
@@ -635,8 +635,7 @@
   ;; 躍度最小
   (setf (aref v2 0) 0)
 
-  ;; 制御周期の把握
-  
+  ;; 制御周期の把握 
   (when (= cp 1)
     (setq *energy* 0)
     )
@@ -740,7 +739,6 @@
     ;; hitting-poseにおける速度の最大化
     (when (not (= *maxvel-weight* 0))
       (let* ((jid 0) (root-joint-dq nil) hitting-direction hitting-sweet-spot hitting-jacobian hitting-dq hitting-dr)
-
 	
         ;; ここは最適化に含まれる時間を設定するところ
         ;; 時刻を消したかったら(aref v1 (- (length v1) *x-hit-id*))をx(定数)とすればよい
@@ -856,6 +854,7 @@
 
       ;;  *jlist* *bspline*)
       ;; )
+      
       (let* ((jid 0))
        (mapc
          #'(lambda (jl bs)
@@ -873,9 +872,7 @@
 		   )
 	     ;; (format t "vector at ~a~% is ~s~%" time aaa)
       
-	     ;; (format t "jvel at ~a~% is ~a~%" time jvel-tmp)
              (setq jid (+ jid 1)))
-
          *jlist* *bspline*)
        )
       
@@ -885,8 +882,9 @@
       (setq *jacc*
 		   (send-all *jlist* :get :ddq)
 		   )
-      ;; (format t "jvel at ~s is ~s~%" time *jvel*)
-      ;; (format t "jacc at ~s is ~s~%" time *jacc*)      
+      
+      (format t "jvel at ~s is ~s~%" time *jvel*)
+      (format t "jacc at ~s is ~s~%" time *jacc*)      
       
       ;; エネルギー効率の計算
       (send *robot* :calc-torque-from-vel-acc
@@ -978,15 +976,10 @@
       	    )
       )
       
-      ;; (format t "joint energy is: ~s~%" *energy*)
-      ;; ~sで、数値を出力
-      ;; ~%で、改行
-
       (setq jpos-list (send *robot* :angle-vector))
       ;; (format t "========letの後の=========jpos-list is=================~a~%" jpos-list)
 
-      ;; (setq pre-jvel-list ())
-      
+      ;; (setq pre-jvel-list ())      
 
       ;; (mapc
       ;;  #'(lambda (jl bs)
@@ -1753,8 +1746,6 @@
                  (send robot :torso :joint-list)
                  (send robot *limb* :joint-list)))
 
-
-
      (id-max *id-max*) ;; タスク変数より大きくする（今回は位置姿勢の6か？）
      (recursive-order *recursive-order*)
 
@@ -1840,7 +1831,7 @@
      (setq motion-choice *motion-choice*)
 
   ;; 確認用     
-  (format t "==================1defun nlopt-motion-optimize is done===================- ~%")
+  (format t "==================defun nlopt-motion-optimize is done===================- ~%")
 
 
   ;; initial process
@@ -2086,6 +2077,7 @@
           :ftol ftol ;; 1e-10
           :xtol xtol)) ;; 1e-10
          )
+	 ;; read-from-stringとは、stringからs表現を読み込むもの。
 
          (setq *p* (copy-seq p))
          (print *p*)
