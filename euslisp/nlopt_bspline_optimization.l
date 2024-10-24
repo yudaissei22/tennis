@@ -131,14 +131,21 @@
   (setq cp 1)
   (setq i 0) ;; i for increment 
   (setq energy 0)
-  (setq *energy* 0)
   (setq vq-tmp '())
   (setq dt '())
   (setq time 0)
   (setq epoch 0)
   (setq jpos-list '())
   (setq jvel-list '())
-  (setq jacc-list '())  
+  (setq jacc-list '())
+  (setq *energy* 0)
+  (setq *tau-diff-norm* 0)
+  (setq *hitting-maxvel-cp* 0)
+  (setq *mode* "2")
+  (format t "評価関数は、1:jerk、2:energy、3:トルク変化 ~%")
+  (format t "一旦評価関数はenergyで固定する~%")
+  (setq opt_number 0)
+  
 
   (setq *jlist* jlist) ;; length jlist = 33
   (setq *jvel-list* (flatten (send robot :torso :joint-list) (send robot *limb* :joint-list)))
@@ -515,9 +522,10 @@
   (setq *bspline-ec-list* (reverse *bspline-ec-list*))
   (setq *bspline-tau-list* (reverse *bspline-tau-list*))
   (setq *bspline-hp-list* (reverse *bspline-hp-list*))
+  (setq fname
+	(concatenate string *motion-choice* "_"  *obj* "_" (princ-to-string opt_number) ".l"))  
   (dump-loadable-structure
-   ;; "/home/yuda/energy5e-1withoutv2-3.l"
-   "hozon_tmp.l"
+   fname
 			   *bspline-av-list*
 			   *bspline-tm-list*
 			   *bspline-zmp-rc-list*
@@ -529,7 +537,9 @@
 			   *bspline-tau-list*
 			   *bspline-hp-list*
 			   *p*
-			   *x-max-of-p-orig*			  
+			   *x-max-of-p-orig*
+			   *motion-choice*
+			   *hitting-maxvel-cp*
 			   )
   )
 
