@@ -1,5 +1,5 @@
-(require "package://tennis/euslib_cp/irteus_proposals/motion-lib-proposal.l")
-(require "package://tennis/euslib_cp/jsk/gnuplotlib.l")
+(require "package://tennis/../irteus_proposals/motion-lib-proposal.l")
+(require "package://tennis/../gnuplotlib.l")
 
 ;; ;; (require "package://tennis/../../../../../euslib/irteus_proposals/motion-lib-proposal.l")
 ;; ;; これが呼べなくて困っている。euslibにパスを繋げばいける？

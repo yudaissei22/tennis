@@ -1,7 +1,9 @@
 ;; $ roseus
-;; ;5202;0c;; $ (compile-file "nlopt_bspline_optimization.l")
+
 ;; $ (setq *motion-choice* "forehand") ;; "punch", "kick", "smash"
 ;; $ (load "nlopt_bspline_optimization.so")
+(setq *motion-choice* "forehand")
+(setq *obj* "jerk")
 (require "package://eus_nlopt/euslisp/nlopt")
 (require "package://tennis/euslisp/plot-utils.l")
 (when (and (not (boundp '*p-orig*)) (not (boundp '*x-max-of-p-orig*)))
@@ -9,6 +11,7 @@
 
 (comp::compile-file-if-src-newer (ros::resolve-ros-path "package://tennis/euslisp/qp-bspline-optimization.l") (ros::resolve-ros-path "package://tennis/euslisp/"))
 (require "package://tennis/euslisp/qp-bspline-optimization.so")
+
 
 
 
@@ -138,6 +141,7 @@
   (setq jpos-list '())
   (setq jvel-list '())
   (setq jacc-list '())
+  (setq *energy-weight* 0)
   (setq *energy* 0)
   (setq *tau-diff-norm* 0)
   (setq *hitting-maxvel-cp* 0)
@@ -624,7 +628,8 @@
     (setq tmp-jacobian (copy-seq v2))
     (dotimes (i w)
       (dotimes (j h)
-        (setf (aref v2 (+ j (* i h))) (aref tmp-jacobian (+ i (* j w))))))))
+        (setf (aref v2 (+ j (* i h))) (aref tmp-jacobian (+ i (* j w)))))))
+  )
 
 ;; 目的関数 min f(x)
 ;; v1: 設計変数p ((33+4) * *id-max* + timing vars)
@@ -654,97 +659,62 @@
     )
   
   (setq time (+ time dt))
-  (format t "time is ~a~%" time)
-  
-  ;; (format t "*energy* is initialized")
-  (format t "!!!!!!!!!!!!!!!制御周期のカウント!!!!!!!!!!!!!!! = ~s~%" cp)
-  ;; いや、これもう計算トルク法で実装したときのように、まえの制御で使ったjpos,jvel,jaccを覚えておいて、再度計算すればいいじゃん笑
-  ;; ほんとは、*bspline*のcalc-deltaで賢くやりたかったけど、引数がよくわからないし、calc-deltaが微分なのかも保証ないし、一旦この邪道でやるしかないか。
-  ;; (setq pre-jpos-list (send *robot* :angle-vector))
-  ;; これeusは複雑な制御式をかけないらしい、、ゆうて今回のは複雑でもないしprognでいけるか？
-  ;; (if (= cp 1)
-  ;;   (setq jvel-list '())
-  ;;   (setq jvel-list (scale (/ 1 dt) (v- jpos-list pre-jpos-list))
-  ;; 	  ;; scale number float-vectorで、float-vectorの各要素をnumber倍する。
-  ;; 	  ))
-  ;; (format t "====================jpos-list is=================~a~%" jpos-list)
-  ;; (setq tmp
-  ;; 	(send-all *jlist* :joint-angle)
-  ;; 	)
-  ;; (format t "====================jlist is=================~a~%" tmp)
-  ;; (setq tmpa
-  ;; 	(send-all *jlist* :joint-velocity)
-  ;; 	)
-  ;; (format t "====================jlist is=================~a~%" tmpa)
-  ;; (setq tmpb
-  ;; 	(send-all *jlist* :joint-acceleration)
-  ;; 	)
-  ;; (format t "====================jlist is=================~a~%" tmpb)
-
-  ;; だめだ、値が変わらない...
-  ;; これbsplineを使わないとダメなんじゃね？しんど〜〜 
-  ;; (format t "====================jvel-list is=================~a~%" jvel-list)
-  ;; (format t "letの前 ~%")
-  ;; (if (= cp 1)
-  ;;   (setq jacc-list '())
-  ;;   (setq jvel-list (/ (- jpos-list pre-jpos-list) dt)
-  ;; 	  )
+  (format t "time is ~a~%" time)  
 
   ;;このletから、色々進み出すはず。
   (let* ((integral-minjerk 0) (hitting-maxvel 0))
-    ;; (when (not (= *minjerk-weight* 0))
-    ;;   ;; 躍度の2乗の積分の和
-    ;;   (let* ((jid 0)
-    ;;          (integral-objective-coeff-matrix (send (car *bspline*) :calc-integral-objective-coeff-matrix :n 3)))
-    ;;     (mapc
-    ;;      #'(lambda (jl bs)
-    ;;          (setq integral-minjerk
-    ;;                (+ integral-minjerk
-    ;;                   (deg2rad (deg2rad ;; すでに2乗されているので足す前に2回deg2rad
-    ;;                             (v.
-    ;;                              (transform (subseq v1 (* jid *id-max*) (* (+ jid 1) *id-max*))
-    ;;                                         ;;(send bs :calc-integral-objective-coeff-matrix :n 3)
-    ;; 					    ;; jidは0で、*id-max*は14である。このsubseqあたりは何をしているのか？
-    ;; 					    ;; integral-minjerkのインクリメントになっていることから、v.以下ではこの制御周期でのjerkを計算しているはず。					    
-    ;;                                         integral-objective-coeff-matrix)
-    ;;                              (subseq v1 (* jid *id-max*) (* (+ jid 1) *id-max*)))))))
-    ;; 	     ;; (format t "v1 is ~a~%" (length v1))
-    ;; 	     (setq v1-tmp v1)
+    (when (not (= *minjerk-weight* 0))
+      ;; 躍度の2乗の積分の和
+      (let* ((jid 0)
+             (integral-objective-coeff-matrix (send (car *bspline*) :calc-integral-objective-coeff-matrix :n 3)))
+        (mapc
+         #'(lambda (jl bs)
+             (setq integral-minjerk
+                   (+ integral-minjerk
+                      (deg2rad (deg2rad ;; すでに2乗されているので足す前に2回deg2rad
+                                (v.
+                                 (transform (subseq v1 (* jid *id-max*) (* (+ jid 1) *id-max*))
+                                            ;;(send bs :calc-integral-objective-coeff-matrix :n 3)
+    					    ;; jidは0で、*id-max*は14である。このsubseqあたりは何をしているのか？
+    					    ;; integral-minjerkのインクリメントになっていることから、v.以下ではこの制御周期でのjerkを計算しているはず。					    
+                                            integral-objective-coeff-matrix)
+                                 (subseq v1 (* jid *id-max*) (* (+ jid 1) *id-max*)))))))
+    	     ;; (format t "v1 is ~a~%" (length v1))
+    	     (setq v1-tmp v1)
 
-    ;;          (setq jid (+ jid 1)))
+             (setq jid (+ jid 1)))
 
-    ;;      *jlist* *bspline*) ;; ここでは仮想ジョイントの躍度を考慮しない
-    ;;     (when (send (car (send *robot* :links)) :joint) ;; virtual jointありのとき
-    ;;       (mapc
-    ;;        #'(lambda (bs)
-    ;;            (setq integral-minjerk
-    ;;                  (+ integral-minjerk
-    ;;                     (* 1e-6 ;; すでに2乗されているので足す前に2回mm2m
-    ;;                        (v.
-    ;;                         (transform (subseq v1 (* jid *id-max*) (* (+ jid 1) *id-max*))
-    ;;                                    ;;(send bs :calc-integral-objective-coeff-matrix :n 3)
-    ;;                                    integral-objective-coeff-matrix)
-    ;;                         (subseq v1 (* jid *id-max*) (* (+ jid 1) *id-max*))))))
-    ;;            (setq jid (+ jid 1)))
+         *jlist* *bspline*) ;; ここでは仮想ジョイントの躍度を考慮しない
+        (when (send (car (send *robot* :links)) :joint) ;; virtual jointありのとき
+          (mapc
+           #'(lambda (bs)
+               (setq integral-minjerk
+                     (+ integral-minjerk
+                        (* 1e-6 ;; すでに2乗されているので足す前に2回mm2m
+                           (v.
+                            (transform (subseq v1 (* jid *id-max*) (* (+ jid 1) *id-max*))
+                                       ;;(send bs :calc-integral-objective-coeff-matrix :n 3)
+                                       integral-objective-coeff-matrix)
+                            (subseq v1 (* jid *id-max*) (* (+ jid 1) *id-max*))))))
+               (setq jid (+ jid 1)))
 
-    ;;        (subseq *bspline* (length *jlist*) (+ (length *jlist*) 3)))
-    ;;       (mapc
-    ;;        #'(lambda (bs)
-    ;;            (setq integral-minjerk
-    ;;                  (+ integral-minjerk
-    ;;                     (deg2rad (deg2rad ;; すでに2乗されているので足す前に2回deg2rad
-    ;;                               (v.
-    ;;                                (transform (subseq v1 (* jid *id-max*) (* (+ jid 1) *id-max*))
-    ;;                                           ;;(send bs :calc-integral-objective-coeff-matrix :n 3)
-    ;;                                           integral-objective-coeff-matrix)
-    ;;                                (subseq v1 (* jid *id-max*) (* (+ jid 1) *id-max*)))))))
-    ;;            (setq jid (+ jid 1)))
+           (subseq *bspline* (length *jlist*) (+ (length *jlist*) 3)))
+          (mapc
+           #'(lambda (bs)
+               (setq integral-minjerk
+                     (+ integral-minjerk
+                        (deg2rad (deg2rad ;; すでに2乗されているので足す前に2回deg2rad
+                                  (v.
+                                   (transform (subseq v1 (* jid *id-max*) (* (+ jid 1) *id-max*))
+                                              ;;(send bs :calc-integral-objective-coeff-matrix :n 3)
+                                              integral-objective-coeff-matrix)
+                                   (subseq v1 (* jid *id-max*) (* (+ jid 1) *id-max*)))))))
+               (setq jid (+ jid 1)))
 
-    ;;        (subseq *bspline* (+ (length *jlist*) 3) (+ (length *jlist*) 6)))
-    ;; 	  ))
+           (subseq *bspline* (+ (length *jlist*) 3) (+ (length *jlist*) 6)))
+    	  ))
 
-    ;;   )
-    ;;躍度最小化のwhenの締め
+      ) ;;躍度最小化のwhenの締め
 
     ;; hitting-poseにおける速度の最大化
     (when (not (= *maxvel-weight* 0))
@@ -839,38 +809,17 @@
           (setq hitting-maxvel (* 1e3 (v. hitting-dr hitting-direction)))  ;; バックハンドの場合は面の正方向の速度を最小化して、スケール合わせのために1000倍する
           )
 	)
-
-      ;; そもそも、jvel,jaccをどこでどう計算しているのか？
-      ;; 今の*jlist*からとってくるのでは不足している。
-      ;; 何故なら、show-optimized-motionの実装をコピーしてきただけであり、これはすでに計算が終わっているものであるからである。
-      ;; 原理的に考えるなら、bspline関連のどっかに微分して速度を得る箇所があるはずである。
-      ;; bsplineにおいて、何の何回微分がjvel,jaccに対応するかを理解しておくべきだろう。
+      ) ;; hitting-maxvelのwhenの締め
 
       ;; 現在時刻における関節角度，速度，加速度
       ;; (send *bspline* :calc-delta time )
-
-      ;; (let (jidnew 0)
-      ;; (mapc
-      ;;  #'(lambda (jl bs)
-      ;;      (send jl :joint-angle ;; 関節ごと
-      ;;            ;; (send bs :calc (aref v1 (- (length v1) *x-hit-id*)) (subseq v1 (* jid *id-max*) (* (+ jid 1) *id-max*))) ;; subseqは関節毎にpを抜き取ってる
-      ;;            (send bs :calc time (subseq v1 (* jidnew *id-max*) (* (+ jidnew 1) *id-max*))) ;; subseqは関節毎にpを抜き取ってる
-      ;;      )
-      ;;        ;; send bs :calc 時刻 ベクトル(基底関数の頂点の高さ(*p*と同じなのだが))->関節角がとれる
-      ;;        ;; send bs :calc-delta 時刻 ベクトル(基底関数の頂点の高さ(*p*と同じなのだが))->関節速度が取れる
-      ;;        ;; (send jl :put :dq (deg2rad (send bs :calc-delta (aref v1 (- (length v1) *x-hit-id*)) (subseq v1 (* jid *id-max*) (* (+ jid 1) *id-max*)) :n 1))) ;; 関節速度の単位は[rad]
-      ;;     (send jl :put :dq (deg2rad (send bs :calc-delta time (subseq v1 (* jidnew *id-max*) (* (+ jidnew 1) *id-max*)) :n 1))) ;; 関節速度の単位は[rad]
-      ;;     (setq jidnew (+ jidnew 1)))
-
-      ;;  *jlist* *bspline*)
-      ;; )
-      
-      (let* ((jid 0))
-       (mapc
-         #'(lambda (jl bs)
-             (send jl :joint-angle ;; 関節ごと
-                   ;; (send bs :calc (aref v1 (- (length v1) *x-hit-id*)) (subseq v1 (* jid *id-max*) (* (+ jid 1) *id-max*))) ;; subseqは関節毎にpを抜き取ってる
-                   (send bs :calc time (subseq v1 (* jid *id-max*) (* (+ jid 1) *id-max*))) ;; subseqは関節毎にpを抜き取ってる
+      (when (not (= *energy-weight* 0))
+	(let* ((jid 0))
+	  (mapc
+	   #'(lambda (jl bs)
+	       (send jl :joint-angle ;; 関節ごと
+		     ;; (send bs :calc (aref v1 (- (length v1) *x-hit-id*)) (subseq v1 (* jid *id-max*) (* (+ jid 1) *id-max*))) ;; subseqは関節毎にpを抜き取ってる
+		     (send bs :calc time (subseq v1 (* jid *id-max*) (* (+ jid 1) *id-max*))) ;; subseqは関節毎にpを抜き取ってる
                    )
              ;; send bs :calc 時刻 ベクトル(基底関数の頂点の高さ(*p*と同じなのだが))->関節角がとれる
              ;; send bs :calc-delta 時刻 ベクトル(基底関数の頂点の高さ(*p*と同じなのだが))->関節速度が取れる
@@ -987,49 +936,39 @@
       )
       
       (setq jpos-list (send *robot* :angle-vector))
-      ;; (format t "========letの後の=========jpos-list is=================~a~%" jpos-list)
+      )
 
-      ;; (setq pre-jvel-list ())      
-
-      ;; (mapc
-      ;;  #'(lambda (jl bs)
-      ;; 	   (send jl :joint-anble
-      ;;     (send *bspline* :calc-delta time (subseq v1 (* jid *id-max*) (* (+ jid 1) *id-max*))))
-      ;; (setq jid (+ jid 1))
-      ;;    )
-      ;; )
-      ) ;; 速度最大化のwhenの締め
 
     ;; 各値の重み付けによって評価関数を定める
     ;; original version
-    ;; (setf (aref v2 0)
-    ;;       (+ (* *minjerk-weight* integral-minjerk)
-    ;;          (* *maxvel-weight* hitting-maxvel)))
+    (setf (aref v2 0)
+          (+ (* *minjerk-weight* integral-minjerk)
+             (* *maxvel-weight* hitting-maxvel)))
 
-    ;; (setf (aref v2 0)
-    ;;       (+ (* *minjerk-weight* integral-minjerk)
-    ;;          (* *maxvel-weight* hitting-maxvel)))
+    (setf (aref v2 0)
+          (+ (* *minjerk-weight* integral-minjerk)
+             (* *maxvel-weight* hitting-maxvel)))
 
     ;; 評価関数の最小化。よって、min(v/w)でよいはず。
     ;; 本当に最小化か？最大化ではないのか？これどこで確認できるんだ？
-    (setf (aref v2 0)
-          (/
-	   (* *maxvel-weight* hitting-maxvel)
-           (* *minjerk-weight* *energy*)
-	   )
-	  )
+    ;; (setf (aref v2 0)
+    ;;       (/
+    ;; 	   (* *maxvel-weight* hitting-maxvel)
+    ;;        (* *minjerk-weight* *energy*)
+    ;; 	   )
+    ;; 	  )
 
-    (setq a
-          (/
-	   (* *maxvel-weight* hitting-maxvel)
-           (* *minjerk-weight* *energy*)
-	   )	
-	  )
+    ;; (setq a
+    ;;       (/
+    ;; 	   (* *maxvel-weight* hitting-maxvel)
+    ;;        (* *minjerk-weight* *energy*)
+    ;; 	   )	
+    ;; 	  )
     
-    (format t "energy -> ~s~%" *energy*)
+    ;; (format t "energy -> ~s~%" *energy*)
     (format t "integral-minjerk -> ~s~%" integral-minjerk)
     (format t "maxvel -> ~s~%" hitting-maxvel)
-    (format t "energy effieciency -> ~s~%" a)
+    ;; (format t "energy effieciency -> ~s~%" a)
     
     ) ;;letの締め
 
@@ -1196,7 +1135,8 @@
 
     ;; 各姿勢の２乗誤差を計算してv2に格納
     ;; もしかしたら、ここのuse-hit-poseを使わないことにより、インパクトのあれをけせる?
-    (setq *use-hit-pose* nil) ;;ここでnilにして強制的に使わなければよいので？
+    ;; (setq *use-hit-pose* nil) ;;ここでnilにして強制的に使わなければよいので？
+    ;; これ使わないと、roundoff error limited progressとなって、勾配がやりすぎちゃって最適化計算ができなくなる。
     
     (let* ((v2-0 (v- x-min-pose *initial-pose*))
            (v2-1 x-min-vel)
@@ -1414,8 +1354,6 @@
 
   (setq cp 1)
   (format t "g")
-
-
   0)
 ;; }}}
 
@@ -1424,7 +1362,7 @@
   (incf *eval-cnt-g*)
   (setq cp 1)
   (format t "dg")
-  
+  (resave)
   0)
 
 ;; {{{ 不等式制約 h(x) <= 0
@@ -1715,6 +1653,7 @@
 
 (defun-c-callable motion-dh ((v1 :string) (v2 :string)) :integer
   (simple-jacobian-transpose v1 v2 (read-from-string "motion-h") :delta *delta*)
+  ;; (format t "*delta* at dh is ~s~%" *delta)
   (incf *eval-cnt-h*)
   (setq cp 1)
   (format t "dh")
