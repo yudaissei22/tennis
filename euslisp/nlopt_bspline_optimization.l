@@ -1591,24 +1591,25 @@
         (progn
           (when (null (eq *eval-cnt-g* *eval-cnt-g-old*))
             (format t "equality condition: ~a~%" v2)
-            (with-open-file
-             (f (concatenate string *file-name* "_eq.dat") :direction :output :if-exists :append)
-             (dolist (eq-data (coerce v2 cons))
-               (format f "~a   " eq-data))
+            ;; (with-open-file
+            ;;  (f (concatenate string *file-name* "_eq.dat") :direction :output :if-exists :append)
+            ;;  (dolist (eq-data (coerce v2 cons))
+            ;;    (format f "~a   " eq-data))
 
-             (format f "~%"))
+            ;;  (format f "~%"))
 
             (setq *eval-cnt-g-old* *eval-cnt-g*)))
 
 
       (progn
         (format t "equality condition: ~a~%" v2)
-        (with-open-file
-         (f (concatenate string *file-name* "_eq.dat") :direction :output :if-exists :append)
-         (dolist (eq-data (coerce v2 cons))
-           (format f "~a   " eq-data))
+        ;; (with-open-file
+        ;;  (f (concatenate string *file-name* "_eq.dat") :direction :output :if-exists :append)
+        ;;  (dolist (eq-data (coerce v2 cons))
+        ;;    (format f "~a   " eq-data))
 
-         (format f "~%")))))
+        ;;  (format f "~%"))
+	)))
 
 
   (setq cp 1)
@@ -1886,24 +1887,25 @@
         (progn
           (when (null (eq *eval-cnt-h* *eval-cnt-h-old*))
             (format t "inequality function: ~a~%~%" v2)
-            (with-open-file
-             (f (concatenate string *file-name* "_ieq.dat") :direction :output :if-exists :append)
-             (dolist (ieq-data (coerce v2 cons))
-               (format f "~a   " ieq-data))
+            ;; (with-open-file
+            ;;  (f (concatenate string *file-name* "_ieq.dat") :direction :output :if-exists :append)
+            ;;  (dolist (ieq-data (coerce v2 cons))
+            ;;    (format f "~a   " ieq-data))
 
-             (format f "~%"))
+            ;;  (format f "~%"))
 
             (setq *eval-cnt-h-old* *eval-cnt-h*)))
 
 
       (progn
         (format t "inequality function: ~a~%~%" v2)
-        (with-open-file
-         (f (concatenate string *file-name* "_ieq.dat") :direction :output :if-exists :append)
-         (dolist (ieq-data (coerce v2 cons))
-           (format f "~a   " ieq-data))
+        ;; (with-open-file
+        ;;  (f (concatenate string *file-name* "_ieq.dat") :direction :output :if-exists :append)
+        ;;  (dolist (ieq-data (coerce v2 cons))
+        ;;    (format f "~a   " ieq-data))
 
-         (format f "~%")))))
+        ;;  (format f "~%"))
+	)))
   (setq cp 1)
   (format t "h")
   
@@ -2634,28 +2636,30 @@
                                              (nth 0 (rpy-angle (send tmp-rc :worldrot))))) ;; yaw pitch roll [rad]
 
             (setq bspline-optional (nth i *bspline-optional-list*))
-            (with-open-file
-             (f (concatenate string make-loadpattern ".pos") :direction :output :if-exists :append)
-             (format f "~a" tm)
-             (dotimes (j (length bspline-pos))
-               (format f " ~a" (aref bspline-pos j)))
+            ;; (with-open-file
+            ;;  (f (concatenate string make-loadpattern ".pos") :direction :output :if-exists :append)
+            ;;  (format f "~a" tm)
+            ;;  (dotimes (j (length bspline-pos))
+            ;;    (format f " ~a" (aref bspline-pos j)))
 
-             (if choreonoid
-                 (format f " -1.39626 1.39626 -1.39626 1.39626~%")
-               (format f "~%")))
+            ;;  (if choreonoid
+            ;;      (format f " -1.39626 1.39626 -1.39626 1.39626~%")
+            ;;    (format f "~%")))
 
 
-            (with-open-file
-             (f (concatenate string make-loadpattern ".zmp") :direction :output :if-exists :append)
-             (format f "~a ~a ~a ~a~%" tm (aref bspline-zmp 0) (aref bspline-zmp 1) (aref bspline-zmp 2))) ;; ２個目のzmpの位置は上で補正している
+            ;; (with-open-file
+            ;;  (f (concatenate string make-loadpattern ".zmp") :direction :output :if-exists :append)
+            ;;  (format f "~a ~a ~a ~a~%" tm (aref bspline-zmp 0) (aref bspline-zmp 1) (aref bspline-zmp 2)))
+	    ;; ２個目のzmpの位置は上で補正している
 
-            (with-open-file
-             (f (concatenate string make-loadpattern ".waist") :direction :output :if-exists :append)
-             (format f "~a ~a ~a ~a ~a ~a ~a~%" tm (aref bspline-waist 0) (aref bspline-waist 1) (aref bspline-waist 2) (aref bspline-waist 5) (aref bspline-waist 4) (aref bspline-waist 3))) ;; x y z roll pitch yaw
+            ;; (with-open-file
+            ;;  (f (concatenate string make-loadpattern ".waist") :direction :output :if-exists :append)
+            ;;  (format f "~a ~a ~a ~a ~a ~a ~a~%" tm (aref bspline-waist 0) (aref bspline-waist 1) (aref bspline-waist 2) (aref bspline-waist 5) (aref bspline-waist 4) (aref bspline-waist 3)))
+	    ;; x y z roll pitch yaw
 
-            (with-open-file
-             (f (concatenate string make-loadpattern ".optionaldata") :direction :output :if-exists :append)
-             (format f "~a ~a ~a ~a ~a ~a ~a ~a ~a~%" tm (aref bspline-optional 0) (aref bspline-optional 1) (aref bspline-optional 2) (aref bspline-optional 3) (aref bspline-optional 4) (aref bspline-optional 5) (aref bspline-optional 6) (aref bspline-optional 7)))
+            ;; (with-open-file
+            ;;  (f (concatenate string make-loadpattern ".optionaldata") :direction :output :if-exists :append)
+            ;;  (format f "~a ~a ~a ~a ~a ~a ~a ~a ~a~%" tm (aref bspline-optional 0) (aref bspline-optional 1) (aref bspline-optional 2) (aref bspline-optional 3) (aref bspline-optional 4) (aref bspline-optional 5) (aref bspline-optional 6) (aref bspline-optional 7)))
 
             (incf i))))
              ;; end dolist
@@ -2889,8 +2893,9 @@
 
 ;; ファイルの初期化
 (defun file-init (file-name)
-  (with-open-file
-   (f file-name :direction :output :if-exists :new-version)))
+  ;; (with-open-file
+  ;;  (f file-name :direction :output :if-exists :new-version))
+  )
 
 
 ;; plot-utils.lのコピペ
