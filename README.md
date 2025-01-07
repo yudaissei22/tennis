@@ -4,6 +4,7 @@ mkdir tennis_ws/src -p
 cd tennis_ws/src
 git clone https://github.com/yudaissei22/tennis
 git clone git@github.com:MiraiHattori/ball_state_msgs.git
+git clone git@gitlab.jsk.imi.i.u-tokyo.ac.jp:yuda/euslib_lib.git
 rosdep update
 rosdep install --from-paths . --ignore-src -y -r
 cd ..
@@ -41,6 +42,10 @@ $ (setq *motion-choice* "forehand") ;; forehandで最適化をするときの例
 ```
 (nlopt-init :x-max 2.4 :x-hit nil :id-max 14 :recursive-order 5 :use-all-joint t :use-append-root-joint t :support-polygon-margin (list 50 50 0 100 50) :epsilon-c 30 :mu 0.3 :use-final-pose nil :default-switching-list nil :use-6dof-p t)
 ```
+
+```
+(nlopt-init :x-max 3.0 :x-hit nil :id-max 14 :recursive-order 5 :use-all-joint t :use-append-root-joint t :support-polygon-margin (list 50 50 0 100 50) :epsilon-c 30 :mu 0.3 :use-final-pose nil :default-switching-list nil :use-6dof-p t)
+```
 記号は2016年度卒のterasawaの修論を参照
 * x-max: 動作全体の時間(終端時刻)t_f [s]
 * x-hit: タスク実行時刻 t_e [s] ;; (これはただの初期設定で，最適化の設計変数に含まれるものなのでnilでもよい(自動的に何らかの値が設定されるため))
@@ -60,6 +65,10 @@ $ (setq *motion-choice* "forehand") ;; forehandで最適化をするときの例
 4. nlopt-initをしたあとに表示されるコメントの例をもとに関数nlopt-motion-optimizeを実行する＝＞最適化計算の結果は変数\*p\*に勝手に入るが，前に計算した値を使いたいときなどはそのfloat-vectorの変数名を\*p\*としておくとよい．
 ```
 (nlopt-motion-optimize :x-max 2.4 :x-hit 1.46104 :id-max 14 :recursive-order 5 :max-eval 100000000 :alg SLSQP :delta (deg2rad 0.01) :eqthre 1e-8 :xtol 1e-10 :ftol 1e-15 :use-all-joint t :use-margin 0.5 :use-append-root-joint t :maxvel-weight 1 :minjerk-weight 5e-3 :modify-ec t :p *p* :interval-num 48 :title "maximize-speed" :max-time (* 2 24 60 60) :file-path "/tmp")
+```
+
+```
+(nlopt-motion-optimize :x-max 2.4 :x-hit 1.46104 :id-max 14 :recursive-order 5 :max-eval 100000000 :alg SLSQP :delta (deg2rad 0.01) :eqthre 1e-8 :xtol 1e-10 :ftol 1e-15 :use-all-joint t :use-margin 0.5 :use-append-root-joint t :maxvel-weight 1 :minjerk-weight 5e-3 :modify-ec t :p *p* :interval-num 20 :title "maximize-speed" :max-time (* 9 24 60 60) :file-path "/home/leus")
 ```
 * x-max, x-hit, id-max, recursive-order, use-all-joint, use-append-root-jointは3.を参照(nlopt-initで設定した値がここに表示されているはず)
 * max-eval: 評価の回数(大きめの値にして時間(:max-time)で切るのが良いかも)

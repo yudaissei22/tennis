@@ -1,8 +1,7 @@
-(require "package://tennis/../irteus_proposals/motion-lib-proposal.l")
-(require "package://tennis/../gnuplotlib.l")
+(require "package://tennis/../euslib_lib/motion-lib-proposal.l")
+(require "package://tennis/../euslib_lib/gnuplotlib.l")
 
 ;; ;; (require "package://tennis/../../../../../euslib/irteus_proposals/motion-lib-proposal.l")
-;; ;; これが呼べなくて困っている。euslibにパスを繋げばいける？
 ;; baseballのwsのを使用する。
 
 (require "package://tennis/euslisp/my-range.l")

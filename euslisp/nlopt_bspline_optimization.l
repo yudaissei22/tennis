@@ -1,5 +1,4 @@
 ;; $ roseus
-
 ;; $ (setq *motion-choice* "forehand") ;; "punch", "kick", "smash"
 ;; $ (load "nlopt_bspline_optimization.so")
 (setq *motion-choice* "forehand")
@@ -58,7 +57,6 @@
      ;; (init (qp-init))
 
      ;; terasawa version     
-
      (init (load "package://tennis/config/p-orig.l") ;; for setq *p-orig* and *x-max-of-p-orig*
          )
      (use-all-joint t)
@@ -222,7 +220,7 @@
 
 
     (format t "************* forehand **************~%")
-    (format t "(nlopt-init :x-max 2.4 :x-hit nil :id-max 14 :recursive-order 5 :use-all-joint t :use-append-root-joint t :interval-num 20 :support-polygon-margin (list 50 50 0 100 50) :epsilon-c 30 :mu 0.3 :use-final-pose nil :default-switching-list nil :use-6dof-p t)~%~%")
+    (format t "(nlopt-init :x-max ~s :x-hit nil :id-max 14 :recursive-order 5 :use-all-joint t :use-append-root-joint t :interval-num 20 :support-polygon-margin (list 50 50 0 100 50) :epsilon-c 30 :mu 0.3 :use-final-pose nil :default-switching-list nil :use-6dof-p t)~%~%" *x-max-of-p-orig*)
     ;; (format t "(nlopt-motion-optimize :x-max ~a :x-hit ~a :id-max ~a :recursive-order ~a :max-eval 100000000 :alg SLSQP :delta (deg2rad 0.01) :eqthre 1e-8 :xtol 1e-10 :ftol 1e-15 :use-all-joint t :use-margin 0.5 :use-append-root-joint t :maxvel-weight 1 :minjerk-weight 5e-3 :modify-ec t :p *p* :interval-num ~a :title \"maximize-speed\" :max-time (* 2 24 60 60) :file-path \"/tmp\")~%~%~%"
     ;;         *x-max* *default-x-hit* *id-max* *recursive-order* *interval-num*)
     (format t "(nlopt-motion-optimize :x-max ~a :x-hit ~a :id-max ~a :recursive-order ~a :max-eval 100000000 :alg SLSQP :delta (deg2rad 0.01) :eqthre 1e-8 :xtol 1e-10 :ftol 1e-15 :use-all-joint t :use-margin 0.5 :use-append-root-joint t :maxvel-weight 1 :minjerk-weight 5e-3 :modify-ec t :p *p* :interval-num ~a :title \"maximize-speed\" :max-time (* 9 24 60 60) :file-path \"/home/leus\")~%~%~%"
@@ -542,9 +540,12 @@
   (setq *bspline-tau-list* (reverse *bspline-tau-list*))
   (setq *bspline-hp-list* (reverse *bspline-hp-list*))
   (setq fname
-	(concatenate string *motion-choice* "_"  *obj* "_" (princ-to-string opt_number) ".l"))  
+	(concatenate string *motion-choice* "_" (princ-to-string *x-max-of-p-orig*) "_" *obj* "_" (princ-to-string opt_number) ".l"))
+  (setq fpath
+	(concatenate string "./" *motion-choice* "/" *obj* "/"))
+  (setq full (concatenate string fpath fname))  
   (dump-loadable-structure
-   fname
+   full
 			   *bspline-av-list*
 			   *bspline-tm-list*
 			   *bspline-zmp-rc-list*
@@ -558,7 +559,9 @@
 			   *p*
 			   *x-max-of-p-orig*
 			   *motion-choice*
-			   *hitting-maxvel-cp*
+			   *hitting-maxvel*
+			   *energy*
+			   *minjerk-weight*
 			   )
   )
 
@@ -853,71 +856,73 @@
       
   (when (= cp 1)
     (calc-maxvel v1 v2)
-    (calc-energy v1 v2)
+    ;; (calc-energy v1 v2)
+    (calc-jerk v1 v2)
     )
   
     ;; --- トルク変化最小化version ---
     ;; 時刻tでのトルクを求めて、t-1でのトルクとの差分ベクトルの二乗ノルムをゲットする。
     ;; ただし、t = 0なら、差分は取らないで、値の保存だけを行う。
-    (when (= *mode* 3)    
-      (when (= cp 1)
-	(dotimes (i (/ *x-max* dt))
-	  ;; 時刻tでの全関節のjav,jvel,jacc,jtauを計算 -> dotimesで241回
-	  (let* ((jid 0))
-	    (mapc
-	     #'(lambda (jl bs)
-		 ;; send-all *jlist* :methodsで全部見れる。今はmapcのため、send
-		 ;; その時刻での関節角度を保存している
-		 ;; 　　　-> jlistには時間の情報ないので、毎回上書きされる
-		 (send jl :joint-angle
-		       (send bs :calc (* i dt) (subseq v1 (* jid *id-max*) (* (+ jid 1) *id-max*))))
-		 ;; 関節速度の単位は[rad]
-		 (send jl :put :dq
-		       (deg2rad
-			(send bs :calc-delta (* i dt) (subseq v1 (* jid *id-max*) (* (+ jid 1) *id-max*)) :n 1)))
-		 (send jl :put :ddq
-		       (deg2rad
-			(deg2rad
-			 (send bs :calc-delta (* i dt)
-			       (subseq v1 (* jid *id-max*) (* (+ jid 1) *id-max*)) :n 2))))
-		 (incf jid)
+    ;; (when (= *mode* "3")    
+    ;;   (when (= cp 1)
+    ;; 	(dotimes (i (/ *x-max* dt))
+    ;; 	  ;; 時刻tでの全関節のjav,jvel,jacc,jtauを計算 -> dotimesで241回
+    ;; 	  (let* ((jid 0))
+    ;; 	    (mapc
+    ;; 	     #'(lambda (jl bs)
+    ;; 		 ;; send-all *jlist* :methodsで全部見れる。今はmapcのため、send
+    ;; 		 ;; その時刻での関節角度を保存している
+    ;; 		 ;; 　　　-> jlistには時間の情報ないので、毎回上書きされる
+    ;; 		 (send jl :joint-angle
+    ;; 		       (send bs :calc (* i dt) (subseq v1 (* jid *id-max*) (* (+ jid 1) *id-max*))))
+    ;; 		 ;; 関節速度の単位は[rad]
+    ;; 		 (send jl :put :dq
+    ;; 		       (deg2rad
+    ;; 			(send bs :calc-delta (* i dt) (subseq v1 (* jid *id-max*) (* (+ jid 1) *id-max*)) :n 1)))
+    ;; 		 (send jl :put :ddq
+    ;; 		       (deg2rad
+    ;; 			(deg2rad
+    ;; 			 (send bs :calc-delta (* i dt)
+    ;; 			       (subseq v1 (* jid *id-max*) (* (+ jid 1) *id-max*)) :n 2))))
+    ;; 		 (incf jid)
 
-		 (setq jvel-for-id (send-all *jlist* :get :dq))
-		 (setq jacc-for-id (send-all *jlist* :get :ddq))
+    ;; 		 (setq jvel-for-id (send-all *jlist* :get :dq))
+    ;; 		 (setq jacc-for-id (send-all *jlist* :get :ddq))
 
-		 ;; jvelとjaccの型はfloat-vector?
-		 (send *robot* :calc-torque-from-vel-acc
-		       :jvv jvel-for-id
-		       :jav jacc-for-id
-		       )
-		 (setq jtau (coerce (send-all *jlist* :joint-torque) float-vector))
+    ;; 		 ;; jvelとjaccの型はfloat-vector?
+    ;; 		 (send *robot* :calc-torque-from-vel-acc
+    ;; 		       :jvv jvel-for-id
+    ;; 		       :jav jacc-for-id
+    ;; 		       )
+    ;; 		 (setq jtau (coerce (send-all *jlist* :joint-torque) float-vector))
 		 
-		 ;; トルク変化の計算
-		 (unless (= i 0)
-		   (setq tau-diff (scale (/ 1 dt) (v- jtau pre-tau))))
-		 (setq pre-tau jtau)
-		 (unless (= i 0)
-		   (setq *tau-diff-norm* (+ *tau-diff-norm*
-					    (norm2 tau-diff)))
-			 (format t "tau-diff-norm2 at t=~s ~s~%" *tau-diff-norm* i))
-		 ) ;; lambda
-	     *jlist* *bspline*) ;; mapc
-	    ) ;; let
-	  (format t "tau-diff-norm is ~a~%" *tau-diff-norm*)
-	  ) ;; dotimes
-	) ;; when      
-    ) ;;トルク変化最小のversion
+    ;; 		 ;; トルク変化の計算
+    ;; 		 (unless (= i 0)
+    ;; 		   (setq tau-diff (scale (/ 1 dt) (v- jtau pre-tau))))
+    ;; 		 (setq pre-tau jtau)
+    ;; 		 (unless (= i 0)
+    ;; 		   (setq *tau-diff-norm* (+ *tau-diff-norm*
+    ;; 					    (norm2 tau-diff)))
+    ;; 			 (format t "tau-diff-norm2 at t=~s ~s~%" *tau-diff-norm* i))
+    ;; 		 ) ;; lambda
+    ;; 	     *jlist* *bspline*) ;; mapc
+    ;; 	    ) ;; let
+    ;; 	  (format t "tau-diff-norm is ~a~%" *tau-diff-norm*)
+    ;; 	  ) ;; dotimes
+    ;; 	) ;; when      
+    ;; )
+    ;;トルク変化最小のversion
    
 
     ;; --- 評価関数の最小化
     ;; エネルギー最小化
     (setf (aref v2 0)
-          (+ (* *minjerk-weight* *energy*)
+          (+ (* *minjerk-weight* *jerk*)
 	     (* *maxvel-weight* *hitting-maxvel*)
     	     )
     	  )
     (setq q
-          (+ (* *minjerk-weight* *energy*)
+          (+ (* *minjerk-weight* *jerk*)
 	     (* *maxvel-weight* *hitting-maxvel*)
     	     )
     	  )
@@ -1283,7 +1288,8 @@
   (format t "defun-c-callable motion-df is called ~%")
   (simple-jacobian-transpose v1 v2 (read-from-string "motion-f") :delta *delta*)
   (incf *eval-cnt-f*)
-  (show-optimized-motion v1 :interval-num *interval-num* :real-time nil)
+  ;; (show-optimized-motion v1 :interval-num *interval-num* :real-time nil)
+  (show-optimized-motion v1 :x-step 0.01 :real-time nil)  
   ;; (dump-lists)
   (incf opt_number)
   (resave)
@@ -2072,10 +2078,10 @@
     (setq *file-name* (concatenate string file-directory "/" title)))
 
   ;; 最初に空のdatファイルを作っておく
-  (file-init (concatenate string *file-name* "_obj.dat"))
-  (file-init (concatenate string *file-name* "_eq.dat"))
-  (file-init (concatenate string *file-name* "_ieq.dat"))
-  (file-init (concatenate string *file-name* "_p.dat"))
+  ;; (file-init (concatenate string *file-name* "_obj.dat"))
+  ;; (file-init (concatenate string *file-name* "_eq.dat"))
+  ;; (file-init (concatenate string *file-name* "_ieq.dat"))
+  ;; (file-init (concatenate string *file-name* "_p.dat"))
 
   (when use-append-root-joint
     (setq initial-pose (concatenate float-vector
@@ -2232,32 +2238,32 @@
         (with-append-root-joint
          (link-list-with-robot-6dof *robot* (list (cdr (send *robot* :links)))
                                     :joint-class 6dof-joint)
-         (when dry-run
-           (setq v2_ (instantiate float-vector 10000))
-           (funcall (read-from-string "motion-f") p v2_)
-           (with-open-file (f "/tmp/dry_run_obj.dat" :direction :output :if-exists :new-version)
-                           (format f "~A~%" (coerce (set-difference (coerce v2_ cons) (list 0.0)) float-vector)))
-           (setq v2_ (instantiate float-vector 10000))
-           (funcall (read-from-string "motion-df") p v2_)
-           (with-open-file (f "/tmp/dry_run_dobj.dat" :direction :output :if-exists :new-version)
-                           (format f "~A~%" (coerce (set-difference (coerce v2_ cons) (list 0.0)) float-vector)))
-           (setq v2_ (instantiate float-vector 10000))
-           (funcall (read-from-string "motion-g") p v2_)
-           (with-open-file (f "/tmp/dry_run_eq.dat" :direction :output :if-exists :new-version)
-                           (format f "~A~%" (coerce (set-difference (coerce v2_ cons) (list 0.0)) float-vector)))
-           (setq v2_ (instantiate float-vector 10000))
-           (funcall (read-from-string "motion-dg") p v2_)
-           (with-open-file (f "/tmp/dry_run_deq.dat" :direction :output :if-exists :new-version)
-                           (format f "~A~%" (coerce (set-difference (coerce v2_ cons) (list 0.0)) float-vector)))
-           (setq v2_ (instantiate float-vector 10000))
-           (funcall (read-from-string "motion-h") p v2_)
-           (with-open-file (f "/tmp/dry_run_ieq.dat" :direction :output :if-exists :new-version)
-                           (format f "~A~%" (coerce (set-difference (coerce v2_ cons) (list 0.0)) float-vector)))
-           ;; (setq v2_ (instantiate float-vector 1000000))
-           ;; (funcall (read-from-string "motion-dh") p v2_)
-           ;; (with-open-file (f "/tmp/dry_run_dieq.dat" :direction :output :if-exists :new-version)
-           ;;                 (format f "~A~%" (coerce (set-difference (coerce v2_ cons) (list 0.0)) float-vector)))
-           )
+         ;; (when dry-run
+         ;;   (setq v2_ (instantiate float-vector 10000))
+         ;;   (funcall (read-from-string "motion-f") p v2_)
+         ;;   (with-open-file (f "/tmp/dry_run_obj.dat" :direction :output :if-exists :new-version)
+         ;;                   (format f "~A~%" (coerce (set-difference (coerce v2_ cons) (list 0.0)) float-vector)))
+         ;;   (setq v2_ (instantiate float-vector 10000))
+         ;;   (funcall (read-from-string "motion-df") p v2_)
+         ;;   (with-open-file (f "/tmp/dry_run_dobj.dat" :direction :output :if-exists :new-version)
+         ;;                   (format f "~A~%" (coerce (set-difference (coerce v2_ cons) (list 0.0)) float-vector)))
+         ;;   (setq v2_ (instantiate float-vector 10000))
+         ;;   (funcall (read-from-string "motion-g") p v2_)
+         ;;   (with-open-file (f "/tmp/dry_run_eq.dat" :direction :output :if-exists :new-version)
+         ;;                   (format f "~A~%" (coerce (set-difference (coerce v2_ cons) (list 0.0)) float-vector)))
+         ;;   (setq v2_ (instantiate float-vector 10000))
+         ;;   (funcall (read-from-string "motion-dg") p v2_)
+         ;;   (with-open-file (f "/tmp/dry_run_deq.dat" :direction :output :if-exists :new-version)
+         ;;                   (format f "~A~%" (coerce (set-difference (coerce v2_ cons) (list 0.0)) float-vector)))
+         ;;   (setq v2_ (instantiate float-vector 10000))
+         ;;   (funcall (read-from-string "motion-h") p v2_)
+         ;;   (with-open-file (f "/tmp/dry_run_ieq.dat" :direction :output :if-exists :new-version)
+         ;;                   (format f "~A~%" (coerce (set-difference (coerce v2_ cons) (list 0.0)) float-vector)))
+         ;;   ;; (setq v2_ (instantiate float-vector 1000000))
+         ;;   ;; (funcall (read-from-string "motion-dh") p v2_)
+         ;;   ;; (with-open-file (f "/tmp/dry_run_dieq.dat" :direction :output :if-exists :new-version)
+         ;;   ;;                 (format f "~A~%" (coerce (set-difference (coerce v2_ cons) (list 0.0)) float-vector)))
+         ;;   )
          (when (not dry-run)
          (print (nlopt-optimize
           :initial-state p
