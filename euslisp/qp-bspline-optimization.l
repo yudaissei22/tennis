@@ -336,6 +336,7 @@
       ;; (send robot :fix-leg-to-coords *lfoot* :lleg)
       (setq x-buf (+ x-buf x-step))
       (send *irtviewer* :draw-objects)
+      (send robot :fix-leg-to-coords (make-coords) :rleg)
       ;; (send *viewer* :viewsurface :write-to-image-file (format nil "/home/yuda/logs/qp-init-~d.jpg" out-img-id))
       (setq out-img-id (+ out-img-id 1)) ;; (incf out-img-id) is also ok
       (x::window-main-one)

@@ -825,6 +825,54 @@
     )
   )
 
+(defun calc-torque-diff (v1 v2)
+  (dotimes (i (/ *x-max* dt))
+    ;; 時刻tでの全関節のjav,jvel,jacc,jtauを計算 -> dotimesで241回
+    (let* ((jid 0))
+      (mapc
+       #'(lambda (jl bs)
+	   ;; send-all *jlist* :methodsで全部見れる。今はmapcのため、send
+	   ;; その時刻での関節角度を保存している
+	   ;; 　　　-> jlistには時間の情報ないので、毎回上書きされる
+	   (send jl :joint-angle
+		 (send bs :calc (* i dt) (subseq v1 (* jid *id-max*) (* (+ jid 1) *id-max*))))
+	   ;; 関節速度の単位は[rad]
+	   (send jl :put :dq
+		 (deg2rad
+		  (send bs :calc-delta (* i dt) (subseq v1 (* jid *id-max*) (* (+ jid 1) *id-max*)) :n 1)))
+	   (send jl :put :ddq
+		 (deg2rad
+		  (deg2rad
+		   (send bs :calc-delta (* i dt)
+			 (subseq v1 (* jid *id-max*) (* (+ jid 1) *id-max*)) :n 2))))
+	   (incf jid)
+
+	   (setq jvel-for-id (send-all *jlist* :get :dq))
+	   (setq jacc-for-id (send-all *jlist* :get :ddq))
+
+	   ;; jvelとjaccの型はfloat-vector?
+	   (send *robot* :calc-torque-from-vel-acc
+		 :jvv jvel-for-id
+		 :jav jacc-for-id
+		 )
+	   (setq jtau (coerce (send-all *jlist* :joint-torque) float-vector))
+	   
+	   ;; トルク微分
+	   (unless (= i 0)
+	     (setq tau-diff (scale (/ 1 dt) (v- jtau pre-tau)))
+	     )
+	   (setq pre-tau jtau)
+	   (unless (= i 0)
+	     (setq *tau-diff-norm* (+ *tau-diff-norm*
+				      (norm2 tau-diff)))
+	     (format t "tau-diff-norm2 at t=~s ~s~%" *tau-diff-norm* i)
+	     )
+	   ) ;; lambda
+       *jlist* *bspline*) ;; mapc
+      ) ;; let
+    (format t "tau-diff-norm is ~a~%" *tau-diff-norm*)
+    )
+  )
 
 
 ;; 目的関数 min f(x)
@@ -865,52 +913,9 @@
     ;; ただし、t = 0なら、差分は取らないで、値の保存だけを行う。
     ;; (when (= *mode* "3")    
     ;;   (when (= cp 1)
-    ;; 	(dotimes (i (/ *x-max* dt))
-    ;; 	  ;; 時刻tでの全関節のjav,jvel,jacc,jtauを計算 -> dotimesで241回
-    ;; 	  (let* ((jid 0))
-    ;; 	    (mapc
-    ;; 	     #'(lambda (jl bs)
-    ;; 		 ;; send-all *jlist* :methodsで全部見れる。今はmapcのため、send
-    ;; 		 ;; その時刻での関節角度を保存している
-    ;; 		 ;; 　　　-> jlistには時間の情報ないので、毎回上書きされる
-    ;; 		 (send jl :joint-angle
-    ;; 		       (send bs :calc (* i dt) (subseq v1 (* jid *id-max*) (* (+ jid 1) *id-max*))))
-    ;; 		 ;; 関節速度の単位は[rad]
-    ;; 		 (send jl :put :dq
-    ;; 		       (deg2rad
-    ;; 			(send bs :calc-delta (* i dt) (subseq v1 (* jid *id-max*) (* (+ jid 1) *id-max*)) :n 1)))
-    ;; 		 (send jl :put :ddq
-    ;; 		       (deg2rad
-    ;; 			(deg2rad
-    ;; 			 (send bs :calc-delta (* i dt)
-    ;; 			       (subseq v1 (* jid *id-max*) (* (+ jid 1) *id-max*)) :n 2))))
-    ;; 		 (incf jid)
+    	 ;; dotimes
 
-    ;; 		 (setq jvel-for-id (send-all *jlist* :get :dq))
-    ;; 		 (setq jacc-for-id (send-all *jlist* :get :ddq))
-
-    ;; 		 ;; jvelとjaccの型はfloat-vector?
-    ;; 		 (send *robot* :calc-torque-from-vel-acc
-    ;; 		       :jvv jvel-for-id
-    ;; 		       :jav jacc-for-id
-    ;; 		       )
-    ;; 		 (setq jtau (coerce (send-all *jlist* :joint-torque) float-vector))
-		 
-    ;; 		 ;; トルク変化の計算
-    ;; 		 (unless (= i 0)
-    ;; 		   (setq tau-diff (scale (/ 1 dt) (v- jtau pre-tau))))
-    ;; 		 (setq pre-tau jtau)
-    ;; 		 (unless (= i 0)
-    ;; 		   (setq *tau-diff-norm* (+ *tau-diff-norm*
-    ;; 					    (norm2 tau-diff)))
-    ;; 			 (format t "tau-diff-norm2 at t=~s ~s~%" *tau-diff-norm* i))
-    ;; 		 ) ;; lambda
-    ;; 	     *jlist* *bspline*) ;; mapc
-    ;; 	    ) ;; let
-    ;; 	  (format t "tau-diff-norm is ~a~%" *tau-diff-norm*)
-    ;; 	  ) ;; dotimes
-    ;; 	) ;; when      
-    ;; )
+    
     ;;トルク変化最小のversion
    
 
@@ -918,11 +923,13 @@
     ;; エネルギー最小化
     (setf (aref v2 0)
           (+ (* *minjerk-weight* *jerk*)
+          ;; (+ (* *minjerk-weight* *energy*)	     
 	     (* *maxvel-weight* *hitting-maxvel*)
     	     )
     	  )
     (setq q
           (+ (* *minjerk-weight* *jerk*)
+          ;; (+ (* *minjerk-weight* *energy*)	     
 	     (* *maxvel-weight* *hitting-maxvel*)
     	     )
     	  )
