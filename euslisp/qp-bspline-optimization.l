@@ -26,7 +26,8 @@
   ;; *key-pose-id*には，初期ポーズ，タスク達成ポーズ，最終ポーズの3つがある
   (funcall *load-pose-func* :pose (nth 0 *key-pose-id*)) ;; init-pose
   (send *irtviewer* :draw-objects))
-  ;;(format t ";;(qp-motion-optimize :x-max 2.6 :x-hit 1.7 :maxvel-weight 1e3 :minjerk-weight 1e0 :x-step 0.02)~%")
+  ;; (format t ";;(qp-motion-optimize :x-max 2.6 :x-hit 1.7 :maxvel-weight 1e3 :minjerk-weight 1e0 :x-step 0.02)~%")
+  (format t "(qp-motion-optimize :use-all-joint t :use-append-root-joint t :use-margin 30 :x-max 3.0 :x-hit 1.95 :maxvel-weight 1e3 :minjerk-weight 1e0 :x-step 0.01)")
 
 
 ;; optimization by qp
@@ -211,28 +212,60 @@
    ;; これを小さくするとinit-pose(stateが0になる状態)になるような解
    (minjerk-weight 1e-3)
    ;; (minjerk-weight 1)
+   ;; (eval-weight-matrix ;; (jlist*id-max)^2の正方行列
+   ;;  ;; minimize integreted jerk squared
+   ;;  (let* ((mat
+   ;;          (matrix-append
+   ;;           (mapcar
+   ;;            #'(lambda (rate)
+   ;;                (m* (let ((l (make-list 39 :initial-element 1))) (setf (elt l 35) 1000) (diagonal l))
+   ;;                    (matrix-append
+   ;;                    (mapcar
+   ;;                      #'(lambda (bs)
+   ;;                          (make-matrix ;; 1行id-max列の行列を作る
+   ;;                            1 id-max
+   ;;                            (list
+   ;;                              (send bs :calc-delta-coeff-vector ;; :calc-delta-coeff-vector (x &key (n 1)) bsplineのn階微分したときのxにおける値
+   ;;                                    (+ x-min (* rate (- x-max x-min))) ;; x-minからx-maxの間で離散化
+   ;;                                    :n 3))))
+   ;;                      bspline) ;; 1行id-max(=9)列の行列の関節数(=8)個のlist
+   ;;                 '(1 1))))
+   ;;            '(0 0.1 0.2 0.3 0.4 0.5 0.6 0.7 0.8 0.9 1.0)) ;; 8行72列の行列の離散化した分(=11)のリスト
+   ;;           '(1 0)))) ;; 88行72列の行列(上のリストを縦につなげる)
+   ;;    (m* (transpose mat) mat))
+   ;;  )
+   ;; M^T*M jerkの二乗
+
    (eval-weight-matrix ;; (jlist*id-max)^2の正方行列
     ;; minimize integreted jerk squared
     (let* ((mat
             (matrix-append
              (mapcar
-              #'(lambda (rate)
+              #'(lambda (rate) ;;これが時間の役割
                   (m* (let ((l (make-list 39 :initial-element 1))) (setf (elt l 35) 1000) (diagonal l))
                       (matrix-append
                       (mapcar
-                        #'(lambda (bs)
+                        #'(lambda (bs jl)
                             (make-matrix ;; 1行id-max列の行列を作る
                               1 id-max
                               (list
-                                (send bs :calc-delta-coeff-vector ;; :calc-delta-coeff-vector (x &key (n 1)) bsplineのn階微分したときのxにおける値
-                                      (+ x-min (* rate (- x-max x-min))) ;; x-minからx-maxの間で離散化
-                                      :n 3))))
-                        bspline) ;; 1行id-max(=9)列の行列の関節数(=8)個のlist
+			       (send bs :calc-delta-coeff-vector ;; :calc-delta-coeff-vector (x &key (n 1)) bsplineのn階微分したときのxにおける値
+			             (+ x-min (* rate (- x-max x-min))) ;; x-minからx-maxの間で離散化
+			             :n 3)
+			       ;; (send bs :calc-torque-from-vel-acc
+			       ;; 	     :jav
+			       ;; 	     (deg2rad (send bs :calc-delta (+ x-min (*rate (- x-max x-min)))) )
+			       ;; 	     :jvv
+			       ;; 	     )
+			       
+				)
+			      ))
+                        bspline jlist) ;; 1行id-max(=9)列の行列の関節数(=8)個のlist
                    '(1 1))))
               '(0 0.1 0.2 0.3 0.4 0.5 0.6 0.7 0.8 0.9 1.0)) ;; 8行72列の行列の離散化した分(=11)のリスト
              '(1 0)))) ;; 88行72列の行列(上のリストを縦につなげる)
-      (m* (transpose mat) mat))) ;; M^T*M jerkの二乗
-
+      (m* (transpose mat) mat))
+    )
 
    (unit-matrix-weight 1e-3)
    ;; (eigen-weight 1) ;; for compile
