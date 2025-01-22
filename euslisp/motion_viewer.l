@@ -58,13 +58,22 @@
 	)
   )
 
-(defun png (fname)
-  (setq count 1)
+;; 指定した個数のpngを作成する
+(defun png ()
+  (&key
+   (fname "forehand_jerk")
+   (x-max 2.4)
+   (rate 5)
+	)
+  (setq rate (/ (round (* x-max 100)) 5))
+  (setq count 0)
   (mapc #'(lambda (av rc)
 	    (send robot :angle-vector av)
 	    (send robot :fix-leg-to-coords (make-coords) :both)
 	    (send *irtviewer* :draw-objects)
-	    (send *irtviewer* :save-mpeg :fname (concatenate string fname (princ-to-string count)))
+	    (if (= count rate)
+		(send *irtviewer* :save-mpeg :fname (concatenate string fname "_" (princ-to-string rate)))
+	      )
 	    (incf count)
 	    )
 	*bspline-av-list*
