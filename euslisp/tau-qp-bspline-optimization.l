@@ -214,7 +214,8 @@
    ;; (minjerk-weight 1)
    (eval-weight-matrix ;; (jlist*id-max)^2の正方行列
     ;; minimize integreted jerk squared
-    (let* ((mat
+    (let* (
+	   (mat
             (matrix-append
              (mapcar
               #'(lambda (rate)
